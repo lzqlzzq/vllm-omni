@@ -1,13 +1,13 @@
 # YuE2 validation evidence
 
-Companion evidence for [`feat/yue2-feature-enhancements`](https://github.com/lzqlzzq/vllm-omni/tree/feat/yue2-feature-enhancements), implementation commit `d413a22364d1acd297778fea7edfc1a9de7ee12b` on main `2c72dea3aab6a6781ea650798cfdf85748abf0ef`. This branch contains validation material only; its repository root does not include the implementation patch.
+Companion evidence for [`feat/yue2-feature-enhancements`](https://github.com/lzqlzzq/vllm-omni/tree/feat/yue2-feature-enhancements), implementation commit `15d1c014eab7f4d13a815cf6fd914a8fa993b7b0` on main `2c72dea3aab6a6781ea650798cfdf85748abf0ef`. This branch contains validation material only; its repository root does not include the implementation patch.
 
 ## Results and scope
 
 | Evidence | Source revision | Result |
 | --- | --- | --- |
-| [CPU regressions](regression/remote) | `2c72dea3` + PR | 246 YuE2 tests passed; 277 shared tests passed, 2 CUDA-only skips |
-| [Pre-commit](regression/precommit-final.log) | `2c72dea3` + PR | All applicable checks passed |
+| [CPU regressions](test-consolidation) | `15d1c014` (tests-only follow-up) | 247 YuE2 tests passed; earlier 277 shared passes/2 CUDA-only skips at `d413a223` |
+| [Pre-commit](test-consolidation/precommit-final.log) | `15d1c014` | All applicable checks passed for changed tests; prior full checks retained |
 | [Native ABC/CFG/HTTP](performance/artifacts) | `f9143976` + PR | AR1/AR2, 402 paired sampling steps, five HTTP successes/two parameter rejections |
 | [Performance](performance/artifacts/comparison.json) | `f9143976`, main + common loading fix vs PR | Throughput +6.22/+6.38%; E2EL P95 −13.94/−14.10%; RTF P95 −15.75/−15.86% |
 | [WSB PER/SongBench](wsb/scoring/nar1-full-scores-01/summary.json) | `f9143976` + PR | 384 outputs scored; 192 selected by PER |
@@ -52,7 +52,7 @@ The wrapper was syntax-checked and source reconstruction was verified locally; i
 
 ## Repeat the current CPU regressions
 
-In an implementation checkout at `d413a22364d1acd297778fea7edfc1a9de7ee12b`, with the [recorded dependencies](regression/remote/installed.txt):
+In an implementation checkout at `15d1c014eab7f4d13a815cf6fd914a8fa993b7b0`, with the [recorded dependencies](regression/remote/installed.txt):
 
 ```bash
 CUDA_VISIBLE_DEVICES='' python -m pytest tests/worker/test_yue2_*.py tests/entrypoints/openai_api/test_tts_adapter.py tests/core/sched/test_omni_cfg_ar_scheduler.py -m 'core_model and cpu' --run-level core_model -q

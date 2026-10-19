@@ -1,0 +1,6 @@
+{
+  "tests/worker/test_yue2_acoustic_batch.py": "7b37e165cf3fee0b4d7eabb302e0836bfdb6f6e397c8cd1802160f892de9dd85",
+  "tests/worker/test_yue2_loading.py": "08e481207cd8736dd3fc736b57e21c4953ecd5f9b2a4e11ab0243bd0baa8f328",
+  "tests/worker/test_yue2_request.py": "dee8e5e49c90d852e2896bbbd68679f2bc051e1619abe411d5036e7d2896fb86",
+  "tests/worker/test_yue2_runtime.py": "69113af6eb58f460918e4974f6d4a2e490e51ffc4114c14c10949e14fd789402"
+}

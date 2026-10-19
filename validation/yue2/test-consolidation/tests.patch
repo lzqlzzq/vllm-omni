@@ -1,0 +1,825 @@
+diff --git a/tests/worker/test_yue2_acoustic_batch.py b/tests/worker/test_yue2_acoustic_batch.py
+index 61e426201..3426ca093 100644
+--- a/tests/worker/test_yue2_acoustic_batch.py
++++ b/tests/worker/test_yue2_acoustic_batch.py
+@@ -4,6 +4,7 @@
+ 
+ import pytest
+ import torch
++import torch.nn.functional as F
+ from torch import nn
+ 
+ from vllm_omni.model_executor.models.yue2 import batched_nar, yue2
+@@ -75,12 +76,24 @@ def inputs(lengths):
+ 
+ 
+ @pytest.mark.parametrize("lengths", [[(5, 4), (5, 4)], [(3, 2), (7, 5)], [(7, 2), (3, 5), (4, 3), (6, 4)]])
++@pytest.mark.parametrize("varlen", [False, True])
+ @torch.inference_mode()
+-def test_batched_solver_matches_independent_requests(tiny_model, lengths):
+-    chunks, conditions = inputs(lengths)
+-    expected = [yue2.CachedNAR(tiny_model, c).solve(3) for c, kv in zip(chunks, conditions)]
++def test_batched_solver_matches_independent_requests(tiny_model, lengths, varlen):
++    chunks, _ = inputs(lengths)
++    expected = [yue2.CachedNAR(tiny_model, c).solve(3) for c in chunks]
+     engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
++
++    def varlen_oracle(q, k, v, *, cu_seqlens_q, cu_seqlens_k, **kwargs):
++        # Independent attention on the packed spans checks both gather indices
++        # and cumulative boundaries; CUDA tests use the real flash kernel.
++        outputs = []
++        for qa, qb, ka, kb in zip(cu_seqlens_q[:-1], cu_seqlens_q[1:], cu_seqlens_k[:-1], cu_seqlens_k[1:]):
++            outputs.append(yue2._attention(q[qa:qb], k[ka:kb], v[ka:kb], causal=False))
++        return torch.cat(outputs)
++
+     yue2._drain(engine.prefill_iter())
++    if varlen:
++        engine.batch_flash = varlen_oracle
+     actual = yue2._drain(engine.solve_iter(3)).split(engine.lengths)
+     for index, value in enumerate(expected):
+         torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
+@@ -103,27 +116,6 @@ def test_request_order_and_lengths_do_not_leak_between_songs(tiny_model):
+     torch.testing.assert_close(first[0], second[1], atol=2e-6, rtol=2e-5)
+ 
+ 
+-@torch.inference_mode()
+-def test_packed_varlen_boundaries_match_independent_requests(tiny_model):
+-    chunks, conditions = inputs([(7, 2), (3, 5), (4, 3), (6, 4)])
+-    expected = [yue2.CachedNAR(tiny_model, c).solve(2) for c, kv in zip(chunks, conditions)]
+-    engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
+-
+-    def varlen_oracle(q, k, v, *, cu_seqlens_q, cu_seqlens_k, **kwargs):
+-        # Independent attention on the packed spans checks both gather indices
+-        # and cumulative boundaries; CUDA tests use the real flash kernel.
+-        outputs = []
+-        for qa, qb, ka, kb in zip(cu_seqlens_q[:-1], cu_seqlens_q[1:], cu_seqlens_k[:-1], cu_seqlens_k[1:]):
+-            outputs.append(yue2._attention(q[qa:qb], k[ka:kb], v[ka:kb], causal=False))
+-        return torch.cat(outputs)
+-
+-    yue2._drain(engine.prefill_iter())
+-    engine.batch_flash = varlen_oracle
+-    actual = yue2._drain(engine.solve_iter(2)).split(engine.lengths)
+-    for index, value in enumerate(expected):
+-        torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
+-
+-
+ @pytest.mark.parametrize("batch_size", [1, 2])
+ @torch.inference_mode()
+ def test_vae_tile_batch_matches_original_crops_and_cancellation(batch_size):
+@@ -314,3 +306,68 @@ def test_supplied_condition_storage_rejects_wrong_shape(tiny_model):
+     wrong = torch.zeros(2, 8, 2, 8)
+     with pytest.raises(ValueError, match="Condition KV storage"):
+         yue2.CachedNAR(tiny_model, chunks[0], kv=(wrong, wrong.clone()))
++
++
++@pytest.mark.parametrize("available", [False, True])
++@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
++@torch.inference_mode()
++def test_cpu_post_attention_preserves_reference(monkeypatch, available, dtype):
++    monkeypatch.setattr(yue2, "_USE_FLASHINFER_SILU", available)
++    torch.manual_seed(73)
++    x, attn, w_o, norm, gate_up, down = [
++        torch.randn(*shape, dtype=dtype) for shape in [(7, 32), (7, 4, 8), (32, 32), (32,), (96, 32), (32, 48)]
++    ]
++    residual = x + F.linear(attn.flatten(1), w_o)
++    gate, up = F.linear(yue2._rms(residual, norm, 1e-6), gate_up).chunk(2, dim=-1)
++    expected = residual + F.linear(F.silu(gate) * up, down)
++    actual = yue2._nar_post_attention(x, attn, w_o, norm, gate_up, down, 1e-6)
++    assert torch.equal(actual, expected)
++
++
++@pytest.mark.parametrize("shape", [(7, 12288), (2, 7, 12288)])
++def test_flashinfer_fake_output_contract(shape):
++    x = torch.empty(shape, dtype=torch.bfloat16, device="meta")
++    out = yue2._flashinfer_silu_and_mul(x)
++    assert out.shape == (*shape[:-1], shape[-1] // 2)
++    assert out.dtype == x.dtype and out.device == x.device
++    assert out.is_contiguous()
++
++
++@pytest.mark.parametrize("capture_fails", [False, True])
++def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails):
++    engine = object.__new__(yue2.CachedNAR)
++    engine.device = torch.device("cuda:0")
++    engine.pool = (0, 1)
++    engine.graph = None
++    engine.state_in = torch.zeros(2, 64)
++    engine.time_in = torch.zeros(())
++    state = torch.ones_like(engine.state_in)
++    calls = mocker.Mock()
++    graph = mocker.Mock(spec=torch.cuda.CUDAGraph)
++    for name in ("capture_begin", "capture_end", "replay"):
++        calls.attach_mock(getattr(graph, name), name)
++    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: graph)
++    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: "side")
++    monkeypatch.setattr(torch.cuda, "default_stream", lambda device: "default")
++    monkeypatch.setattr(torch.accelerator, "synchronize", calls.synchronize)
++    monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
++    engine._velocity = mocker.Mock(return_value=state.clone())
++    if capture_fails:
++        engine._velocity.side_effect = RuntimeError("capture failed")
++        with pytest.raises(RuntimeError, match="capture failed"):
++            engine.velocity(state, 0.5)
++    else:
++        assert torch.equal(engine.velocity(state, 0.5), state)
++        assert torch.equal(engine.velocity(state, 0.25), state)
++        assert torch.equal(engine.state_in, state)
++        assert engine.time_in.item() == 0.25
++    expected = [
++        mocker.call.synchronize(engine.device),
++        mocker.call.empty_cache(),
++        mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
++        mocker.call.capture_end(),
++    ]
++    if not capture_fails:
++        expected += [mocker.call.replay(), mocker.call.replay()]
++    assert calls.mock_calls == expected
++    engine._velocity.assert_called_once()
+diff --git a/tests/worker/test_yue2_auto_abc.py b/tests/worker/test_yue2_auto_abc.py
+deleted file mode 100644
+index 52343a952..000000000
+--- a/tests/worker/test_yue2_auto_abc.py
++++ /dev/null
+@@ -1,136 +0,0 @@
+-# SPDX-License-Identifier: Apache-2.0
+-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+-"""One native request owns ABC, semantic and acoustic completion."""
+-
+-import pytest
+-from vllm import SamplingParams
+-from vllm.config import ModelConfig, VllmConfig
+-from vllm.v1.request import Request, RequestStatus
+-
+-from vllm_omni.entrypoints.async_omni import AsyncOmni
+-from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
+-from vllm_omni.model_executor.models.yue2.request import AUTO_ABC, SEMANTIC_ARGS, prepare_song
+-from vllm_omni.model_executor.models.yue2.runtime import Yue2SchedulerBase
+-from vllm_omni.model_executor.models.yue2.yue2 import ABC_END, ABC_SAMPLING, MUSIC_START, SEMANTIC_SAMPLING
+-from vllm_omni.tokenizers.yue2_prompt import abc_prefix_ids, semantic_prefix_ids
+-from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
+-
+-pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
+-
+-
+-def encode(text):
+-    return list(text.encode())
+-
+-
+-@pytest.mark.parametrize(
+-    "cot,abc", [("off", None), ("melody", "CDEF"), ("full", "CDEF"), ("melody", None), ("full", None)]
+-)
+-def test_song_prefix_and_independent_phase_presets(cot, abc):
+-    prompt, params = prepare_song(encode, "style", "lyrics", cot=cot, abc=abc, max_frames=200, max_abc_tokens=32)
+-    automatic = cot != "off" and abc is None
+-    expected = (
+-        abc_prefix_ids(encode, "style", "lyrics", cot)
+-        if automatic
+-        else semantic_prefix_ids(encode, "style", "lyrics", cot, None if abc is None else encode(abc))
+-    )
+-    assert prompt["prompt_token_ids"] == expected
+-    args = params.extra_args
+-    assert bool(args.get(AUTO_ABC)) == automatic
+-    assert params.max_tokens == (32 if automatic else 202)
+-    assert args["yue2_temperature"] == (ABC_SAMPLING if automatic else SEMANTIC_SAMPLING)["temperature"]
+-    if automatic:
+-        assert args[SEMANTIC_ARGS]["yue2_temperature"] == SEMANTIC_SAMPLING["temperature"]
+-        assert args[SEMANTIC_ARGS]["yue2_seed"] == args["yue2_seed"]
+-        assert args[SEMANTIC_ARGS]["yue2_max_audio_frames"] == 200
+-        assert not args[SEMANTIC_ARGS]["yue2_skip_synthesis"]
+-
+-
+-@pytest.mark.parametrize(
+-    "kwargs",
+-    [
+-        {"cot": "bad"},
+-        {"abc": "CDEF"},
+-        {"cot": "full", "abc": ""},
+-        {"max_frames": True},
+-        {"max_abc_tokens": 0},
+-        {"seed": -1},
+-        {"cot": "full", "max_model_len": 100},
+-    ],
+-)
+-def test_bad_song_rejected_before_admission(kwargs):
+-    with pytest.raises(ValueError):
+-        prepare_song(encode, "style", "lyrics", **kwargs)
+-
+-
+-@pytest.mark.parametrize("eos", [True, False])
+-def test_abc_tokens_are_hidden_and_budget_rolls_to_semantic(eos):
+-    prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=2)
+-    request = Request("song", prompt["prompt_token_ids"], params, None)
+-    scheduler = object.__new__(Yue2SchedulerBase)
+-    scheduler.max_model_len = 24576
+-    assert scheduler._update_request_with_output(request, [42]) == ([], False)
+-    assert not hasattr(request, "yue2_next_prefix")
+-    assert scheduler._update_request_with_output(request, [ABC_END if eos else 43]) == ([], False)
+-    abc = [42] if eos else [42, 43]
+-    assert request.yue2_abc_ids == abc
+-    assert request.yue2_abc_truncated == (not eos)
+-    assert request.yue2_next_prefix == prompt["prompt_token_ids"] + abc + [ABC_END, MUSIC_START]
+-    assert not request.is_finished()
+-
+-
+-def test_invalid_or_overlong_abc_fails_only_request():
+-    for tokens, context in (([ABC_END], 24576), ([MUSIC_START], 24576), ([42], 1)):
+-        prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=1)
+-        request = Request("song", prompt["prompt_token_ids"], params, None)
+-        scheduler = object.__new__(Yue2SchedulerBase)
+-        scheduler.max_model_len = context
+-        assert scheduler._update_request_with_output(request, tokens) == ([], True)
+-        assert request.status == RequestStatus.FINISHED_ERROR
+-
+-
+-@pytest.mark.asyncio
+-async def test_http_existing_adapter_accepts_automatic_abc(mocker):
+-    from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
+-    from vllm_omni.entrypoints.openai.tts_adapters import detect_tts_model_type
+-    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
+-
+-    ctx = SpeechServingContext(
+-        server=None,
+-        engine_client=mocker.Mock(
+-            spec=AsyncOmni,
+-            vllm_config=mocker.Mock(spec=VllmConfig, model_config=mocker.Mock(spec=ModelConfig, max_model_len=24576)),
+-        ),
+-    )
+-    request = OpenAICreateSpeechRequest(
+-        input="lyrics",
+-        instructions="style",
+-        seed=42,
+-        max_new_tokens=200,
+-        extra_params={"cot": "full", "abc_max_tokens": 32},
+-    )
+-    adapter = Yue2Adapter(ctx)
+-    assert detect_tts_model_type("yue2", "Yue2ForCausalLM") == "yue2"
+-    adapter._cached_tokenizer = mocker.Mock(spec=YuE2TextTokenizer, encode=encode)
+-    assert adapter.validate(request) is None
+-    defaults = [SamplingParams(extra_args={"unchanged": True})]
+-    built = await adapter.build(request, defaults, False)
+-    params = adapter.apply_sampling_overrides(defaults, request, built.prompt)
+-    assert params[0].extra_args[AUTO_ABC] and params[0].extra_args["yue2_seed"] == 42
+-    assert params[0].max_tokens == 32
+-    assert defaults[0].extra_args == {"unchanged": True}
+-    request.extra_params["cfg_scale"] = 1.01
+-    assert adapter.validate(request) is None
+-
+-
+-@pytest.mark.parametrize(
+-    "abc_truncated,semantic_truncated", [(True, False), (False, True), (True, True), (False, False)]
+-)
+-def test_speech_truncation_includes_either_phase(abc_truncated, semantic_truncated):
+-    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
+-
+-    adapter = object.__new__(Yue2Adapter)
+-    metadata: dict[str, bool] = {}
+-    adapter.collect_response_metadata(
+-        {"meta.abc_truncated": abc_truncated, "meta.truncated": semantic_truncated}, metadata
+-    )
+-    assert metadata["audio_truncated"] == (abc_truncated or semantic_truncated)
+diff --git a/tests/worker/test_yue2_loading.py b/tests/worker/test_yue2_loading.py
+index b99b36d10..52bc2fb81 100644
+--- a/tests/worker/test_yue2_loading.py
++++ b/tests/worker/test_yue2_loading.py
+@@ -4,7 +4,6 @@
+ 
+ import pytest
+ import torch
+-from safetensors.torch import save_file
+ from vllm.config import LoadConfig, ModelConfig, VllmConfig
+ 
+ from vllm_omni.entrypoints.async_omni import AsyncOmni
+@@ -83,34 +82,3 @@ def test_model_vae_revision_and_credentials(path, legacy, expected, monkeypatch,
+     )
+     assert model._vae_model(torch.device("cpu")) is vae
+     assert load.call_count == 1
+-
+-
+-@pytest.mark.parametrize("from_hub", [False, True], ids=["local", "hf"])
+-def test_vae_checkpoint_loading(tmp_path, mocker, from_hub):
+-    config = y.YuE2VAEConfig(
+-        latent_dim=2,
+-        downsampling_ratio=2,
+-        decoder_config=dict(out_channels=2, channels=4, c_mults=[1], strides=[2], latent_dim=2),
+-    )
+-    original = y.YuE2VAE(config, decoder_only=True).float()
+-    config.save_pretrained(tmp_path)
+-    save_file(original.state_dict(), tmp_path / "model.safetensors")
+-    api = mocker.patch("vllm_omni.transformers_utils.repo_utils.hf_api")
+-    api.return_value.snapshot_download.return_value = str(tmp_path)
+-    loaded = y.YuE2VAE.from_pretrained(
+-        "m-a-p/YuE2-Vae" if from_hub else tmp_path, revision="vae-sha", decoder_only=True
+-    )
+-    assert loaded.state_dict().keys() == original.state_dict().keys()
+-    for name, value in original.state_dict().items():
+-        assert torch.equal(value, loaded.state_dict()[name])
+-    if from_hub:
+-        assert api.return_value.snapshot_download.call_args.kwargs["revision"] == "vae-sha"
+-    else:
+-        api.assert_not_called()
+-
+-
+-def test_vae_config_round_trip():
+-    config = Yue2Config(yue2_vae_path="m-a-p/YuE2-Vae", yue2_vae_revision="vae-sha")
+-    restored = Yue2Config.from_dict(config.to_dict())
+-    assert restored.yue2_vae_path == "m-a-p/YuE2-Vae"
+-    assert restored.yue2_vae_revision == "vae-sha"
+diff --git a/tests/worker/test_yue2_nar_kernels.py b/tests/worker/test_yue2_nar_kernels.py
+deleted file mode 100644
+index 87ed79b02..000000000
+--- a/tests/worker/test_yue2_nar_kernels.py
++++ /dev/null
+@@ -1,76 +0,0 @@
+-# SPDX-License-Identifier: Apache-2.0
+-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+-"""NAR activation fallback and compile-time output contract."""
+-
+-import pytest
+-import torch
+-import torch.nn.functional as F
+-
+-from vllm_omni.model_executor.models.yue2 import yue2
+-
+-pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
+-
+-
+-@pytest.mark.parametrize("available", [False, True])
+-@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
+-@torch.inference_mode()
+-def test_cpu_post_attention_preserves_reference(monkeypatch, available, dtype):
+-    monkeypatch.setattr(yue2, "_USE_FLASHINFER_SILU", available)
+-    torch.manual_seed(73)
+-    x, attn, w_o, norm, gate_up, down = [
+-        torch.randn(*shape, dtype=dtype) for shape in [(7, 32), (7, 4, 8), (32, 32), (32,), (96, 32), (32, 48)]
+-    ]
+-    residual = x + F.linear(attn.flatten(1), w_o)
+-    gate, up = F.linear(yue2._rms(residual, norm, 1e-6), gate_up).chunk(2, dim=-1)
+-    expected = residual + F.linear(F.silu(gate) * up, down)
+-    actual = yue2._nar_post_attention(x, attn, w_o, norm, gate_up, down, 1e-6)
+-    assert torch.equal(actual, expected)
+-
+-
+-@pytest.mark.parametrize("shape", [(7, 12288), (2, 7, 12288)])
+-def test_flashinfer_fake_output_contract(shape):
+-    x = torch.empty(shape, dtype=torch.bfloat16, device="meta")
+-    out = yue2._flashinfer_silu_and_mul(x)
+-    assert out.shape == (*shape[:-1], shape[-1] // 2)
+-    assert out.dtype == x.dtype and out.device == x.device
+-    assert out.is_contiguous()
+-
+-
+-@pytest.mark.parametrize("capture_fails", [False, True])
+-def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails):
+-    engine = object.__new__(yue2.CachedNAR)
+-    engine.device = torch.device("cuda:0")
+-    engine.pool = (0, 1)
+-    engine.graph = None
+-    engine.state_in = torch.zeros(2, 64)
+-    engine.time_in = torch.zeros(())
+-    state = torch.ones_like(engine.state_in)
+-    calls = mocker.Mock()
+-    graph = mocker.Mock(spec=torch.cuda.CUDAGraph)
+-    for name in ("capture_begin", "capture_end", "replay"):
+-        calls.attach_mock(getattr(graph, name), name)
+-    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: graph)
+-    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: "side")
+-    monkeypatch.setattr(torch.cuda, "default_stream", lambda device: "default")
+-    monkeypatch.setattr(torch.accelerator, "synchronize", calls.synchronize)
+-    monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
+-    engine._velocity = mocker.Mock(return_value=state.clone())
+-    if capture_fails:
+-        engine._velocity.side_effect = RuntimeError("capture failed")
+-        with pytest.raises(RuntimeError, match="capture failed"):
+-            engine.velocity(state, 0.5)
+-    else:
+-        assert torch.equal(engine.velocity(state, 0.5), state)
+-        assert torch.equal(engine.velocity(state, 0.25), state)
+-        assert torch.equal(engine.state_in, state)
+-        assert engine.time_in.item() == 0.25
+-    expected = [
+-        mocker.call.synchronize(engine.device),
+-        mocker.call.empty_cache(),
+-        mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
+-        mocker.call.capture_end(),
+-    ]
+-    if not capture_fails:
+-        expected += [mocker.call.replay(), mocker.call.replay()]
+-    assert calls.mock_calls == expected
+-    engine._velocity.assert_called_once()
+diff --git a/tests/worker/test_yue2_internal_cfg.py b/tests/worker/test_yue2_request.py
+similarity index 64%
+rename from tests/worker/test_yue2_internal_cfg.py
+rename to tests/worker/test_yue2_request.py
+index 17ac9372f..523a6f971 100644
+--- a/tests/worker/test_yue2_internal_cfg.py
++++ b/tests/worker/test_yue2_request.py
+@@ -1,23 +1,35 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+-"""Internal CFG uses native rows, one sample and parent-only client outputs."""
++"""Native song inputs, automatic ABC and paired CFG through the YuE2 adapter."""
+ 
+ import pytest
+ import torch
++from vllm import SamplingParams
+ from vllm.config import ModelConfig, SchedulerConfig, VllmConfig
+ from vllm.v1.engine import EngineCoreOutputs
+ from vllm.v1.outputs import SamplerOutput
+-from vllm.v1.request import RequestStatus
++from vllm.v1.request import Request, RequestStatus
+ 
+ from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
+ from vllm_omni.core.sched.output import OmniSchedulerOutput
+ from vllm_omni.engine import OmniEngineCoreOutput
+ from vllm_omni.entrypoints.async_omni import AsyncOmni
++from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
+ from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
+-from vllm_omni.model_executor.models.yue2.request import SEMANTIC_ARGS, prepare_song
++from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++from vllm_omni.model_executor.models.yue2.request import AUTO_ABC, SEMANTIC_ARGS, prepare_song
+ from vllm_omni.model_executor.models.yue2.runtime import Yue2Backbone, Yue2ForCausalLM, Yue2Scheduler, Yue2SchedulerBase
+-from vllm_omni.model_executor.models.yue2.yue2 import ABC_END, CODEC_OFFSET, CODEC_SIZE, MUSIC_END, MUSIC_START
++from vllm_omni.model_executor.models.yue2.yue2 import (
++    ABC_END,
++    ABC_SAMPLING,
++    CODEC_OFFSET,
++    CODEC_SIZE,
++    MUSIC_END,
++    MUSIC_START,
++    SEMANTIC_SAMPLING,
++)
+ from vllm_omni.request import OmniRequest
++from vllm_omni.tokenizers.yue2_prompt import abc_prefix_ids, semantic_prefix_ids
+ from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
+ 
+ pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
+@@ -27,6 +39,130 @@ def encode(text):
+     return list(text.encode())
+ 
+ 
++@pytest.fixture
++def scheduler(monkeypatch, mocker):
++    scheduler = object.__new__(Yue2Scheduler)
++    scheduler._pairs, scheduler._request_pairs, scheduler.requests = {}, {}, {}
++    scheduler._internal_ids, scheduler._rejected = set(), {}
++    scheduler.scheduler_config = mocker.Mock(spec=SchedulerConfig, enable_chunked_prefill=False)
++    scheduler.max_model_len, scheduler.block_size = 24576, 16
++    scheduler.max_num_running_reqs = scheduler.max_num_active_reqs = 4
++    scheduler.max_num_scheduled_tokens, scheduler._capacity = 24576, 4096
++    monkeypatch.setattr(OmniARScheduler, "add_request", lambda self, r: self.requests.update({r.request_id: r}))
++    return scheduler
++
++
++@pytest.mark.parametrize(
++    "cot,abc", [("off", None), ("melody", "CDEF"), ("full", "CDEF"), ("melody", None), ("full", None)]
++)
++def test_song_prefix_and_independent_phase_presets(cot, abc):
++    prompt, params = prepare_song(encode, "style", "lyrics", cot=cot, abc=abc, max_frames=200, max_abc_tokens=32)
++    automatic = cot != "off" and abc is None
++    expected = (
++        abc_prefix_ids(encode, "style", "lyrics", cot)
++        if automatic
++        else semantic_prefix_ids(encode, "style", "lyrics", cot, None if abc is None else encode(abc))
++    )
++    assert prompt["prompt_token_ids"] == expected
++    args = params.extra_args
++    assert bool(args.get(AUTO_ABC)) == automatic
++    assert params.max_tokens == (32 if automatic else 202)
++    assert args["yue2_temperature"] == (ABC_SAMPLING if automatic else SEMANTIC_SAMPLING)["temperature"]
++    if automatic:
++        assert args[SEMANTIC_ARGS]["yue2_temperature"] == SEMANTIC_SAMPLING["temperature"]
++        assert args[SEMANTIC_ARGS]["yue2_seed"] == args["yue2_seed"]
++        assert args[SEMANTIC_ARGS]["yue2_max_audio_frames"] == 200
++        assert not args[SEMANTIC_ARGS]["yue2_skip_synthesis"]
++
++
++@pytest.mark.parametrize(
++    "kwargs",
++    [
++        {"cot": "bad"},
++        {"abc": "CDEF"},
++        {"cot": "full", "abc": ""},
++        {"max_frames": True},
++        {"max_abc_tokens": 0},
++        {"seed": -1},
++        {"cot": "full", "max_model_len": 100},
++    ],
++)
++def test_bad_song_rejected_before_admission(kwargs):
++    with pytest.raises(ValueError):
++        prepare_song(encode, "style", "lyrics", **kwargs)
++
++
++@pytest.mark.parametrize("eos", [True, False])
++def test_abc_tokens_are_hidden_and_budget_rolls_to_semantic(eos):
++    prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=2)
++    request = Request("song", prompt["prompt_token_ids"], params, None)
++    scheduler = object.__new__(Yue2SchedulerBase)
++    scheduler.max_model_len = 24576
++    assert scheduler._update_request_with_output(request, [42]) == ([], False)
++    assert not hasattr(request, "yue2_next_prefix")
++    assert scheduler._update_request_with_output(request, [ABC_END if eos else 43]) == ([], False)
++    abc = [42] if eos else [42, 43]
++    assert request.yue2_abc_ids == abc
++    assert request.yue2_abc_truncated == (not eos)
++    assert request.yue2_next_prefix == prompt["prompt_token_ids"] + abc + [ABC_END, MUSIC_START]
++    assert not request.is_finished()
++
++
++def test_invalid_or_overlong_abc_fails_only_request():
++    for tokens, context in (([ABC_END], 24576), ([MUSIC_START], 24576), ([42], 1)):
++        prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=1)
++        request = Request("song", prompt["prompt_token_ids"], params, None)
++        scheduler = object.__new__(Yue2SchedulerBase)
++        scheduler.max_model_len = context
++        assert scheduler._update_request_with_output(request, tokens) == ([], True)
++        assert request.status == RequestStatus.FINISHED_ERROR
++
++
++@pytest.mark.parametrize(
++    "abc_truncated,semantic_truncated", [(True, False), (False, True), (True, True), (False, False)]
++)
++def test_speech_truncation_includes_either_phase(abc_truncated, semantic_truncated):
++    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++
++    adapter = object.__new__(Yue2Adapter)
++    metadata: dict[str, bool] = {}
++    adapter.collect_response_metadata(
++        {"meta.abc_truncated": abc_truncated, "meta.truncated": semantic_truncated}, metadata
++    )
++    assert metadata["audio_truncated"] == (abc_truncated or semantic_truncated)
++
++
++@pytest.mark.parametrize("cot,cfg_scale", [("full", 1), ("full", 1.5), ("off", 1.5)])
++@pytest.mark.asyncio
++async def test_http_song_sampling_isolated_from_defaults(mocker, cot, cfg_scale):
++    engine = mocker.Mock(
++        spec=AsyncOmni,
++        vllm_config=mocker.Mock(spec=VllmConfig, model_config=mocker.Mock(spec=ModelConfig, max_model_len=16384)),
++    )
++    adapter = Yue2Adapter(SpeechServingContext(server=None, engine_client=engine))
++    adapter._cached_tokenizer = mocker.Mock(spec=YuE2TextTokenizer, encode=encode)
++    request = OpenAICreateSpeechRequest(
++        input="lyrics",
++        instructions="style",
++        seed=42,
++        max_new_tokens=200,
++        extra_params={"cot": cot, "abc_max_tokens": 32, "cfg_scale": cfg_scale},
++    )
++    assert adapter.validate(request) is None
++    defaults = [SamplingParams(extra_args={"unchanged": True})]
++    built = await adapter.build(request, defaults, False)
++    params = adapter.apply_sampling_overrides(defaults, request, built.prompt)
++    args = params[0].extra_args
++    automatic = cot != "off"
++    assert bool(args.get(AUTO_ABC)) == automatic and args["yue2_seed"] == 42
++    assert params[0].max_tokens == (32 if automatic else 202)
++    assert defaults[0].extra_args == {"unchanged": True}
++    semantic = args[SEMANTIC_ARGS] if automatic else args
++    assert semantic.get("yue2_cfg_scale", 1) == cfg_scale
++    if cfg_scale != 1:
++        assert semantic["yue2_cfg_needs_abc"] == automatic
++
++
+ @pytest.mark.parametrize("scale", [float("nan"), float("inf"), -1, 21, True, "2"])
+ def test_invalid_guidance(scale):
+     with pytest.raises(ValueError, match="cfg_scale"):
+@@ -34,19 +170,8 @@ def test_invalid_guidance(scale):
+ 
+ 
+ @pytest.mark.parametrize("cot,abc", [("off", None), ("full", "CDEF"), ("melody", None)])
+-def test_internal_negative_uses_native_registry_and_exact_abc(monkeypatch, mocker, cot, abc):
++def test_internal_negative_uses_native_registry_and_exact_abc(scheduler, monkeypatch, cot, abc):
+     prompt, params = prepare_song(encode, "style", "lyrics", cot=cot, abc=abc, cfg_scale=1.5)
+-    scheduler = object.__new__(Yue2Scheduler)
+-    scheduler._pairs, scheduler._request_pairs, scheduler.requests = {}, {}, {}
+-    scheduler._internal_ids = set()
+-    scheduler._rejected = {}
+-    scheduler.scheduler_config = mocker.Mock(spec=SchedulerConfig, enable_chunked_prefill=False)
+-    scheduler.max_model_len = 24576
+-    scheduler.block_size = 16
+-    scheduler.max_num_running_reqs = scheduler.max_num_active_reqs = 4
+-    scheduler.max_num_scheduled_tokens = 24576
+-    scheduler._capacity = 4096
+-    monkeypatch.setattr(OmniARScheduler, "add_request", lambda self, r: self.requests.update({r.request_id: r}))
+     request = OmniRequest("song", prompt["prompt_token_ids"], params, None)
+     scheduler.add_request(request)
+     if cot == "melody":
+@@ -117,35 +242,6 @@ def test_child_outputs_hidden_but_worker_cleanup_preserved(monkeypatch, mocker):
+     assert not scheduler._internal_ids
+ 
+ 
+-@pytest.mark.asyncio
+-async def test_http_cfg_detection_and_sampling(mocker):
+-    from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
+-    from vllm_omni.entrypoints.openai.tts_adapters import detect_tts_model_type
+-    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
+-
+-    assert detect_tts_model_type("yue2", "Yue2ForCausalLM") == "yue2"
+-    ctx = SpeechServingContext(
+-        server=None,
+-        engine_client=mocker.Mock(
+-            spec=AsyncOmni,
+-            vllm_config=mocker.Mock(spec=VllmConfig, model_config=mocker.Mock(spec=ModelConfig, max_model_len=16384)),
+-        ),
+-    )
+-    adapter = Yue2Adapter(ctx)
+-    adapter._cached_tokenizer = mocker.Mock(spec=YuE2TextTokenizer, encode=encode)
+-    request = OpenAICreateSpeechRequest(
+-        input="lyrics",
+-        instructions="style",
+-        seed=42,
+-        max_new_tokens=200,
+-        extra_params={"cot": "full", "cfg_scale": 1.5},
+-    )
+-    assert adapter.validate(request) is None
+-    built = await adapter.build(request, [], False)
+-    semantic = built.prompt["additional_information"]["yue2_song_sampling"][SEMANTIC_ARGS]
+-    assert semantic["yue2_cfg_scale"] == 1.5 and semantic["yue2_cfg_needs_abc"]
+-
+-
+ def test_existing_model_and_pipeline_names_resolve_to_unified_path():
+     from importlib import import_module
+     from pathlib import Path
+@@ -202,21 +298,26 @@ def test_unpaired_admission_stays_native(monkeypatch, paired):
+     assert called == ["atomic" if paired else "native"]
+ 
+ 
++def test_cfg1_sample_calls_original_sampler_directly(monkeypatch):
++    model = Yue2ForCausalLM.__new__(Yue2ForCausalLM)
++    torch.nn.Module.__init__(model)
++    model._cfg_step = [{}, None]
++    expected = SamplerOutput(torch.tensor([[2], [3]]), None)
++    monkeypatch.setattr(Yue2Backbone, "sample", lambda *args: expected)
++    assert model.sample(None, None) is expected
++
++
+ @pytest.mark.parametrize("limit", ["slots", "prefill", "kv", "chunked"])
+-def test_unfit_cfg_returns_request_error_without_admitting_negative(monkeypatch, mocker, limit):
++def test_unfit_cfg_returns_request_error_without_admitting_negative(scheduler, monkeypatch, mocker, limit):
+     from vllm.v1.core.sched.request_queue import SchedulingPolicy, create_request_queue
+     from vllm.v1.engine import FinishReason
+ 
+     prompt, params = prepare_song(encode, "style", "lyrics", cfg_scale=1.5)
+     request = OmniRequest("bad", prompt["prompt_token_ids"], params, None)
+-    scheduler = object.__new__(Yue2Scheduler)
+-    scheduler._pairs, scheduler._request_pairs = {}, {}
+-    scheduler._internal_ids, scheduler._rejected = set(), {}
+     scheduler.requests = {"bad": request}
+     scheduler.waiting = create_request_queue(SchedulingPolicy.FCFS)
+     scheduler.waiting.add_request(request)
+-    scheduler.scheduler_config = mocker.Mock(spec=SchedulerConfig, enable_chunked_prefill=limit == "chunked")
+-    scheduler.max_model_len, scheduler.block_size = 24576, 16
++    scheduler.scheduler_config.enable_chunked_prefill = limit == "chunked"
+     scheduler.max_num_running_reqs = scheduler.max_num_active_reqs = 1 if limit == "slots" else 4
+     scheduler.max_num_scheduled_tokens = 1 if limit == "prefill" else 24576
+     scheduler._capacity = 1 if limit == "kv" else 4096
+@@ -237,12 +338,3 @@ def test_unfit_cfg_returns_request_error_without_admitting_negative(monkeypatch,
+     assert output[0].outputs[0].finish_reason == FinishReason.ERROR
+     assert "capacity" in output[0].outputs[0].stop_reason
+     assert not scheduler.requests and not scheduler._rejected and not scheduler.waiting
+-
+-
+-def test_cfg1_sample_calls_original_sampler_directly(monkeypatch):
+-    model = Yue2ForCausalLM.__new__(Yue2ForCausalLM)
+-    torch.nn.Module.__init__(model)
+-    model._cfg_step = [{}, None]
+-    expected = SamplerOutput(torch.tensor([[2], [3]]), None)
+-    monkeypatch.setattr(Yue2Backbone, "sample", lambda *args: expected)
+-    assert model.sample(None, None) is expected
+diff --git a/tests/worker/test_yue2_runtime.py b/tests/worker/test_yue2_runtime.py
+index b66bb753c..7a5d65f8b 100644
+--- a/tests/worker/test_yue2_runtime.py
++++ b/tests/worker/test_yue2_runtime.py
+@@ -6,10 +6,10 @@ import pytest
+ import torch
+ from vllm import SamplingParams
+ from vllm.v1.core.encoder_cache_manager import EncoderCacheManager
++from vllm.v1.core.sched.interface import PauseState
+ from vllm.v1.engine import FinishReason
+ from vllm.v1.request import RequestStatus
+ 
+-from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
+ from vllm_omni.core.sched.output import OmniSchedulerOutput
+ from vllm_omni.model_executor.models.yue2.runtime import (
+     Yue2ForCausalLM,
+@@ -75,7 +75,7 @@ def test_b1_output_owns_audio_after_job_release(mocker):
+     assert Yue2ForCausalLM.poll_audio(model) == {}
+ 
+ 
+-def test_detach_zero_token_completion_and_abort_race(monkeypatch, mocker):
++def test_runner_drains_started_ids_through_model_wrapper(mocker):
+     model = mocker.Mock(spec=Yue2ForCausalLM, acoustic_started=[], poll_audio=lambda: {})
+ 
+     class Wrapper:
+@@ -89,64 +89,9 @@ def test_detach_zero_token_completion_and_abort_race(monkeypatch, mocker):
+         result = runner._with_audio(OmniModelRunnerOutput(req_ids=[], req_id_to_index={}))
+         assert result.acoustic_started == [rid] and not model.acoustic_started
+ 
+-    def update(self, schedule, output):
+-        for rid in schedule.num_scheduled_tokens:
+-            tokens, stopped = self._update_request_with_output(self.requests[rid], [MUSIC_END])
+-            assert tokens == [] and not stopped
+-        return {}
+-
+-    monkeypatch.setattr(OmniARScheduler, "update_from_output", update)
+-    monkeypatch.setattr(OmniARScheduler, "get_num_unfinished_requests", lambda self: len(self.running))
+-
+-    for outcome in ("success", "error", "abort"):
+-        scheduler = object.__new__(Yue2SchedulerBase)
+-        request = OmniRequest("song", [1], SamplingParams(extra_args={}), None)
+-        request.status = RequestStatus.RUNNING
+-        scheduler.requests = {"song": request}
+-        scheduler.running = [request]
+-        scheduler._inflight_prefills = {request}
+-        scheduler.finished_req_ids_dict = {}
+-        scheduler._held_token_ids = {}
+-        freed = []
+-        scheduler._free_request_blocks = lambda r: freed.append(r.request_id)
+-        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager, free=lambda r: None)
+-
+-        def finish(r):
+-            scheduler.requests.pop(r.request_id)
+-            scheduler.finished_req_ids_dict.setdefault(r.client_index, set()).add(r.request_id)
+-
+-        scheduler._free_request = finish
+-        output = Yue2ModelRunnerOutput(req_ids=["song"], req_id_to_index={"song": 0}, acoustic_started=["song"])
+-        assert (
+-            scheduler.update_from_output(
+-                mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={"song": 1}), output
+-            )
+-            == {}
+-        )
+-        assert freed == ["song"] and not scheduler.running and not scheduler._inflight_prefills
+-        assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
+-        assert not list(request.output_token_ids)
+-        if outcome == "abort":
+-            request.status = RequestStatus.FINISHED_ABORTED
+-            scheduler.requests.clear()
+-        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(outcome == "error")}
+-        result = scheduler.update_from_output(
+-            mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={}),
+-            Yue2ModelRunnerOutput(req_ids=[], req_id_to_index={}, acoustic_ready={"song": payload}),
+-        )
+-        assert not scheduler.requests and scheduler.get_num_unfinished_requests() == 0
+-        if outcome == "abort":
+-            assert not result
+-        else:
+-            assert list(request.output_token_ids) == [MUSIC_END]
+-            assert result[0].finished_requests == {"song"}
+-            final = result[0].outputs[0]
+-            assert final.finish_reason == (FinishReason.ERROR if outcome == "error" else FinishReason.STOP)
+-            assert final.multimodal_output is payload
+-
+-
+-@pytest.mark.parametrize("failed", [False, True])
+-def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
++
++@pytest.mark.parametrize("outcome", ["success", "error", "abort"])
++def test_detach_and_delayed_completion_with_coalesced_tokens(mocker, outcome):
+     from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
+ 
+     request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
+@@ -157,14 +102,16 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+     _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
+     del scheduler._update_request_with_output
+     scheduler.max_model_len = 4096
++    scheduler._pause_state = PauseState.UNPAUSED
++    scheduler.num_waiting_for_streaming_input = 0
+     scheduler._hold_payloadless_outputs = True
+     scheduler._held_token_ids = {}
+     scheduler._pending_input_timeout_outputs = {}
+     scheduler._streaming_context_overflow = {}
+     scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
+     scheduler.vllm_config.model_config.engine_output_type = "audio"
+-    scheduler._inflight_prefills = set()
+-    scheduler._free_request_blocks = lambda req: None
++    scheduler._inflight_prefills = {request}
++    scheduler._free_request_blocks = mocker.Mock()
+     scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
+ 
+     def step(token=None, *, started=False, payload=None):
+@@ -191,7 +138,17 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+     assert step(151854) == []
+     assert scheduler._held_token_ids == {"song": [151854]}
+     assert step(MUSIC_END, started=True) == []
++    scheduler._free_request_blocks.assert_called_once_with(request)
++    assert not scheduler.running and not scheduler._inflight_prefills
++    assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
+     assert step() == []
++    if outcome == "abort":
++        request.status = RequestStatus.FINISHED_ABORTED
++        scheduler.requests.clear()
++        assert step(payload={"audio": torch.ones(2, 3), "meta.error": torch.tensor(False)}) == []
++        assert scheduler.get_num_unfinished_requests() == 0
++        return
++    failed = outcome == "error"
+     payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(failed)}
+     (final,) = step(payload=payload)
+     assert final.new_token_ids == [151854, MUSIC_END]
+@@ -199,4 +156,5 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+     assert final.finish_reason == (FinishReason.ERROR if failed else FinishReason.STOP)
+     assert final.multimodal_output is payload
+     assert not scheduler._held_token_ids and not scheduler.requests
++    assert scheduler.get_num_unfinished_requests() == 0
+     assert step(payload=payload) == []

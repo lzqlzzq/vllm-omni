@@ -23,3 +23,7 @@ Contributor-confirmed intent: improve E2EL/throughput/RTF by releasing AR slots 
 Remaining review considerations: model-local scheduler code uses shared scheduler internals and several untyped override signatures; mutable sampling copies are intentional and tested. Performance evidence is one concurrency setting and one main→PR→PR→main cycle on the earlier base, not scaling evidence. Current-head GPU execution, batched NAR performance/quality acceptance, long-form CFG quality, non-CUDA execution and in-flight server shutdown are not claimed. Existing WSB evidence is tied to its source revision; the rebase did not trigger a full rerun.
 
 No new production code was changed during this publication preparation. No PR was created; the contributor will create it.
+
+## Tests-only follow-up
+
+`15d1c014eab7f4d13a815cf6fd914a8fa993b7b0` consolidates six added test modules into four (137 fewer lines), with 247 targeted CPU passes and all applicable changed-file hooks passing. Production code is unchanged. [Patch, logs and scope](test-consolidation/README.md). Earlier full review and shared-contract results below their original revision remain valid records; no new GPU/WSB run.
