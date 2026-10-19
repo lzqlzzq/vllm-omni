@@ -178,8 +178,20 @@ def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
     assert cancelled == [True] and queue.active is None and not queue.members
 
 
-@pytest.mark.parametrize("error", [None, torch.OutOfMemoryError, ValueError, RuntimeError])
-def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error):
+@pytest.mark.parametrize(
+    "error,chain",
+    [
+        (None, None),
+        (torch.OutOfMemoryError, None),
+        (ValueError, None),
+        (RuntimeError, None),
+        (torch.OutOfMemoryError, "context"),
+        (ValueError, "cause"),
+        (ValueError, "cycle"),
+        (RuntimeError, "context"),
+    ],
+)
+def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error, chain):
     from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
 
     queue = BatchedSynthesisQueue(None, 2, 1, 1024)
@@ -188,7 +200,22 @@ def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error):
     def fail():
         scratch = torch.ones(1)
         buffers.append(weakref.ref(scratch))
-        raise error("bad member")
+        raise torch.OutOfMemoryError("bad member")
+
+    def fail_outer():
+        if chain is None:
+            scratch = torch.ones(1)
+            buffers.append(weakref.ref(scratch))
+            raise error("bad member")
+        try:
+            fail()
+        except torch.OutOfMemoryError as inner:
+            outer = error("wrapped failure")
+            if chain == "cycle":
+                inner.__cause__ = outer
+            if chain == "context":
+                raise outer
+            raise outer from inner
 
     def job(request_id, work):
         assert all(ref() is None for ref in buffers)
@@ -200,7 +227,7 @@ def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error):
         result.finite = torch.tensor("bad" not in names)
         if "bad" in names and error:
             try:
-                fail()
+                fail_outer()
             except (RuntimeError, ValueError) as exc:
                 result.error = exc
         jobs.append(result)
@@ -389,8 +416,8 @@ def test_flashinfer_fake_output_contract(shape):
     assert out.is_contiguous()
 
 
-@pytest.mark.parametrize("capture_fails", [False, True])
-def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails):
+@pytest.mark.parametrize("capture_fails,end_fails", [(False, False), (True, False), (True, True)])
+def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails, end_fails):
     engine = object.__new__(yue2.CachedNAR)
     engine.device = torch.device("cuda:0")
     engine.pool = (0, 1)
@@ -409,9 +436,17 @@ def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fa
     monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
     engine._velocity = mocker.Mock(return_value=state.clone())
     if capture_fails:
-        engine._velocity.side_effect = RuntimeError("capture failed")
-        with pytest.raises(RuntimeError, match="capture failed"):
+        original = torch.OutOfMemoryError("capture failed")
+        engine._velocity.side_effect = original
+        if end_fails:
+            graph.capture_end.side_effect = RuntimeError("capture invalidated")
+        with pytest.raises(RuntimeError, match="capture invalidated" if end_fails else "capture failed") as caught:
             engine.velocity(state, 0.5)
+        if end_fails:
+            assert caught.value.__context__ is original
+            assert not isinstance(caught.value, torch.OutOfMemoryError)
+        else:
+            assert caught.value is original
     else:
         assert torch.equal(engine.velocity(state, 0.5), state)
         assert torch.equal(engine.velocity(state, 0.25), state)
