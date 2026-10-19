@@ -7,7 +7,7 @@ One song is one or two engine requests against the single-stage pipeline:
 tokens only), then the semantic phase generates codec tokens and the model
 solves the acoustic ODE + decodes 48 kHz stereo as the request finishes.
 ``cot=off`` and a user-supplied ``--abc-file`` skip the first request.
-Prefix caching lets the second request reuse the first one's blocks.
+Prefix caching is disabled; each request prefills its own prompt.
 
 Example:
     python end2end.py --model /models/YuE2-3B --vae /models/YuE2-Vae \
@@ -69,9 +69,7 @@ def sampling_params(engine, *, phase, seed, max_frames, prompt_ids):
         KEY_MIN_TOKENS: preset["min_tokens"],
         KEY_MAX_AUDIO_FRAMES: max_frames,
         KEY_SKIP_SYNTHESIS: phase == "abc",
-        # Full prompt ids: under a KV prefix-cache hit the engine schedules
-        # only the uncached tail, so the model cannot rebuild its NAR
-        # conditioning prefix from the scheduled tokens alone.
+        # NAR conditioning needs the full prompt ids.
         KEY_PREFIX_IDS: list(prompt_ids),
     }
     if phase == "abc":
