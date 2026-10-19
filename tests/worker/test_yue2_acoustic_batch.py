@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fixed-input independent-request oracle for packed NAR batching."""
 
+import logging
 import weakref
 
 import pytest
@@ -191,11 +192,12 @@ def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
         (RuntimeError, "context"),
     ],
 )
-def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error, chain):
+def test_failed_packed_job_retries_members_once(monkeypatch, mocker, caplog, error, chain):
     from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
 
     queue = BatchedSynthesisQueue(None, 2, 1, 1024)
     attempts, jobs, buffers = [], [], []
+    monkeypatch.setattr(yue2, "logger", logging.getLogger("test.yue2.synthesis"))
 
     def fail():
         scratch = torch.ones(1)
@@ -256,6 +258,9 @@ def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error, chai
     assert not queue.active and not queue.members and not queue.waiting and not queue.retrying
     assert all(job.error is None or job.error.__traceback__ is None for job in jobs)
     assert all(ref() is None for ref in buffers)
+    if chain:
+        assert "OutOfMemoryError: bad member" in caplog.text
+        assert f"{error.__name__}: wrapped failure" in caplog.text
 
 
 def test_batch_window_deadline_full_cancel_and_drain(monkeypatch, mocker):

@@ -1872,7 +1872,7 @@ class _SynthesisJob:
         if self.cancelled:
             return torch.zeros((2, 0)), True
         if self.error is not None:
-            logger.error("YuE2 synthesis failed for req=%s: %r", self.request_id, self.error)
+            logger.error("YuE2 synthesis failed for req=%s: %r", self.request_id, self.error, exc_info=self.error)
             return torch.zeros((2, 0)), True
         if self.finite is None or not bool(self.finite):
             logger.error("YuE2 synthesis produced non-finite audio for req=%s", self.request_id)
