@@ -1,0 +1,28 @@
+[
+  [
+    {
+      "gpu_name": "NVIDIA GeForce RTX 4090",
+      "capability": [
+        8,
+        9
+      ],
+      "fa3_available": false,
+      "allocator_env": {
+        "PYTORCH_ALLOC_CONF": null,
+        "PYTORCH_CUDA_ALLOC_CONF": null
+      },
+      "flashinfer_silu": true,
+      "mode": "off",
+      "worker_pid": 38411,
+      "gpu_pids": [
+        "38411"
+      ],
+      "acoustic_priority": -3,
+      "priority_range": [
+        0,
+        -3
+      ],
+      "max_inflight": 2
+    }
+  ]
+]

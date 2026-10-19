@@ -1,0 +1,9 @@
+{
+  "scope": "Only PER parent synchronization after blocking ASR results; all scorer parameters unchanged",
+  "frozen_release_verified": true,
+  "original_run_sha256": "a980eed65c8e7fb533981493d3c758941e1a403c87fa35d3eb7f8e83024034a5",
+  "executed_run_sha256": "502202015b5dde8022b4368d19e842a2dbb33aec70dd5bf64d0fb0ced8062aa2",
+  "launcher_sha256": "d8f5c20aba89de6f33c2add5f9d103c341cfe8e9889cd3b3928d76034294e673",
+  "parent_context_preinitialization": false,
+  "official_source_files_modified": false
+}

@@ -1,0 +1,454 @@
+PER_EXTERNAL_EXECUTION_OVERRIDE {"scope": "Only PER parent synchronization after blocking ASR results; all scorer parameters unchanged", "frozen_release_verified": true, "original_run_sha256": "a980eed65c8e7fb533981493d3c758941e1a403c87fa35d3eb7f8e83024034a5", "executed_run_sha256": "502202015b5dde8022b4368d19e842a2dbb33aec70dd5bf64d0fb0ced8062aa2", "launcher_sha256": "d8f5c20aba89de6f33c2add5f9d103c341cfe8e9889cd3b3928d76034294e673", "parent_context_preinitialization": false, "official_source_files_modified": false}
+{"metric": "per", "gpu": "NVIDIA GeForce RTX 4090 D", "torch": "2.9.1+cu128"}
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\('
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\)'
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\('
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\)'
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/g2p_en/g2p.py:156: SyntaxWarning: invalid escape sequence '\-'
+  text = re.sub("[^ a-z'.,?!\-]", "", text)
+INFO 10-19 12:46:05 [utils.py:263] non-default args: {'dtype': torch.bfloat16, 'gpu_memory_utilization': 0.85, 'disable_log_stats': True, 'model': '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5'}
+INFO 10-19 12:46:05 [model.py:530] Resolved architecture: Qwen3ASRForConditionalGeneration
+ERROR 10-19 12:46:05 [repo_utils.py:65] Error retrieving safetensors: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5'. Use `repo_type` argument if needed., retrying 1 of 2
+ERROR 10-19 12:46:07 [repo_utils.py:63] Error retrieving safetensors: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5'. Use `repo_type` argument if needed.
+INFO 10-19 12:46:07 [model.py:1866] Downcasting torch.float32 to torch.bfloat16.
+INFO 10-19 12:46:07 [model.py:1545] Using max model len 65536
+INFO 10-19 12:46:07 [scheduler.py:229] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 10-19 12:46:07 [vllm.py:630] Asynchronous scheduling is enabled.
+INFO 10-19 12:46:07 [vllm.py:637] Disabling NCCL for DP synchronization when using async scheduling.
+The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/transformers/utils/hub.py:110: FutureWarning: Using `TRANSFORMERS_CACHE` is deprecated and will be removed in v5 of Transformers. Use `HF_HOME` instead.
+  warnings.warn(
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\('
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\)'
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\('
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/lib/python3.12/site-packages/nagisa/tagger.py:45: SyntaxWarning: invalid escape sequence '\)'
+  single_word_list = [w.replace('(', '\(').replace(')', '\)')
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:31 [core.py:97] Initializing a V1 LLM engine (v0.14.0) with config: model='/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5', speculative_config=None, tokenizer='/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=65536, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'level': None, 'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'splitting_ops': ['vllm::unified_attention', 'vllm::unified_attention_with_output', 'vllm::unified_mla_attention', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::gdn_attention_core', 'vllm::kda_attention', 'vllm::sparse_attn_indexer'], 'compile_mm_encoder': False, 'compile_sizes': [], 'compile_ranges_split_points': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'eliminate_noops': True, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': True}, 'local_cache_dir': None}
+[0;36m(EngineCore_DP0 pid=25755)[0;0m The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:32 [parallel_state.py:1214] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:46225 backend=nccl
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:32 [parallel_state.py:1425] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A
+[0;36m(EngineCore_DP0 pid=25755)[0;0m The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:42 [gpu_model_runner.py:3808] Starting to load model /root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5...
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:43 [mm_encoder_attention.py:86] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:43 [vllm.py:630] Asynchronous scheduling is enabled.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:43 [cuda.py:351] Using FLASH_ATTN attention backend out of potential backends: ('FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION')
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Loading safetensors checkpoint shards:   0% Completed | 0/2 [00:00<?, ?it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Loading safetensors checkpoint shards:  50% Completed | 1/2 [00:00<00:00,  1.11it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.85it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:01<00:00,  1.68it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m 
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:44 [default_loader.py:291] Loading weights took 1.22 seconds
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:46 [gpu_model_runner.py:3905] Model loading took 3.87 GiB memory and 1.717624 seconds
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:47 [gpu_model_runner.py:4715] Encoder cache will be initialized with a budget of 8192 tokens, and profiled with 21 audio items of the maximum feature size.
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:54 [backends.py:644] Using cache directory: /root/autodl-tmp/yue2-wsb-acceptance-20261019/nar1-full-scores-01/.cache/vllm/torch_compile_cache/23b2abf3ae/rank_0_0/backbone for vLLM's torch.compile
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:46:54 [backends.py:704] Dynamo bytecode transform time: 6.48 s
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:08 [backends.py:261] Cache the graph of compile range (1, 8192) for later use
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:17 [backends.py:278] Compiling a graph for compile range (1, 8192) takes 18.32 s
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:17 [monitor.py:34] torch.compile takes 24.80 s in total
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:19 [gpu_worker.py:358] Available KV cache memory: 12.48 GiB
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:20 [kv_cache_utils.py:1305] GPU KV cache size: 116,832 tokens
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:20 [kv_cache_utils.py:1310] Maximum concurrency for 65,536 tokens per request: 1.78x
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/51 [00:00<?, ?it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   6%|▌         | 3/51 [00:00<00:01, 27.07it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  12%|█▏        | 6/51 [00:00<00:01, 27.74it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  18%|█▊        | 9/51 [00:00<00:01, 28.23it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  24%|██▎       | 12/51 [00:00<00:01, 28.33it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  29%|██▉       | 15/51 [00:00<00:01, 28.16it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  35%|███▌      | 18/51 [00:00<00:01, 28.03it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  41%|████      | 21/51 [00:00<00:01, 27.95it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  47%|████▋     | 24/51 [00:00<00:00, 27.75it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  53%|█████▎    | 27/51 [00:00<00:00, 27.50it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  59%|█████▉    | 30/51 [00:01<00:00, 27.53it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  65%|██████▍   | 33/51 [00:01<00:00, 26.58it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  71%|███████   | 36/51 [00:01<00:00, 26.63it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  76%|███████▋  | 39/51 [00:01<00:00, 26.65it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  82%|████████▏ | 42/51 [00:01<00:00, 26.81it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  88%|████████▊ | 45/51 [00:01<00:00, 26.88it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  94%|█████████▍| 48/51 [00:01<00:00, 27.20it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 51/51 [00:01<00:00, 26.57it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 51/51 [00:01<00:00, 27.22it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m Capturing CUDA graphs (decode, FULL):   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):   6%|▌         | 2/35 [00:00<00:01, 19.49it/s]Capturing CUDA graphs (decode, FULL):  14%|█▍        | 5/35 [00:00<00:01, 24.28it/s]Capturing CUDA graphs (decode, FULL):  23%|██▎       | 8/35 [00:00<00:01, 25.79it/s]Capturing CUDA graphs (decode, FULL):  31%|███▏      | 11/35 [00:00<00:00, 26.29it/s]Capturing CUDA graphs (decode, FULL):  40%|████      | 14/35 [00:00<00:00, 26.81it/s]Capturing CUDA graphs (decode, FULL):  49%|████▊     | 17/35 [00:00<00:00, 27.00it/s]Capturing CUDA graphs (decode, FULL):  57%|█████▋    | 20/35 [00:00<00:00, 27.07it/s]Capturing CUDA graphs (decode, FULL):  66%|██████▌   | 23/35 [00:00<00:00, 27.02it/s]Capturing CUDA graphs (decode, FULL):  74%|███████▍  | 26/35 [00:00<00:00, 27.14it/s]Capturing CUDA graphs (decode, FULL):  83%|████████▎ | 29/35 [00:01<00:00, 27.24it/s]Capturing CUDA graphs (decode, FULL):  91%|█████████▏| 32/35 [00:01<00:00, 27.59it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:01<00:00, 27.95it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 35/35 [00:01<00:00, 26.92it/s]
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:26 [gpu_model_runner.py:4856] Graph capturing finished in 5 secs, took 0.51 GiB
+[0;36m(EngineCore_DP0 pid=25755)[0;0m INFO 10-19 12:47:26 [core.py:273] init engine (profile, create kv cache, warmup model) took 39.61 seconds
+INFO 10-19 12:47:27 [llm.py:347] Supported tasks: ['generate', 'transcription']
+The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+The tokenizer you are loading from '/root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+per wsb_000_r0_s831001: complete
+per wsb_000_r1_s831019: complete
+per wsb_001_r0_s831002: complete
+per wsb_001_r1_s831020: complete
+per wsb_002_r0_s831003: complete
+per wsb_002_r1_s831021: complete
+per wsb_003_r0_s831004: complete
+per wsb_003_r1_s831022: complete
+per wsb_004_r0_s831005: complete
+per wsb_004_r1_s831023: complete
+per wsb_005_r0_s831006: complete
+per wsb_005_r1_s831024: complete
+per wsb_006_r0_s831007: complete
+per wsb_006_r1_s831025: complete
+per wsb_007_r0_s831008: complete
+per wsb_007_r1_s831026: complete
+per wsb_008_r0_s831009: complete
+per wsb_008_r1_s831027: complete
+per wsb_009_r0_s831010: complete
+per wsb_009_r1_s831028: complete
+per wsb_010_r0_s831011: complete
+per wsb_010_r1_s831029: complete
+per wsb_011_r0_s831012: complete
+per wsb_011_r1_s831030: complete
+per wsb_012_r0_s831013: complete
+per wsb_012_r1_s831031: complete
+per wsb_013_r0_s831014: complete
+per wsb_013_r1_s831032: complete
+per wsb_014_r0_s831015: complete
+per wsb_014_r1_s831033: complete
+per wsb_015_r0_s831016: complete
+per wsb_015_r1_s831034: complete
+per wsb_016_r0_s831017: complete
+per wsb_016_r1_s831035: complete
+per wsb_017_r0_s831018: complete
+per wsb_017_r1_s831036: complete
+per wsb_018_r0_s831019: complete
+per wsb_018_r1_s831037: complete
+per wsb_019_r0_s831020: complete
+per wsb_019_r1_s831038: complete
+per wsb_020_r0_s831021: complete
+per wsb_020_r1_s831039: complete
+per wsb_021_r0_s831022: complete
+per wsb_021_r1_s831040: complete
+per wsb_022_r0_s831023: complete
+per wsb_022_r1_s831041: complete
+per wsb_023_r0_s831024: complete
+per wsb_023_r1_s831042: complete
+per wsb_024_r0_s831025: complete
+per wsb_024_r1_s831043: complete
+per wsb_025_r0_s831026: complete
+per wsb_025_r1_s831044: complete
+per wsb_026_r0_s831027: complete
+per wsb_026_r1_s831045: complete
+per wsb_027_r0_s831028: complete
+per wsb_027_r1_s831046: complete
+per wsb_028_r0_s831029: complete
+per wsb_028_r1_s831047: complete
+per wsb_029_r0_s831030: complete
+per wsb_029_r1_s831048: complete
+per wsb_030_r0_s831031: complete
+per wsb_030_r1_s831049: complete
+per wsb_031_r0_s831032: complete
+per wsb_031_r1_s831050: complete
+per wsb_032_r0_s831033: complete
+per wsb_032_r1_s831051: complete
+per wsb_033_r0_s831034: complete
+per wsb_033_r1_s831052: complete
+per wsb_034_r0_s831035: complete
+per wsb_034_r1_s831053: complete
+per wsb_035_r0_s831036: complete
+per wsb_035_r1_s831054: complete
+per wsb_036_r0_s831037: complete
+per wsb_036_r1_s831055: complete
+per wsb_037_r0_s831038: complete
+per wsb_037_r1_s831056: complete
+per wsb_038_r0_s831039: complete
+per wsb_038_r1_s831057: complete
+per wsb_039_r0_s831040: complete
+per wsb_039_r1_s831058: complete
+per wsb_040_r0_s831041: complete
+per wsb_040_r1_s831059: complete
+per wsb_041_r0_s831042: complete
+per wsb_041_r1_s831060: complete
+per wsb_042_r0_s831043: complete
+per wsb_042_r1_s831061: complete
+per wsb_043_r0_s831044: complete
+per wsb_043_r1_s831062: complete
+per wsb_044_r0_s831045: complete
+per wsb_044_r1_s831063: complete
+per wsb_045_r0_s831046: complete
+per wsb_045_r1_s831064: complete
+per wsb_046_r0_s831047: complete
+per wsb_046_r1_s831065: complete
+per wsb_047_r0_s831048: complete
+per wsb_047_r1_s831066: complete
+per wsb_048_r0_s831049: complete
+per wsb_048_r1_s831067: complete
+per wsb_049_r0_s831050: complete
+per wsb_049_r1_s831068: complete
+per wsb_050_r0_s831051: complete
+per wsb_050_r1_s831069: complete
+per wsb_051_r0_s831052: complete
+per wsb_051_r1_s831070: complete
+per wsb_052_r0_s831053: complete
+per wsb_052_r1_s831071: complete
+per wsb_053_r0_s831054: complete
+per wsb_053_r1_s831072: complete
+per wsb_054_r0_s831055: complete
+per wsb_054_r1_s831073: complete
+per wsb_055_r0_s831056: complete
+per wsb_055_r1_s831074: complete
+per wsb_056_r0_s831057: complete
+per wsb_056_r1_s831075: complete
+per wsb_057_r0_s831058: complete
+per wsb_057_r1_s831076: complete
+per wsb_058_r0_s831059: complete
+per wsb_058_r1_s831077: complete
+per wsb_059_r0_s831060: complete
+per wsb_059_r1_s831078: complete
+per wsb_060_r0_s831061: complete
+per wsb_060_r1_s831079: complete
+per wsb_061_r0_s831062: complete
+per wsb_061_r1_s831080: complete
+per wsb_062_r0_s831063: complete
+per wsb_062_r1_s831081: complete
+per wsb_063_r0_s831064: complete
+per wsb_063_r1_s831082: complete
+per wsb_064_r0_s831065: complete
+per wsb_064_r1_s831083: complete
+per wsb_065_r0_s831066: complete
+per wsb_065_r1_s831084: complete
+per wsb_066_r0_s831067: complete
+per wsb_066_r1_s831085: complete
+per wsb_067_r0_s831068: complete
+per wsb_067_r1_s831086: complete
+per wsb_068_r0_s831069: complete
+per wsb_068_r1_s831087: complete
+per wsb_069_r0_s831070: complete
+per wsb_069_r1_s831088: complete
+per wsb_070_r0_s831071: complete
+per wsb_070_r1_s831089: complete
+per wsb_071_r0_s831072: complete
+per wsb_071_r1_s831090: complete
+per wsb_072_r0_s831073: complete
+per wsb_072_r1_s831091: complete
+per wsb_073_r0_s831074: complete
+per wsb_073_r1_s831092: complete
+per wsb_074_r0_s831075: complete
+per wsb_074_r1_s831093: complete
+per wsb_075_r0_s831076: complete
+per wsb_075_r1_s831094: complete
+per wsb_076_r0_s831077: complete
+per wsb_076_r1_s831095: complete
+per wsb_077_r0_s831078: complete
+per wsb_077_r1_s831096: complete
+per wsb_078_r0_s831079: complete
+per wsb_078_r1_s831097: complete
+per wsb_079_r0_s831080: complete
+per wsb_079_r1_s831098: complete
+per wsb_080_r0_s831081: complete
+per wsb_080_r1_s831099: complete
+per wsb_081_r0_s831082: complete
+per wsb_081_r1_s831100: complete
+per wsb_082_r0_s831083: complete
+per wsb_082_r1_s831101: complete
+per wsb_083_r0_s831084: complete
+per wsb_083_r1_s831102: complete
+per wsb_084_r0_s831085: complete
+per wsb_084_r1_s831103: complete
+per wsb_085_r0_s831086: complete
+per wsb_085_r1_s831104: complete
+per wsb_086_r0_s831087: complete
+per wsb_086_r1_s831105: complete
+per wsb_087_r0_s831088: complete
+per wsb_087_r1_s831106: complete
+per wsb_088_r0_s831089: complete
+per wsb_088_r1_s831107: complete
+per wsb_089_r0_s831090: complete
+per wsb_089_r1_s831108: complete
+per wsb_090_r0_s831091: complete
+per wsb_090_r1_s831109: complete
+per wsb_091_r0_s831092: complete
+per wsb_091_r1_s831110: complete
+per wsb_092_r0_s831093: complete
+per wsb_092_r1_s831111: complete
+per wsb_093_r0_s831094: complete
+per wsb_093_r1_s831112: complete
+per wsb_094_r0_s831095: complete
+per wsb_094_r1_s831113: complete
+per wsb_095_r0_s831096: complete
+per wsb_095_r1_s831114: complete
+per wsb_096_r0_s831097: complete
+per wsb_096_r1_s831115: complete
+per wsb_097_r0_s831098: complete
+per wsb_097_r1_s831116: complete
+per wsb_098_r0_s831099: complete
+per wsb_098_r1_s831117: complete
+per wsb_099_r0_s831100: complete
+per wsb_099_r1_s831118: complete
+per wsb_100_r0_s831101: complete
+per wsb_100_r1_s831119: complete
+per wsb_101_r0_s831102: complete
+per wsb_101_r1_s831120: complete
+per wsb_102_r0_s831103: complete
+per wsb_102_r1_s831121: complete
+per wsb_103_r0_s831104: complete
+per wsb_103_r1_s831122: complete
+per wsb_104_r0_s831105: complete
+per wsb_104_r1_s831123: complete
+per wsb_105_r0_s831106: complete
+per wsb_105_r1_s831124: complete
+per wsb_106_r0_s831107: complete
+per wsb_106_r1_s831125: complete
+per wsb_107_r0_s831108: complete
+per wsb_107_r1_s831126: complete
+per wsb_108_r0_s831109: complete
+per wsb_108_r1_s831127: complete
+per wsb_109_r0_s831110: complete
+per wsb_109_r1_s831128: complete
+per wsb_110_r0_s831111: complete
+per wsb_110_r1_s831129: complete
+per wsb_111_r0_s831112: complete
+per wsb_111_r1_s831130: complete
+per wsb_112_r0_s831113: complete
+per wsb_112_r1_s831131: complete
+per wsb_113_r0_s831114: complete
+per wsb_113_r1_s831132: complete
+per wsb_114_r0_s831115: complete
+per wsb_114_r1_s831133: complete
+per wsb_115_r0_s831116: complete
+per wsb_115_r1_s831134: complete
+per wsb_116_r0_s831117: complete
+per wsb_116_r1_s831135: complete
+per wsb_117_r0_s831118: complete
+per wsb_117_r1_s831136: complete
+per wsb_118_r0_s831119: complete
+per wsb_118_r1_s831137: complete
+per wsb_119_r0_s831120: complete
+per wsb_119_r1_s831138: complete
+per wsb_120_r0_s831121: complete
+per wsb_120_r1_s831139: complete
+per wsb_121_r0_s831122: complete
+per wsb_121_r1_s831140: complete
+per wsb_122_r0_s831123: complete
+per wsb_122_r1_s831141: complete
+per wsb_123_r0_s831124: complete
+per wsb_123_r1_s831142: complete
+per wsb_124_r0_s831125: complete
+per wsb_124_r1_s831143: complete
+per wsb_125_r0_s831126: complete
+per wsb_125_r1_s831144: complete
+per wsb_126_r0_s831127: complete
+per wsb_126_r1_s831145: complete
+per wsb_127_r0_s831128: complete
+per wsb_127_r1_s831146: complete
+per wsb_128_r0_s831129: complete
+per wsb_128_r1_s831147: complete
+per wsb_129_r0_s831130: complete
+per wsb_129_r1_s831148: complete
+per wsb_130_r0_s831131: complete
+per wsb_130_r1_s831149: complete
+per wsb_131_r0_s831132: complete
+per wsb_131_r1_s831150: complete
+per wsb_132_r0_s831133: complete
+per wsb_132_r1_s831151: complete
+per wsb_133_r0_s831134: complete
+per wsb_133_r1_s831152: complete
+per wsb_134_r0_s831135: complete
+per wsb_134_r1_s831153: complete
+per wsb_135_r0_s831136: complete
+per wsb_135_r1_s831154: complete
+per wsb_136_r0_s831137: complete
+per wsb_136_r1_s831155: complete
+per wsb_137_r0_s831138: complete
+per wsb_137_r1_s831156: complete
+per wsb_138_r0_s831139: complete
+per wsb_138_r1_s831157: complete
+per wsb_139_r0_s831140: complete
+per wsb_139_r1_s831158: complete
+per wsb_140_r0_s831141: complete
+per wsb_140_r1_s831159: complete
+per wsb_141_r0_s831142: complete
+per wsb_141_r1_s831160: complete
+per wsb_142_r0_s831143: complete
+per wsb_142_r1_s831161: complete
+per wsb_143_r0_s831144: complete
+per wsb_143_r1_s831162: complete
+per wsb_144_r0_s831145: complete
+per wsb_144_r1_s831163: complete
+per wsb_145_r0_s831146: complete
+per wsb_145_r1_s831164: complete
+per wsb_146_r0_s831147: complete
+per wsb_146_r1_s831165: complete
+per wsb_147_r0_s831148: complete
+per wsb_147_r1_s831166: complete
+per wsb_148_r0_s831149: complete
+per wsb_148_r1_s831167: complete
+per wsb_149_r0_s831150: complete
+per wsb_149_r1_s831168: complete
+per wsb_150_r0_s831151: complete
+per wsb_150_r1_s831169: complete
+per wsb_151_r0_s831152: complete
+per wsb_151_r1_s831170: complete
+per wsb_152_r0_s831153: complete
+per wsb_152_r1_s831171: complete
+per wsb_153_r0_s831154: complete
+per wsb_153_r1_s831172: complete
+per wsb_154_r0_s831155: complete
+per wsb_154_r1_s831173: complete
+per wsb_155_r0_s831156: complete
+per wsb_155_r1_s831174: complete
+per wsb_156_r0_s831157: complete
+per wsb_156_r1_s831175: complete
+per wsb_157_r0_s831158: complete
+per wsb_157_r1_s831176: complete
+per wsb_158_r0_s831159: complete
+per wsb_158_r1_s831177: complete
+per wsb_159_r0_s831160: complete
+per wsb_159_r1_s831178: complete
+per wsb_160_r0_s831161: complete
+per wsb_160_r1_s831179: complete
+per wsb_161_r0_s831162: complete
+per wsb_161_r1_s831180: complete
+per wsb_162_r0_s831163: complete
+per wsb_162_r1_s831181: complete
+per wsb_163_r0_s831164: complete
+per wsb_163_r1_s831182: complete
+per wsb_164_r0_s831165: complete
+per wsb_164_r1_s831183: complete
+per wsb_165_r0_s831166: complete
+per wsb_165_r1_s831184: complete
+per wsb_166_r0_s831167: complete
+per wsb_166_r1_s831185: complete
+per wsb_167_r0_s831168: complete
+per wsb_167_r1_s831186: complete
+per wsb_168_r0_s831169: complete
+per wsb_168_r1_s831187: complete
+per wsb_169_r0_s831170: complete
+per wsb_169_r1_s831188: complete
+per wsb_170_r0_s831171: complete
+per wsb_170_r1_s831189: complete
+per wsb_171_r0_s831172: complete
+per wsb_171_r1_s831190: complete
+per wsb_172_r0_s831173: complete
+per wsb_172_r1_s831191: complete
+per wsb_173_r0_s831174: complete
+per wsb_173_r1_s831192: complete
+per wsb_174_r0_s831175: complete
+per wsb_174_r1_s831193: complete
+per wsb_175_r0_s831176: complete
+per wsb_175_r1_s831194: complete
+per wsb_176_r0_s831177: complete
+per wsb_176_r1_s831195: complete
+per wsb_177_r0_s831178: complete
+per wsb_177_r1_s831196: complete
+per wsb_178_r0_s831179: complete
+per wsb_178_r1_s831197: complete
+per wsb_179_r0_s831180: complete
+per wsb_179_r1_s831198: complete
+per wsb_180_r0_s831181: complete
+per wsb_180_r1_s831199: complete
+per wsb_181_r0_s831182: complete
+per wsb_181_r1_s831200: complete
+per wsb_182_r0_s831183: complete
+per wsb_182_r1_s831201: complete
+per wsb_183_r0_s831184: complete
+per wsb_183_r1_s831202: complete
+per wsb_184_r0_s831185: complete
+per wsb_184_r1_s831203: complete
+per wsb_185_r0_s831186: complete
+per wsb_185_r1_s831204: complete
+per wsb_186_r0_s831187: complete
+per wsb_186_r1_s831205: complete
+per wsb_187_r0_s831188: complete
+per wsb_187_r1_s831206: complete
+per wsb_188_r0_s831189: complete
+per wsb_188_r1_s831207: complete
+per wsb_189_r0_s831190: complete
+per wsb_189_r1_s831208: complete
+per wsb_190_r0_s831191: complete
+per wsb_190_r1_s831209: complete
+per wsb_191_r0_s831192: complete
+per wsb_191_r1_s831210: complete
+[rank0]:[W1019 13:43:22.571558413 ProcessGroupNCCL.cpp:1524] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+ERROR 10-19 13:43:23 [core_client.py:610] Engine core proc EngineCore_DP0 died unexpectedly, shutting down client.

@@ -1,0 +1,13 @@
+{
+  "client_concurrency": 2,
+  "ar_slots": 1,
+  "nar_cap": 1,
+  "vae_cap": 1,
+  "jobs": 384,
+  "packed_nar_calls": 0,
+  "packed_request_ids": [],
+  "batch_sizes": {
+    "1": 384,
+    "2": 0
+  }
+}

@@ -1,0 +1,3 @@
+#!/bin/bash
+set -euo pipefail
+exec /root/autodl-tmp/yue2-wsb-4090d-20261016-01/wsb_metrics/.venvs/metrics/bin/python /root/autodl-tmp/yue2-wsb-acceptance-20261019/scripts/per_worker.py "$@"

@@ -1,0 +1,60 @@
+{
+  "complete": true,
+  "slots": 2,
+  "records": [
+    {
+      "name": "ordinary",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "automatic",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 32
+    },
+    {
+      "name": "external",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "guided",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "mixed-plain",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "guided-auto",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 32
+    }
+  ],
+  "state": {
+    "states": 0,
+    "active": false,
+    "waiting": 0,
+    "cfg_steps": 402
+  }
+}

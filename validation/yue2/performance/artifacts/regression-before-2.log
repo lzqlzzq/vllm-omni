@@ -1,0 +1,141 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____________ test_coalesced_tokens_reach_delayed_audio_once[False] _____________
+
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7fb647eeca40>
+failed = False
+
+    @pytest.mark.parametrize("failed", [False, True])
+    def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+        from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
+    
+        request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
+        request.status = RequestStatus.RUNNING
+        request.prefill_stats.set(num_prompt_tokens=3, num_local_cached_tokens=0, num_external_cached_tokens=0)
+        scheduler = object.__new__(Yue2QueueScheduler)
+        scheduler.__dict__.update(vars(_make_scheduler_stub([request])))
+        _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
+        del scheduler._update_request_with_output
+        scheduler.max_model_len = 4096
+        scheduler._hold_payloadless_outputs = True
+        scheduler._held_token_ids = {}
+        scheduler._pending_input_timeout_outputs = {}
+        scheduler._streaming_context_overflow = {}
+        scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
+        scheduler.vllm_config.model_config.engine_output_type = "audio"
+        scheduler._inflight_prefills = set()
+        scheduler._free_request_blocks = lambda req: None
+        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
+    
+        def step(token=None, *, started=False, payload=None):
+            scheduled = {"song": 1} if token is not None else {}
+            schedule = mocker.Mock(
+                spec=OmniSchedulerOutput,
+                num_scheduled_tokens=scheduled,
+                total_num_scheduled_tokens=len(scheduled),
+                scheduled_spec_decode_tokens={},
+            )
+            output = Yue2QueueOutput(
+                req_ids=["song"] if scheduled else [],
+                req_id_to_index={"song": 0} if scheduled else {},
+                sampled_token_ids=[[token]] if scheduled else [],
+                multimodal_outputs=[{}] if scheduled else [],
+                acoustic_started=["song"] if started else [],
+                acoustic_ready={"song": payload} if payload is not None else {},
+            )
+            result = scheduler.update_from_output(schedule, output)
+            return [item for batch in result.values() for item in batch.outputs]
+    
+        first, = step(151853)
+        assert first.new_token_ids == [151853]
+        assert step(151854) == []
+        assert scheduler._held_token_ids == {"song": [151854]}
+        assert step(MUSIC_END, started=True) == []
+        assert step() == []
+        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(failed)}
+        final, = step(payload=payload)
+>       assert final.new_token_ids == [151854, MUSIC_END]
+E       assert [151852] == [151854, 151852]
+E         
+E         At index 0 diff: 151852 != 151854
+E         Right contains one more item: 151852
+E         Use -v to get more diff
+
+tests/worker/test_yue2_queue.py:176: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- Running test: test_coalesced_tokens_reach_delayed_audio_once[False]
+_____________ test_coalesced_tokens_reach_delayed_audio_once[True] _____________
+
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7fb647eef1a0>
+failed = True
+
+    @pytest.mark.parametrize("failed", [False, True])
+    def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+        from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
+    
+        request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
+        request.status = RequestStatus.RUNNING
+        request.prefill_stats.set(num_prompt_tokens=3, num_local_cached_tokens=0, num_external_cached_tokens=0)
+        scheduler = object.__new__(Yue2QueueScheduler)
+        scheduler.__dict__.update(vars(_make_scheduler_stub([request])))
+        _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
+        del scheduler._update_request_with_output
+        scheduler.max_model_len = 4096
+        scheduler._hold_payloadless_outputs = True
+        scheduler._held_token_ids = {}
+        scheduler._pending_input_timeout_outputs = {}
+        scheduler._streaming_context_overflow = {}
+        scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
+        scheduler.vllm_config.model_config.engine_output_type = "audio"
+        scheduler._inflight_prefills = set()
+        scheduler._free_request_blocks = lambda req: None
+        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
+    
+        def step(token=None, *, started=False, payload=None):
+            scheduled = {"song": 1} if token is not None else {}
+            schedule = mocker.Mock(
+                spec=OmniSchedulerOutput,
+                num_scheduled_tokens=scheduled,
+                total_num_scheduled_tokens=len(scheduled),
+                scheduled_spec_decode_tokens={},
+            )
+            output = Yue2QueueOutput(
+                req_ids=["song"] if scheduled else [],
+                req_id_to_index={"song": 0} if scheduled else {},
+                sampled_token_ids=[[token]] if scheduled else [],
+                multimodal_outputs=[{}] if scheduled else [],
+                acoustic_started=["song"] if started else [],
+                acoustic_ready={"song": payload} if payload is not None else {},
+            )
+            result = scheduler.update_from_output(schedule, output)
+            return [item for batch in result.values() for item in batch.outputs]
+    
+        first, = step(151853)
+        assert first.new_token_ids == [151853]
+        assert step(151854) == []
+        assert scheduler._held_token_ids == {"song": [151854]}
+        assert step(MUSIC_END, started=True) == []
+        assert step() == []
+        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(failed)}
+        final, = step(payload=payload)
+>       assert final.new_token_ids == [151854, MUSIC_END]
+E       assert [151852] == [151854, 151852]
+E         
+E         At index 0 diff: 151852 != 151854
+E         Right contains one more item: 151852
+E         Use -v to get more diff
+
+tests/worker/test_yue2_queue.py:176: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+--- Running test: test_coalesced_tokens_reach_delayed_audio_once[True]
+=============================== warnings summary ===============================
+../../yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- Running Summary
+=========================== short test summary info ============================
+FAILED tests/worker/test_yue2_queue.py::test_coalesced_tokens_reach_delayed_audio_once[False]
+FAILED tests/worker/test_yue2_queue.py::test_coalesced_tokens_reach_delayed_audio_once[True]
+2 failed, 2 deselected, 14 warnings in 1.96s

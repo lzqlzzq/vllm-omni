@@ -1,0 +1,84 @@
+{
+  "order": [
+    "upstream-01",
+    "candidate-01",
+    "candidate-02",
+    "upstream-02"
+  ],
+  "requests": 32,
+  "warmups": 2,
+  "concurrency": 2,
+  "offset": 1,
+  "max_abc": 4096,
+  "max_frames": 9000,
+  "mps": "off",
+  "omp_mkl": 1,
+  "upstream": "f9143976b688cf1e78796ee080d7294f6e019960 + shared HF/VAE loading fix 631f5573",
+  "candidate": "Rebased unified main path with accelerator capture preparation and delayed coalesced-token flush; automatic ABC, CFG=1, NAR1/VAE1/window0/token-budget0; no packed NAR benefit claimed",
+  "source_counts": {
+    "upstream": 1875,
+    "candidate": 1879
+  },
+  "common_config": {
+    "model_runner": "v1",
+    "async_chunk": false,
+    "dtype": "bfloat16",
+    "stages": [
+      {
+        "stage_id": 0,
+        "max_num_seqs": 1,
+        "gpu_memory_utilization": 0.7,
+        "enforce_eager": false,
+        "enable_prefix_caching": false,
+        "max_num_batched_tokens": 24576,
+        "max_model_len": 24576,
+        "devices": "0",
+        "skip_tokenizer_init": true,
+        "tokenizer": "gpt2",
+        "hf_overrides": {
+          "yue2_vae_path": null,
+          "yue2_vae_revision": "main"
+        },
+        "default_sampling_params": {
+          "extra_args": {
+            "yue2_phase": "semantic",
+            "yue2_seed": 831001,
+            "yue2_max_audio_frames": 200
+          },
+          "detokenize": false,
+          "stop_token_ids": [
+            151848,
+            151852
+          ],
+          "temperature": 1.0
+        },
+        "async_scheduling": false,
+        "enable_chunked_prefill": false,
+        "compilation_config": {
+          "mode": 3,
+          "cudagraph_mode": "FULL_AND_PIECEWISE",
+          "cudagraph_capture_sizes": [
+            1
+          ]
+        },
+        "kv_cache_memory_bytes": 3221225472
+      }
+    ]
+  },
+  "runtime_files": {
+    "scripts/analyze.py": "8ea680450f9beab4b36374928164ba5a25fc29f48d517fa9087fd94bc5a4c20d",
+    "scripts/bench_e2e.py": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "scripts/compare.py": "68a6be429b667f27827b5bb776092c6d57503ae8b5f3637e01f9452d2835d85c",
+    "scripts/env.sh": "29bd5ebc21aff4f73b353bebf066441c5e67ce9672b2e4ea22b1b3c336edb476",
+    "scripts/http_smoke.py": "4bfba3077320023edc83a0c7e2d859f36c5d768f869c24c6717e8bb346201028",
+    "scripts/preflight.py": "2dea8b21342647219c196bbc48df593166de3944e13c9b68ff9090e2bee992dd",
+    "scripts/run.sh": "74a1582974e4be57bbc81e3b53889d181c7afa5ec86d01a9839819174e240b0b",
+    "scripts/smoke.py": "e1ae424e59f50fa62c887248e1a1533c4afba090564aacb8c414ec76b36ce978",
+    "scripts/tps.py": "1a04943911b20c08da11a8194f3ef11a010ac0320d6d03940124fae0b9072eca",
+    "scripts/validate.sh": "c66cfca1868b98b976eef91441f83f91b4405b4e0df644c68502e968e3689ae6",
+    "configs/candidate.yaml": "4458daa2a7a7dd15e1d936f39ec4c370d6521769ee98af643f47cb8f6b09ad5d",
+    "configs/upstream.yaml": "8db28e34df1b2575b32bf427da306b7e215dce35a1446fb85c46b5de5758c7a6"
+  },
+  "save_audio_latent": false,
+  "observers": false
+}

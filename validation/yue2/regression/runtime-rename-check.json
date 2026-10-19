@@ -1,0 +1,11 @@
+{
+  "ast_equal_after_identifier_normalization": true,
+  "renames": {
+    "Yue2QueueSchedule": "Yue2SchedulerOutput",
+    "Yue2QueueOutput": "Yue2ModelRunnerOutput",
+    "Yue2QueueRunner": "Yue2ModelRunner",
+    "Yue2QueueWorker": "Yue2Worker",
+    "Yue2QueueScheduler": "Yue2SchedulerBase"
+  },
+  "initial_check": "identifier prefix collision caught by AST assertion and corrected before testing"
+}

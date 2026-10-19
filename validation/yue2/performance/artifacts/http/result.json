@@ -1,0 +1,95 @@
+{
+  "off": {
+    "status": 200,
+    "shape": [
+      383936,
+      2
+    ],
+    "sr": 48000,
+    "headers": {
+      "x-vllm-omni-input-audio-tokens": "0",
+      "x-audio-truncated": "true",
+      "x-audio-sample-rate": "48000",
+      "x-audio-channels": "2"
+    }
+  },
+  "guided-off": {
+    "status": 200,
+    "shape": [
+      383936,
+      2
+    ],
+    "sr": 48000,
+    "headers": {
+      "x-vllm-omni-input-audio-tokens": "0",
+      "x-audio-truncated": "true",
+      "x-audio-sample-rate": "48000",
+      "x-audio-channels": "2"
+    }
+  },
+  "melody-auto": {
+    "status": 200,
+    "shape": [
+      383936,
+      2
+    ],
+    "sr": 48000,
+    "headers": {
+      "x-vllm-omni-input-audio-tokens": "0",
+      "x-audio-truncated": "true",
+      "x-audio-sample-rate": "48000",
+      "x-audio-channels": "2"
+    }
+  },
+  "full-auto": {
+    "status": 200,
+    "shape": [
+      383936,
+      2
+    ],
+    "sr": 48000,
+    "headers": {
+      "x-vllm-omni-input-audio-tokens": "0",
+      "x-audio-truncated": "true",
+      "x-audio-sample-rate": "48000",
+      "x-audio-channels": "2"
+    }
+  },
+  "external": {
+    "status": 200,
+    "shape": [
+      383936,
+      2
+    ],
+    "sr": 48000,
+    "headers": {
+      "x-vllm-omni-input-audio-tokens": "0",
+      "x-audio-truncated": "true",
+      "x-audio-sample-rate": "48000",
+      "x-audio-channels": "2"
+    }
+  },
+  "cfg-rejected": {
+    "status": 400,
+    "body": {
+      "error": {
+        "message": "extra_params.cfg_scale must be finite and in [0,20]",
+        "type": "BadRequestError",
+        "param": null,
+        "code": 400
+      }
+    }
+  },
+  "budget-rejected": {
+    "status": 400,
+    "body": {
+      "error": {
+        "message": "extra_params.abc_max_tokens must be an integer in [1,4096]",
+        "type": "BadRequestError",
+        "param": null,
+        "code": 400
+      }
+    }
+  },
+  "server_exit_code": 0
+}

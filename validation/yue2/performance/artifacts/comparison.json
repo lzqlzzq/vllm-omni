@@ -1,0 +1,123 @@
+{
+  "complete": true,
+  "pairs": [
+    {
+      "pair": "01",
+      "order": "AB",
+      "upstream": {
+        "throughput": 3.5174978366435186,
+        "request_throughput": 0.01524954904867186,
+        "e2el_p50": 132.43021450244123,
+        "e2el_p95": 165.78389294618393,
+        "rtf_p50": 0.5496849245314963,
+        "rtf_p95": 0.7365634664037733,
+        "total_content_tps": 119.85001836077431,
+        "semantic_tps": 87.9379542343896,
+        "peak_gib": 22.687744140625,
+        "allocated_gib": 14.943838119506836,
+        "reserved_gib": 22.833984375
+      },
+      "candidate": {
+        "throughput": 3.736456524887873,
+        "request_throughput": 0.016606387336752505,
+        "e2el_p50": 118.3906400440028,
+        "e2el_p95": 142.67495408869,
+        "rtf_p50": 0.5335225294156409,
+        "rtf_p95": 0.6205420180708251,
+        "total_content_tps": 126.79807050977375,
+        "semantic_tps": 93.41196666844138,
+        "peak_gib": 21.373291015625,
+        "allocated_gib": 14.729520797729492,
+        "reserved_gib": 20.40234375
+      },
+      "change_pct": {
+        "throughput": 6.224842158063426,
+        "request_throughput": 8.897563355808336,
+        "e2el_p50": -10.601488875621834,
+        "e2el_p95": -13.939194240658514,
+        "rtf_p50": -2.94030168821362,
+        "rtf_p95": -15.751724545804036,
+        "total_content_tps": 5.797289181954324,
+        "semantic_tps": 6.224857607514234,
+        "peak_gib": -5.793670436569853,
+        "allocated_gib": -1.4341517892755173,
+        "reserved_gib": -10.64921734667693
+      },
+      "peak_delta_gib": -1.314453125,
+      "audio_duration_change_pct": -2.454344353888016
+    },
+    {
+      "pair": "02",
+      "order": "BA",
+      "upstream": {
+        "throughput": 3.5134043423786703,
+        "request_throughput": 0.01523180235927181,
+        "e2el_p50": 132.582655570528,
+        "e2el_p95": 166.1244754182757,
+        "rtf_p50": 0.55043056877758,
+        "rtf_p95": 0.7377137677328396,
+        "total_content_tps": 119.71054269210697,
+        "semantic_tps": 87.83561628621207,
+        "peak_gib": 22.687744140625,
+        "allocated_gib": 14.943838119506836,
+        "reserved_gib": 22.833984375
+      },
+      "candidate": {
+        "throughput": 3.737551767244018,
+        "request_throughput": 0.01661125505531757,
+        "e2el_p50": 118.41123163409065,
+        "e2el_p95": 142.6930721461773,
+        "rtf_p50": 0.5331196541611382,
+        "rtf_p95": 0.6206942238168353,
+        "total_content_tps": 126.8352379748773,
+        "semantic_tps": 93.43934788960229,
+        "peak_gib": 21.373291015625,
+        "allocated_gib": 14.729520797729492,
+        "reserved_gib": 20.40234375
+      },
+      "change_pct": {
+        "throughput": 6.379778784971668,
+        "request_throughput": 9.056398340187677,
+        "e2el_p50": -10.688746484564716,
+        "e2el_p95": -14.10472671958889,
+        "rtf_p50": -3.1449769686459628,
+        "rtf_p95": -15.862458996208206,
+        "total_content_tps": 5.951602191876204,
+        "semantic_tps": 6.379794256956628,
+        "peak_gib": -5.793670436569853,
+        "allocated_gib": -1.4341517892755173,
+        "reserved_gib": -10.64921734667693
+      },
+      "peak_delta_gib": -1.314453125,
+      "audio_duration_change_pct": -2.454344353888016
+    }
+  ],
+  "aggregate": {
+    "upstream": {
+      "elapsed_s": 4199.290302965906,
+      "throughput": 3.5154498978649253,
+      "total_content_tps": 119.7802399240517,
+      "max_peak_gib": 22.687744140625
+    },
+    "candidate": {
+      "elapsed_s": 3853.374096749001,
+      "throughput": 3.7370040658174517,
+      "total_content_tps": 126.81665151906242,
+      "max_peak_gib": 21.373291015625
+    }
+  },
+  "pair_geometric_mean_change_pct": {
+    "throughput": 6.302282243813173,
+    "request_throughput": 8.976951910056918,
+    "e2el_p50": -10.645128331289067,
+    "e2el_p95": -14.02200031734272,
+    "rtf_p50": -3.042693336683777,
+    "rtf_p95": -15.807109976399081,
+    "total_content_tps": 5.874417572826873,
+    "semantic_tps": 6.302297704526971,
+    "peak_gib": -5.793670436569853,
+    "allocated_gib": -1.4341517892755173,
+    "reserved_gib": -10.64921734667693
+  },
+  "limitation": "One ABBA cycle, two matched pairs; descriptive results without statistical significance or quality claims."
+}

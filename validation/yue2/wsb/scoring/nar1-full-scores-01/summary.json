@@ -1,0 +1,1785 @@
+{
+  "schema": 1,
+  "complete": true,
+  "mode": "standard",
+  "candidate_count": 384,
+  "prompt_count": 192,
+  "errors": [],
+  "full_192_standard_candidate_coverage": true,
+  "unselected_candidates": {
+    "schema": 1,
+    "complete": true,
+    "samples": 384,
+    "groups": {
+      "all": {
+        "per": {
+          "expected": 384,
+          "scored": 384,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 310222,
+          "edits": 49218,
+          "first_pass_edits": 56014,
+          "per_micro": 0.1586541251104048,
+          "per_first_pass_micro": 0.18056101759385215,
+          "per_macro": 0.14651306726419608,
+          "asr_truncated_samples": 11,
+          "asr_truncated_repeats": 38,
+          "selected_asr_truncated_samples": 10,
+          "first_pass_asr_truncated_samples": 11,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 384,
+          "scored": 384,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.678527766217788,
+            "Arrangement": 6.982711815585692,
+            "Musicality": 5.92826455955704,
+            "Vocal": 7.150915036598842,
+            "Instrumental": 7.020681445797284,
+            "Mixing": 6.853020024796327,
+            "Structure": 6.6078917893270654,
+            "Global Avg": 6.746001776840006
+          },
+          "counts": {
+            "Melody": 384,
+            "Arrangement": 384,
+            "Musicality": 384,
+            "Vocal": 384,
+            "Instrumental": 384,
+            "Mixing": 384,
+            "Structure": 384,
+            "Global Avg": 384
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "lang/zh": {
+        "per": {
+          "expected": 188,
+          "scored": 188,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 145278,
+          "edits": 18384,
+          "first_pass_edits": 18544,
+          "per_micro": 0.1265435922851361,
+          "per_first_pass_micro": 0.12764492903261335,
+          "per_macro": 0.1231863071213829,
+          "asr_truncated_samples": 3,
+          "asr_truncated_repeats": 12,
+          "selected_asr_truncated_samples": 3,
+          "first_pass_asr_truncated_samples": 3,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 188,
+          "scored": 188,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.737662815033121,
+            "Arrangement": 7.09984942192727,
+            "Musicality": 6.021838573699302,
+            "Vocal": 7.123057581008749,
+            "Instrumental": 7.097640410382697,
+            "Mixing": 6.924227729756781,
+            "Structure": 6.6701142382114496,
+            "Global Avg": 6.81062725285991
+          },
+          "counts": {
+            "Melody": 188,
+            "Arrangement": 188,
+            "Musicality": 188,
+            "Vocal": 188,
+            "Instrumental": 188,
+            "Mixing": 188,
+            "Structure": 188,
+            "Global Avg": 188
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "cot/full": {
+        "per": {
+          "expected": 384,
+          "scored": 384,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 310222,
+          "edits": 49218,
+          "first_pass_edits": 56014,
+          "per_micro": 0.1586541251104048,
+          "per_first_pass_micro": 0.18056101759385215,
+          "per_macro": 0.14651306726419608,
+          "asr_truncated_samples": 11,
+          "asr_truncated_repeats": 38,
+          "selected_asr_truncated_samples": 10,
+          "first_pass_asr_truncated_samples": 11,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 384,
+          "scored": 384,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.678527766217788,
+            "Arrangement": 6.982711815585692,
+            "Musicality": 5.92826455955704,
+            "Vocal": 7.150915036598842,
+            "Instrumental": 7.020681445797284,
+            "Mixing": 6.853020024796327,
+            "Structure": 6.6078917893270654,
+            "Global Avg": 6.746001776840006
+          },
+          "counts": {
+            "Melody": 384,
+            "Arrangement": 384,
+            "Musicality": 384,
+            "Vocal": 384,
+            "Instrumental": 384,
+            "Mixing": 384,
+            "Structure": 384,
+            "Global Avg": 384
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "full/zh": {
+        "per": {
+          "expected": 188,
+          "scored": 188,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 145278,
+          "edits": 18384,
+          "first_pass_edits": 18544,
+          "per_micro": 0.1265435922851361,
+          "per_first_pass_micro": 0.12764492903261335,
+          "per_macro": 0.1231863071213829,
+          "asr_truncated_samples": 3,
+          "asr_truncated_repeats": 12,
+          "selected_asr_truncated_samples": 3,
+          "first_pass_asr_truncated_samples": 3,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 188,
+          "scored": 188,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.737662815033121,
+            "Arrangement": 7.09984942192727,
+            "Musicality": 6.021838573699302,
+            "Vocal": 7.123057581008749,
+            "Instrumental": 7.097640410382697,
+            "Mixing": 6.924227729756781,
+            "Structure": 6.6701142382114496,
+            "Global Avg": 6.81062725285991
+          },
+          "counts": {
+            "Melody": 188,
+            "Arrangement": 188,
+            "Musicality": 188,
+            "Vocal": 188,
+            "Instrumental": 188,
+            "Mixing": 188,
+            "Structure": 188,
+            "Global Avg": 188
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "lang/en": {
+        "per": {
+          "expected": 196,
+          "scored": 196,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 164944,
+          "edits": 30834,
+          "first_pass_edits": 37470,
+          "per_micro": 0.18693617227665146,
+          "per_first_pass_micro": 0.22716800853623048,
+          "per_macro": 0.16888771474811892,
+          "asr_truncated_samples": 8,
+          "asr_truncated_repeats": 26,
+          "selected_asr_truncated_samples": 7,
+          "first_pass_asr_truncated_samples": 8,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 196,
+          "scored": 196,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.621806392864305,
+            "Arrangement": 6.870355336033568,
+            "Musicality": 5.83850989293079,
+            "Vocal": 7.177635453185257,
+            "Instrumental": 6.946863663439848,
+            "Mixing": 6.784718756773034,
+            "Structure": 6.54820903223388,
+            "Global Avg": 6.684014075351525
+          },
+          "counts": {
+            "Melody": 196,
+            "Arrangement": 196,
+            "Musicality": 196,
+            "Vocal": 196,
+            "Instrumental": 196,
+            "Mixing": 196,
+            "Structure": 196,
+            "Global Avg": 196
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "full/en": {
+        "per": {
+          "expected": 196,
+          "scored": 196,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 164944,
+          "edits": 30834,
+          "first_pass_edits": 37470,
+          "per_micro": 0.18693617227665146,
+          "per_first_pass_micro": 0.22716800853623048,
+          "per_macro": 0.16888771474811892,
+          "asr_truncated_samples": 8,
+          "asr_truncated_repeats": 26,
+          "selected_asr_truncated_samples": 7,
+          "first_pass_asr_truncated_samples": 8,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 196,
+          "scored": 196,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.621806392864305,
+            "Arrangement": 6.870355336033568,
+            "Musicality": 5.83850989293079,
+            "Vocal": 7.177635453185257,
+            "Instrumental": 6.946863663439848,
+            "Mixing": 6.784718756773034,
+            "Structure": 6.54820903223388,
+            "Global Avg": 6.684014075351525
+          },
+          "counts": {
+            "Melody": 196,
+            "Arrangement": 196,
+            "Musicality": 196,
+            "Vocal": 196,
+            "Instrumental": 196,
+            "Mixing": 196,
+            "Structure": 196,
+            "Global Avg": 196
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      }
+    },
+    "metrics": [
+      "per",
+      "songbench"
+    ]
+  },
+  "standard_selected": {
+    "schema": 1,
+    "complete": true,
+    "samples": 192,
+    "groups": {
+      "all": {
+        "per": {
+          "expected": 192,
+          "scored": 192,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 155111,
+          "edits": 14077,
+          "first_pass_edits": 14228,
+          "per_micro": 0.09075436300455803,
+          "per_first_pass_micro": 0.09172785940391075,
+          "per_macro": 0.08669912289652489,
+          "asr_truncated_samples": 3,
+          "asr_truncated_repeats": 9,
+          "selected_asr_truncated_samples": 3,
+          "first_pass_asr_truncated_samples": 3,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 192,
+          "scored": 192,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.686056839923064,
+            "Arrangement": 6.955768696963787,
+            "Musicality": 5.903876858452956,
+            "Vocal": 7.12289251635472,
+            "Instrumental": 6.996258981525898,
+            "Mixing": 6.846222475171089,
+            "Structure": 6.5970153113206225,
+            "Global Avg": 6.729727382816019
+          },
+          "counts": {
+            "Melody": 192,
+            "Arrangement": 192,
+            "Musicality": 192,
+            "Vocal": 192,
+            "Instrumental": 192,
+            "Mixing": 192,
+            "Structure": 192,
+            "Global Avg": 192
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "lang/zh": {
+        "per": {
+          "expected": 94,
+          "scored": 94,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 72639,
+          "edits": 6996,
+          "first_pass_edits": 7107,
+          "per_micro": 0.09631189856688556,
+          "per_first_pass_micro": 0.09784000330401024,
+          "per_macro": 0.09289035015872414,
+          "asr_truncated_samples": 1,
+          "asr_truncated_repeats": 4,
+          "selected_asr_truncated_samples": 1,
+          "first_pass_asr_truncated_samples": 1,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 94,
+          "scored": 94,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.748165429906642,
+            "Arrangement": 7.085748221011872,
+            "Musicality": 6.004892369534107,
+            "Vocal": 7.106943196438729,
+            "Instrumental": 7.085455453142207,
+            "Mixing": 6.914329863609152,
+            "Structure": 6.666145897926168,
+            "Global Avg": 6.801668633081269
+          },
+          "counts": {
+            "Melody": 94,
+            "Arrangement": 94,
+            "Musicality": 94,
+            "Vocal": 94,
+            "Instrumental": 94,
+            "Mixing": 94,
+            "Structure": 94,
+            "Global Avg": 94
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "cot/full": {
+        "per": {
+          "expected": 192,
+          "scored": 192,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 155111,
+          "edits": 14077,
+          "first_pass_edits": 14228,
+          "per_micro": 0.09075436300455803,
+          "per_first_pass_micro": 0.09172785940391075,
+          "per_macro": 0.08669912289652489,
+          "asr_truncated_samples": 3,
+          "asr_truncated_repeats": 9,
+          "selected_asr_truncated_samples": 3,
+          "first_pass_asr_truncated_samples": 3,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 192,
+          "scored": 192,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.686056839923064,
+            "Arrangement": 6.955768696963787,
+            "Musicality": 5.903876858452956,
+            "Vocal": 7.12289251635472,
+            "Instrumental": 6.996258981525898,
+            "Mixing": 6.846222475171089,
+            "Structure": 6.5970153113206225,
+            "Global Avg": 6.729727382816019
+          },
+          "counts": {
+            "Melody": 192,
+            "Arrangement": 192,
+            "Musicality": 192,
+            "Vocal": 192,
+            "Instrumental": 192,
+            "Mixing": 192,
+            "Structure": 192,
+            "Global Avg": 192
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "full/zh": {
+        "per": {
+          "expected": 94,
+          "scored": 94,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 72639,
+          "edits": 6996,
+          "first_pass_edits": 7107,
+          "per_micro": 0.09631189856688556,
+          "per_first_pass_micro": 0.09784000330401024,
+          "per_macro": 0.09289035015872414,
+          "asr_truncated_samples": 1,
+          "asr_truncated_repeats": 4,
+          "selected_asr_truncated_samples": 1,
+          "first_pass_asr_truncated_samples": 1,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 94,
+          "scored": 94,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.748165429906642,
+            "Arrangement": 7.085748221011872,
+            "Musicality": 6.004892369534107,
+            "Vocal": 7.106943196438729,
+            "Instrumental": 7.085455453142207,
+            "Mixing": 6.914329863609152,
+            "Structure": 6.666145897926168,
+            "Global Avg": 6.801668633081269
+          },
+          "counts": {
+            "Melody": 94,
+            "Arrangement": 94,
+            "Musicality": 94,
+            "Vocal": 94,
+            "Instrumental": 94,
+            "Mixing": 94,
+            "Structure": 94,
+            "Global Avg": 94
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "lang/en": {
+        "per": {
+          "expected": 98,
+          "scored": 98,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 82472,
+          "edits": 7081,
+          "first_pass_edits": 7121,
+          "per_micro": 0.08585944320496654,
+          "per_first_pass_micro": 0.0863444563003201,
+          "per_macro": 0.0807605987878848,
+          "asr_truncated_samples": 2,
+          "asr_truncated_repeats": 5,
+          "selected_asr_truncated_samples": 2,
+          "first_pass_asr_truncated_samples": 2,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 98,
+          "scored": 98,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.626483294428612,
+            "Arrangement": 6.831094459611542,
+            "Musicality": 5.80698442945675,
+            "Vocal": 7.138190843621079,
+            "Instrumental": 6.910703182220459,
+            "Mixing": 6.780894980138662,
+            "Structure": 6.530706381311222,
+            "Global Avg": 6.660722510112619
+          },
+          "counts": {
+            "Melody": 98,
+            "Arrangement": 98,
+            "Musicality": 98,
+            "Vocal": 98,
+            "Instrumental": 98,
+            "Mixing": 98,
+            "Structure": 98,
+            "Global Avg": 98
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      },
+      "full/en": {
+        "per": {
+          "expected": 98,
+          "scored": 98,
+          "failed": 0,
+          "not_applicable": 0,
+          "reference_phonemes": 82472,
+          "edits": 7081,
+          "first_pass_edits": 7121,
+          "per_micro": 0.08585944320496654,
+          "per_first_pass_micro": 0.0863444563003201,
+          "per_macro": 0.0807605987878848,
+          "asr_truncated_samples": 2,
+          "asr_truncated_repeats": 5,
+          "selected_asr_truncated_samples": 2,
+          "first_pass_asr_truncated_samples": 2,
+          "asr_all_terminated": false,
+          "termination_policy": "Historical PER includes official postprocessed ASR text at the cap; no capped sample is excluded.",
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        },
+        "songbench": {
+          "expected": 98,
+          "scored": 98,
+          "failed": 0,
+          "not_applicable": 0,
+          "means": {
+            "Melody": 6.626483294428612,
+            "Arrangement": 6.831094459611542,
+            "Musicality": 5.80698442945675,
+            "Vocal": 7.138190843621079,
+            "Instrumental": 6.910703182220459,
+            "Mixing": 6.780894980138662,
+            "Structure": 6.530706381311222,
+            "Global Avg": 6.660722510112619
+          },
+          "counts": {
+            "Melody": 98,
+            "Arrangement": 98,
+            "Musicality": 98,
+            "Vocal": 98,
+            "Instrumental": 98,
+            "Mixing": 98,
+            "Structure": 98,
+            "Global Avg": 98
+          },
+          "complete": true,
+          "mean_scope": "all applicable samples"
+        }
+      }
+    },
+    "metrics": [
+      "per",
+      "songbench"
+    ]
+  },
+  "selected_candidates": [
+    {
+      "prompt_index": 0,
+      "candidate_index": 0,
+      "seed": 831001,
+      "audio_sha256": "74670e19b36308e94d8ba42e04925751baa241c088f2253d1e6878baf23ff26d"
+    },
+    {
+      "prompt_index": 1,
+      "candidate_index": 1,
+      "seed": 831020,
+      "audio_sha256": "d2773f6165386f6f5af1335f4849014e10c5d5d4bb91795b192ba00b96a3a1af"
+    },
+    {
+      "prompt_index": 2,
+      "candidate_index": 1,
+      "seed": 831021,
+      "audio_sha256": "a08d81bb1cd481578453af75afd51e3eddf9ede9ef9291394eedbcbb8cd6cbd7"
+    },
+    {
+      "prompt_index": 3,
+      "candidate_index": 0,
+      "seed": 831004,
+      "audio_sha256": "300c6e27bd1bcbc6bfbd20b4e2a3875a6dfa48bbbf9f053f80396e720e9f92fc"
+    },
+    {
+      "prompt_index": 4,
+      "candidate_index": 0,
+      "seed": 831005,
+      "audio_sha256": "22633f09e35999b22d63bfb27d8ab32566c2e0ea5d6a363f96d36247243a1951"
+    },
+    {
+      "prompt_index": 5,
+      "candidate_index": 1,
+      "seed": 831024,
+      "audio_sha256": "70ac68273fa62edd1b6eb1c42e07d22f849cb23efbf12f8e19e02813b761fd68"
+    },
+    {
+      "prompt_index": 6,
+      "candidate_index": 0,
+      "seed": 831007,
+      "audio_sha256": "f8ab3e8dbe9f439a8e35fa1ca3d4e9c3d278ee25873cd5c988bda2c622b2f9c5"
+    },
+    {
+      "prompt_index": 7,
+      "candidate_index": 1,
+      "seed": 831026,
+      "audio_sha256": "7601b4dc866d56257d84fca069e77b7cb88737812819d14149863ad91c001c7f"
+    },
+    {
+      "prompt_index": 8,
+      "candidate_index": 0,
+      "seed": 831009,
+      "audio_sha256": "bc4a63ba261efcc5fe8ec1453efab807206bbbe98359e2f31830c9fa2059809f"
+    },
+    {
+      "prompt_index": 9,
+      "candidate_index": 1,
+      "seed": 831028,
+      "audio_sha256": "7bea068edadd6446fd9056b79fb9cf477208c4fe9cb07c90877ee6f003e3f3ef"
+    },
+    {
+      "prompt_index": 10,
+      "candidate_index": 1,
+      "seed": 831029,
+      "audio_sha256": "dd32848aeeff5ada9c0d0f3171baf9c0c61444c64c7c2cbcd7c6d6fd5abb5bda"
+    },
+    {
+      "prompt_index": 11,
+      "candidate_index": 1,
+      "seed": 831030,
+      "audio_sha256": "1b1dbeeedf40185034b0c390ffa794e1ac94f6811749137619836d4dbfbccdcc"
+    },
+    {
+      "prompt_index": 12,
+      "candidate_index": 1,
+      "seed": 831031,
+      "audio_sha256": "7fb07824841c85787650033960fa21945cbbe2ff93f71f5dae9507f6ac94a8d9"
+    },
+    {
+      "prompt_index": 13,
+      "candidate_index": 0,
+      "seed": 831014,
+      "audio_sha256": "61abeab740eb9bfc26292f25e5e63de3033e863de768f5fe7e6f4048c8bc98a7"
+    },
+    {
+      "prompt_index": 14,
+      "candidate_index": 1,
+      "seed": 831033,
+      "audio_sha256": "f248015d4716b2f94fd91abb05435a2b31e1cae70c2b2f0bd838e7039ca061c2"
+    },
+    {
+      "prompt_index": 15,
+      "candidate_index": 0,
+      "seed": 831016,
+      "audio_sha256": "31e322b10460f022f581904dfdf5d447979b55741b3beb008f106f526790a9df"
+    },
+    {
+      "prompt_index": 16,
+      "candidate_index": 0,
+      "seed": 831017,
+      "audio_sha256": "a476fe583dc3b4fc9e861efcc8b2cf356ea55d48fdadccbf1b5a56be6ed8b8d8"
+    },
+    {
+      "prompt_index": 17,
+      "candidate_index": 1,
+      "seed": 831036,
+      "audio_sha256": "65d4e8814792405d6b3ee612e6e77efe368eb6a92e4bd0bd9dd2425580c9c4d1"
+    },
+    {
+      "prompt_index": 18,
+      "candidate_index": 0,
+      "seed": 831019,
+      "audio_sha256": "bad8bffed6f11954e419f55555c06a907dd80e491fb9276e25b3bc3b9037a7da"
+    },
+    {
+      "prompt_index": 19,
+      "candidate_index": 0,
+      "seed": 831020,
+      "audio_sha256": "3341fc2a6ff49086ebdfd64b0ca14be05363ad743015c8959dafe12c742e1c02"
+    },
+    {
+      "prompt_index": 20,
+      "candidate_index": 0,
+      "seed": 831021,
+      "audio_sha256": "1d9f883a93c182132fd5aedb2e684f6e7564951ec99dd1de4650d48972ac95a0"
+    },
+    {
+      "prompt_index": 21,
+      "candidate_index": 0,
+      "seed": 831022,
+      "audio_sha256": "915a715a86d907284aa62b1573a4567cc24e0c0e109798712ca88e94a1455a66"
+    },
+    {
+      "prompt_index": 22,
+      "candidate_index": 1,
+      "seed": 831041,
+      "audio_sha256": "cdcf6d9e15a53dbe69d7e3f253d31bacc31c6919ff244bfd5e8214e075b4359c"
+    },
+    {
+      "prompt_index": 23,
+      "candidate_index": 1,
+      "seed": 831042,
+      "audio_sha256": "1964065e304e8f791cb3be34d1cdc738b064e066a0ce03cdab6d9634a1985fce"
+    },
+    {
+      "prompt_index": 24,
+      "candidate_index": 0,
+      "seed": 831025,
+      "audio_sha256": "f05d111a65c28b900d819761b4297d56a452b705d8729e3fbd2136222d221f84"
+    },
+    {
+      "prompt_index": 25,
+      "candidate_index": 0,
+      "seed": 831026,
+      "audio_sha256": "b3139a4b4a3d62356a9bb76cbf3e69e47e57f6590840a81fbbb7499d0a201507"
+    },
+    {
+      "prompt_index": 26,
+      "candidate_index": 0,
+      "seed": 831027,
+      "audio_sha256": "140830876befb377238b5c2f04c813407e6682131ac279c52014eff36fec4f51"
+    },
+    {
+      "prompt_index": 27,
+      "candidate_index": 0,
+      "seed": 831028,
+      "audio_sha256": "33195e486398e43614dbd0a7aeffbcde7108b9eeaef15731f4fca796cbc7d910"
+    },
+    {
+      "prompt_index": 28,
+      "candidate_index": 1,
+      "seed": 831047,
+      "audio_sha256": "8689eeb6b1a1febcb38c9294422b09efb0a41a87e2fd791f37770af222506e5c"
+    },
+    {
+      "prompt_index": 29,
+      "candidate_index": 0,
+      "seed": 831030,
+      "audio_sha256": "4bec8c859633da9f83136bc802c2d8274988a675ccd8d0f538a4aab05c9a0dea"
+    },
+    {
+      "prompt_index": 30,
+      "candidate_index": 1,
+      "seed": 831049,
+      "audio_sha256": "f8fde15f753fda072378d9ed7d0d1a1b3695f4de920a1f69f8f57209b419ed72"
+    },
+    {
+      "prompt_index": 31,
+      "candidate_index": 1,
+      "seed": 831050,
+      "audio_sha256": "0fa0b5c2cee6a787eef120b973edbb66695ceffd7b45b38f9ea65d4294e45948"
+    },
+    {
+      "prompt_index": 32,
+      "candidate_index": 1,
+      "seed": 831051,
+      "audio_sha256": "9e85e85044c7799436f4bdf96df7f4b58d523506c1537599e85bca04c21f571a"
+    },
+    {
+      "prompt_index": 33,
+      "candidate_index": 1,
+      "seed": 831052,
+      "audio_sha256": "391f054abda2c5311392f0428ff3f0f24928d5e44454e4c0e0444d88a1afc099"
+    },
+    {
+      "prompt_index": 34,
+      "candidate_index": 0,
+      "seed": 831035,
+      "audio_sha256": "27d44e5f4f91c2cef100215c663c2d061e194f53a2e7eb857d0893d3997aafde"
+    },
+    {
+      "prompt_index": 35,
+      "candidate_index": 1,
+      "seed": 831054,
+      "audio_sha256": "ed5b4f7632c571f85379f68ee5ac8aba952f3c05552263e652800fd9e9edf0d8"
+    },
+    {
+      "prompt_index": 36,
+      "candidate_index": 0,
+      "seed": 831037,
+      "audio_sha256": "282a03b1ae1cd3aef289e3466f051ada7bce99892c799f4c57064d01e73ab40d"
+    },
+    {
+      "prompt_index": 37,
+      "candidate_index": 0,
+      "seed": 831038,
+      "audio_sha256": "b7aec943f4e1c237ce12c621731c3506afeec1e482869da48956c61ee879fb7d"
+    },
+    {
+      "prompt_index": 38,
+      "candidate_index": 0,
+      "seed": 831039,
+      "audio_sha256": "47a9b645516f5f31fdfd0b934ed94bf79a96f510f0f7c9be9f963ea12b7d3089"
+    },
+    {
+      "prompt_index": 39,
+      "candidate_index": 1,
+      "seed": 831058,
+      "audio_sha256": "2964fb852963d25cb643e2ea88581f36ccac3c23f52ced75fc23cf5f4ebfed23"
+    },
+    {
+      "prompt_index": 40,
+      "candidate_index": 0,
+      "seed": 831041,
+      "audio_sha256": "2930fed83eb56bc56136e409fb27fc0954f726672caeb2ea582c98a3f29acd85"
+    },
+    {
+      "prompt_index": 41,
+      "candidate_index": 0,
+      "seed": 831042,
+      "audio_sha256": "c0c8a19ab41e7aa52013ec2101bbe6d8923f442b7a7a4f624021990df12f0e13"
+    },
+    {
+      "prompt_index": 42,
+      "candidate_index": 0,
+      "seed": 831043,
+      "audio_sha256": "dbe529b1c0d411f4679a8bf6a5455e221d38a377389f7fbef68d794f6c063152"
+    },
+    {
+      "prompt_index": 43,
+      "candidate_index": 1,
+      "seed": 831062,
+      "audio_sha256": "d58593250a59bcb3229af9520a45afa1fbb253e0f179b61c6a84923f24bba3c2"
+    },
+    {
+      "prompt_index": 44,
+      "candidate_index": 0,
+      "seed": 831045,
+      "audio_sha256": "e461be1acf3f3475b9190b5317a5e83be47ac25b15cec7dc132bd53eb72325fc"
+    },
+    {
+      "prompt_index": 45,
+      "candidate_index": 0,
+      "seed": 831046,
+      "audio_sha256": "67fc768e498fd44278ec8646ae12d743e1334282bb1e7a10ef5bb281f0312958"
+    },
+    {
+      "prompt_index": 46,
+      "candidate_index": 0,
+      "seed": 831047,
+      "audio_sha256": "12e3d410b7ee0e30e24300e692e3859ef56d602a4eb95b7c6f8ff82ff54ff886"
+    },
+    {
+      "prompt_index": 47,
+      "candidate_index": 0,
+      "seed": 831048,
+      "audio_sha256": "b2d12993c4d6298865aed19988abb86154bd2a686cd39d32e68c47d8aa7a49b4"
+    },
+    {
+      "prompt_index": 48,
+      "candidate_index": 1,
+      "seed": 831067,
+      "audio_sha256": "d36ea1c45efd7d98b1505bb6a292c727560c0b1a91c45b035f8e89f551585d19"
+    },
+    {
+      "prompt_index": 49,
+      "candidate_index": 0,
+      "seed": 831050,
+      "audio_sha256": "4aee7d647ccd494a61c7df68b307113c76216bc0e360564166eb74619d7ede44"
+    },
+    {
+      "prompt_index": 50,
+      "candidate_index": 1,
+      "seed": 831069,
+      "audio_sha256": "36932d3bbe2b2fc0cccc18d3a8fc5925cfdd347e271d996e9c8c2fc49a85c00d"
+    },
+    {
+      "prompt_index": 51,
+      "candidate_index": 1,
+      "seed": 831070,
+      "audio_sha256": "9dd72dc62cecbd3d31c56cfda2c2947b50511eadf35b1162d89937ad93532a5f"
+    },
+    {
+      "prompt_index": 52,
+      "candidate_index": 0,
+      "seed": 831053,
+      "audio_sha256": "714b943db37c2ff97cb8ebff76982ec7d2bb578f4f7579c3c387e9ceda15730a"
+    },
+    {
+      "prompt_index": 53,
+      "candidate_index": 0,
+      "seed": 831054,
+      "audio_sha256": "ae7de2934e24e4ea5d248f37beb7d8e9b5f3372700cae98f395a5b3b6d7fd792"
+    },
+    {
+      "prompt_index": 54,
+      "candidate_index": 1,
+      "seed": 831073,
+      "audio_sha256": "95b030912d5574ac4e2f261b6ffd67f6b0c6776fd9de1585c532119e067301b2"
+    },
+    {
+      "prompt_index": 55,
+      "candidate_index": 0,
+      "seed": 831056,
+      "audio_sha256": "28441dcd73870164125692c7ac0a809d37dc6173132b92f74257ec5059f46ea6"
+    },
+    {
+      "prompt_index": 56,
+      "candidate_index": 0,
+      "seed": 831057,
+      "audio_sha256": "3b265427641a1627b4428a15f73c8b32e6b3baadd5a187f374615b9b016cc5d3"
+    },
+    {
+      "prompt_index": 57,
+      "candidate_index": 1,
+      "seed": 831076,
+      "audio_sha256": "885f5260b9afdf4a5b9aee221355e27d0e2a95ef4d68515c65898eaa60f8b51f"
+    },
+    {
+      "prompt_index": 58,
+      "candidate_index": 0,
+      "seed": 831059,
+      "audio_sha256": "5f52916ce94d85567b2a30d8d5d9723ffaa08fc4eb9bcae0504f1ba2129b3a87"
+    },
+    {
+      "prompt_index": 59,
+      "candidate_index": 1,
+      "seed": 831078,
+      "audio_sha256": "4eccc9f0dae721f763f1bd2058f275a8527f5a9d27e4f30596002eed01975792"
+    },
+    {
+      "prompt_index": 60,
+      "candidate_index": 1,
+      "seed": 831079,
+      "audio_sha256": "94c87f274af232d92a23b7d6119e0682a838dd0e6af2861a72f72996aec0a30b"
+    },
+    {
+      "prompt_index": 61,
+      "candidate_index": 1,
+      "seed": 831080,
+      "audio_sha256": "5da6edab5f4f1e05050ffc772918140fc6b093baa9f4c572c9d48c2a2d1514f3"
+    },
+    {
+      "prompt_index": 62,
+      "candidate_index": 0,
+      "seed": 831063,
+      "audio_sha256": "428a2bfd612546e6b4a1ee59ec012fb69d7311f3149ce7eda5b7cc1038851ba4"
+    },
+    {
+      "prompt_index": 63,
+      "candidate_index": 0,
+      "seed": 831064,
+      "audio_sha256": "96c02bf0c1b1b09437274d428f6923863b4235bc84d6d1d90bc8259999616b3f"
+    },
+    {
+      "prompt_index": 64,
+      "candidate_index": 0,
+      "seed": 831065,
+      "audio_sha256": "c90109017ace1444c63ea6b02f52e1ba756f83f9af414c05fd84f77ea5fb4322"
+    },
+    {
+      "prompt_index": 65,
+      "candidate_index": 0,
+      "seed": 831066,
+      "audio_sha256": "cd2658c569bd533a5d89265f93c3d78467d34293710fee6ba2ad8dcd9a4b0525"
+    },
+    {
+      "prompt_index": 66,
+      "candidate_index": 1,
+      "seed": 831085,
+      "audio_sha256": "96a94306405197329138f116f183771aa9bbf528bfb003a1b642d59185c8c1e0"
+    },
+    {
+      "prompt_index": 67,
+      "candidate_index": 1,
+      "seed": 831086,
+      "audio_sha256": "09490568bba6b87aad5aefae24dcc45a5599ccf6704ac4d1524eedb137ceddb6"
+    },
+    {
+      "prompt_index": 68,
+      "candidate_index": 1,
+      "seed": 831087,
+      "audio_sha256": "b9c98bb6a9f6a153057e5de985b6887c99e8e4cf17daee2b9a347948d8de27bd"
+    },
+    {
+      "prompt_index": 69,
+      "candidate_index": 0,
+      "seed": 831070,
+      "audio_sha256": "01feda9768d01ea20249567516167f3b0b9ba7bf4b13333fcb30145e2c532cf8"
+    },
+    {
+      "prompt_index": 70,
+      "candidate_index": 0,
+      "seed": 831071,
+      "audio_sha256": "7618f50bc9ff9dd5ccedd7fbf65b9bcabdae019492b5ff4743b251604f10f8af"
+    },
+    {
+      "prompt_index": 71,
+      "candidate_index": 1,
+      "seed": 831090,
+      "audio_sha256": "b23f3aa4a575d541cf3f57dea8c1dba948c24556e1f4f653fb812db0b21d7ac4"
+    },
+    {
+      "prompt_index": 72,
+      "candidate_index": 1,
+      "seed": 831091,
+      "audio_sha256": "8ea3a4df63a16654be83fa4e462fdf6ad71563669e86728b9e573f27443e5d4e"
+    },
+    {
+      "prompt_index": 73,
+      "candidate_index": 0,
+      "seed": 831074,
+      "audio_sha256": "14ceb53d41fbc627b012afd5464698c00260e0139d6babdaed25c32915ff616b"
+    },
+    {
+      "prompt_index": 74,
+      "candidate_index": 0,
+      "seed": 831075,
+      "audio_sha256": "aaa9426d65b3f883a9c052d5e620cca34a1e562730408e908e90fd4cd51b98fa"
+    },
+    {
+      "prompt_index": 75,
+      "candidate_index": 1,
+      "seed": 831094,
+      "audio_sha256": "5062baae8117371e7c98612ae03262ff5f49b2f6a51268ce75fee5e8018c366e"
+    },
+    {
+      "prompt_index": 76,
+      "candidate_index": 0,
+      "seed": 831077,
+      "audio_sha256": "e880b0369ad34628d859801f89153b0719298886062646075f529b5615bec599"
+    },
+    {
+      "prompt_index": 77,
+      "candidate_index": 1,
+      "seed": 831096,
+      "audio_sha256": "e70cdd7f6a8afd6a340f558da18d3fd549ec0480c9d3f2d59eb8ceb82c0bc0fa"
+    },
+    {
+      "prompt_index": 78,
+      "candidate_index": 0,
+      "seed": 831079,
+      "audio_sha256": "2394de2b3701a3336eb5c041bcedd70fc94c8e31d930ec9790f623c1aeabc020"
+    },
+    {
+      "prompt_index": 79,
+      "candidate_index": 0,
+      "seed": 831080,
+      "audio_sha256": "591d0c8a783fc2c103b7a722113d7bbb05512a96663b702a7d20313ebca342b1"
+    },
+    {
+      "prompt_index": 80,
+      "candidate_index": 1,
+      "seed": 831099,
+      "audio_sha256": "163aaed6cf7e4e85fca2e623ed78a2e7af239111b5937020e4b1f970fe754490"
+    },
+    {
+      "prompt_index": 81,
+      "candidate_index": 0,
+      "seed": 831082,
+      "audio_sha256": "558f7aa4d1e6fbbb91e61263bad7cca36c594519a1bc5202f0efa17b31c2e72f"
+    },
+    {
+      "prompt_index": 82,
+      "candidate_index": 0,
+      "seed": 831083,
+      "audio_sha256": "d0a930020b7e65234312fa08ba33550c6b056c716cff7e041704ad9f83bd7d56"
+    },
+    {
+      "prompt_index": 83,
+      "candidate_index": 1,
+      "seed": 831102,
+      "audio_sha256": "ac109107db61382e6a99af564de5788f868a131bee493bb239ff9480a8976987"
+    },
+    {
+      "prompt_index": 84,
+      "candidate_index": 1,
+      "seed": 831103,
+      "audio_sha256": "a64307222ab6a6647d574f8655ea30ebc45d5e952a3b57b02a1a04f95cb9c1fb"
+    },
+    {
+      "prompt_index": 85,
+      "candidate_index": 1,
+      "seed": 831104,
+      "audio_sha256": "b871e66eaff0005ad5ae0c5ccd644859b2da692d43e84ad2edd40318c6f22cb4"
+    },
+    {
+      "prompt_index": 86,
+      "candidate_index": 0,
+      "seed": 831087,
+      "audio_sha256": "05fa90c5ceacbab482eaf1560e18799e3c9c1fa9068b1db13deeaa3117c61432"
+    },
+    {
+      "prompt_index": 87,
+      "candidate_index": 0,
+      "seed": 831088,
+      "audio_sha256": "3762a92f4abff88a09958456c00d9f5814e1917dded9355721411012d668ae3b"
+    },
+    {
+      "prompt_index": 88,
+      "candidate_index": 0,
+      "seed": 831089,
+      "audio_sha256": "249c283558f09b7aceb69995eb7ed0d1c069b185328bcbd2d146197ccb50a791"
+    },
+    {
+      "prompt_index": 89,
+      "candidate_index": 1,
+      "seed": 831108,
+      "audio_sha256": "2b94ab8027e9b587c6e635071e733f25181a3d8220271246ad80eec52adac31c"
+    },
+    {
+      "prompt_index": 90,
+      "candidate_index": 0,
+      "seed": 831091,
+      "audio_sha256": "9152519164143dd98ca45188a64cbc611ad394de33b686f7edae91220194535e"
+    },
+    {
+      "prompt_index": 91,
+      "candidate_index": 0,
+      "seed": 831092,
+      "audio_sha256": "623e07317c03ef2ce670afaed5c37f69b317157f9f5d2b52b9f25f83eca710a5"
+    },
+    {
+      "prompt_index": 92,
+      "candidate_index": 1,
+      "seed": 831111,
+      "audio_sha256": "99a09da78b4f37c19b437d209ac8fb7f8d4ea3766fc4d2c0edfec3ea625fcb8b"
+    },
+    {
+      "prompt_index": 93,
+      "candidate_index": 0,
+      "seed": 831094,
+      "audio_sha256": "36662a43fc2df56c21420be1c04cc9847ea5faf1e78f883e66b806c6518debb8"
+    },
+    {
+      "prompt_index": 94,
+      "candidate_index": 1,
+      "seed": 831113,
+      "audio_sha256": "8337932983992726b759cb3e6c46f47a8384f0d060c04fe74a9fc4292c36ebd2"
+    },
+    {
+      "prompt_index": 95,
+      "candidate_index": 0,
+      "seed": 831096,
+      "audio_sha256": "855aec4ca30e0229942b15d85bc16df1d9132ffdda380766a3b9c8315f94c413"
+    },
+    {
+      "prompt_index": 96,
+      "candidate_index": 0,
+      "seed": 831097,
+      "audio_sha256": "14499093dfc6fe29175ec010f979e8872e37c27748abdf7cbe097a8fba34351e"
+    },
+    {
+      "prompt_index": 97,
+      "candidate_index": 0,
+      "seed": 831098,
+      "audio_sha256": "3885f25bc636c530110f7c9db18ff5c12bed52965616d7b96727628f4c6c097b"
+    },
+    {
+      "prompt_index": 98,
+      "candidate_index": 1,
+      "seed": 831117,
+      "audio_sha256": "f02b6d9595afea17e14e37ef86fecaddd29dce9d276d9b6f0d82cec888852e57"
+    },
+    {
+      "prompt_index": 99,
+      "candidate_index": 1,
+      "seed": 831118,
+      "audio_sha256": "25a6a28c502f5131a9640b06271d0ef62977823cb76bfeecf03c9897178f65a6"
+    },
+    {
+      "prompt_index": 100,
+      "candidate_index": 1,
+      "seed": 831119,
+      "audio_sha256": "7ec46eb235e86ad02aef2f69bf39f39b5a628adaf19d1485b14e5ce3816532b7"
+    },
+    {
+      "prompt_index": 101,
+      "candidate_index": 0,
+      "seed": 831102,
+      "audio_sha256": "c9212ca32c7e5fc69af8c0764d2e774f668a2484c40336594b6d05c17deb5d1e"
+    },
+    {
+      "prompt_index": 102,
+      "candidate_index": 1,
+      "seed": 831121,
+      "audio_sha256": "2467e1199e1ce07cd99acd38b81356e5027a7baefc29f48e7a11ffb2ba463596"
+    },
+    {
+      "prompt_index": 103,
+      "candidate_index": 1,
+      "seed": 831122,
+      "audio_sha256": "92b8a9e130de3c1153c06d53e54ccda79b98bb66c300bfbe75bbe8a4b92868de"
+    },
+    {
+      "prompt_index": 104,
+      "candidate_index": 1,
+      "seed": 831123,
+      "audio_sha256": "439cdccd0f3a560a122e63f4e306d8fbb18dd0d033f0675d4450586133e3df7a"
+    },
+    {
+      "prompt_index": 105,
+      "candidate_index": 0,
+      "seed": 831106,
+      "audio_sha256": "d23500e800abfd7d52e69d56984391155d796093d8384381d84805a2c659ade1"
+    },
+    {
+      "prompt_index": 106,
+      "candidate_index": 1,
+      "seed": 831125,
+      "audio_sha256": "e713eb4f74f8ec6fa76c2aa9c95e28173003ce26d5f20608d0d28fa718e65962"
+    },
+    {
+      "prompt_index": 107,
+      "candidate_index": 1,
+      "seed": 831126,
+      "audio_sha256": "66d03635f4013ef5373d7928182ae3446933864ac30688b1ffd439cb2bb3ea2c"
+    },
+    {
+      "prompt_index": 108,
+      "candidate_index": 1,
+      "seed": 831127,
+      "audio_sha256": "6ecc4b7ddcd2e94b2b0f697ee1fe9eef597102c126322654d56a456727500914"
+    },
+    {
+      "prompt_index": 109,
+      "candidate_index": 1,
+      "seed": 831128,
+      "audio_sha256": "9f7ed80daa85eb4dc11970e612cde2e8abd5bce231485fe2aabe4cfb0d719617"
+    },
+    {
+      "prompt_index": 110,
+      "candidate_index": 0,
+      "seed": 831111,
+      "audio_sha256": "af29b1f0790679089376674d144cf4af172d5d3f05a731c9210d5248367113a3"
+    },
+    {
+      "prompt_index": 111,
+      "candidate_index": 0,
+      "seed": 831112,
+      "audio_sha256": "b7bf9347385f91fd7f5713dccc50d89bca04070b01efd51b6a17f333d7cfbd01"
+    },
+    {
+      "prompt_index": 112,
+      "candidate_index": 0,
+      "seed": 831113,
+      "audio_sha256": "e77a3977bb35678bc1f976088b19832efbafafd997522fdbd78b846d18753b6d"
+    },
+    {
+      "prompt_index": 113,
+      "candidate_index": 0,
+      "seed": 831114,
+      "audio_sha256": "72ce77c62d723fd6cff52cadcaa2f3c4caf25702612607ec760c2abf5aee463d"
+    },
+    {
+      "prompt_index": 114,
+      "candidate_index": 1,
+      "seed": 831133,
+      "audio_sha256": "a281afb3ced698c726fae0b60313ba23fb5c12d487a3a300c2b7acd62cceb681"
+    },
+    {
+      "prompt_index": 115,
+      "candidate_index": 1,
+      "seed": 831134,
+      "audio_sha256": "0b3f3bc5e03454dbec3412cbf7cdc7961998711494777f88272d94dd66a82c9f"
+    },
+    {
+      "prompt_index": 116,
+      "candidate_index": 0,
+      "seed": 831117,
+      "audio_sha256": "03a8e12f39167d6e56c17c2c5814e9966e991a88067a2c5d6d1918a3790e19fd"
+    },
+    {
+      "prompt_index": 117,
+      "candidate_index": 0,
+      "seed": 831118,
+      "audio_sha256": "1fb3e39095ca508296d133311b22849c250b1888fe48b3ab78683ff1185735ee"
+    },
+    {
+      "prompt_index": 118,
+      "candidate_index": 0,
+      "seed": 831119,
+      "audio_sha256": "0c660aa0c5ce944e4205212d7e3dd0c900d0fc91c3b9db95e024230693a42cb6"
+    },
+    {
+      "prompt_index": 119,
+      "candidate_index": 1,
+      "seed": 831138,
+      "audio_sha256": "f670865c81b9a6bed329470af3b69437fe6ec705523c239e2440207ee052da18"
+    },
+    {
+      "prompt_index": 120,
+      "candidate_index": 1,
+      "seed": 831139,
+      "audio_sha256": "d2fe62de90b3d785a2b72cc630879d9440fa0a7058ff9877e92cf7d342f631dc"
+    },
+    {
+      "prompt_index": 121,
+      "candidate_index": 0,
+      "seed": 831122,
+      "audio_sha256": "1c68d7a235831b0cf306d95f5f32d2880432af715ae3e531c9fc2c69e40fa204"
+    },
+    {
+      "prompt_index": 122,
+      "candidate_index": 1,
+      "seed": 831141,
+      "audio_sha256": "6cdcdda2bb71e712546b522b44c68190ff2601772d99c4cacf64216a17d4de0c"
+    },
+    {
+      "prompt_index": 123,
+      "candidate_index": 1,
+      "seed": 831142,
+      "audio_sha256": "69a46215ed556223964c84786709fc923943e1e09ff0c25d6fa2412fbb1793c4"
+    },
+    {
+      "prompt_index": 124,
+      "candidate_index": 1,
+      "seed": 831143,
+      "audio_sha256": "56a627e0752ebe82e9554ecbdd288154a0cc4959041bbe89c8e809b5e9041588"
+    },
+    {
+      "prompt_index": 125,
+      "candidate_index": 0,
+      "seed": 831126,
+      "audio_sha256": "7efccdbfd333d201e854c9c124f925dcc4df9b057d1391720d64ccb7a59ca434"
+    },
+    {
+      "prompt_index": 126,
+      "candidate_index": 1,
+      "seed": 831145,
+      "audio_sha256": "5dc7e9b66ebb3c26a1e1f50251d92e6d4537b527aeda281faaa1195eb31a2f8e"
+    },
+    {
+      "prompt_index": 127,
+      "candidate_index": 0,
+      "seed": 831128,
+      "audio_sha256": "f8dd05f8582f9c3bc0ad37d63af26585b7ff7d4e27b0a7232ba030dcdc23b4a9"
+    },
+    {
+      "prompt_index": 128,
+      "candidate_index": 1,
+      "seed": 831147,
+      "audio_sha256": "2ea7a1e2978727afce0728572690d56a3a66b04957f63c84b82a0288f37da850"
+    },
+    {
+      "prompt_index": 129,
+      "candidate_index": 1,
+      "seed": 831148,
+      "audio_sha256": "d2a8c3335fccf9566b250548594375ebfe46f198f6b45fd2c770d4eb897ea866"
+    },
+    {
+      "prompt_index": 130,
+      "candidate_index": 0,
+      "seed": 831131,
+      "audio_sha256": "7b3a2334d7687a48c8a30c97a12b8b29049dea815ae701a997c563e4a89ad3ea"
+    },
+    {
+      "prompt_index": 131,
+      "candidate_index": 1,
+      "seed": 831150,
+      "audio_sha256": "40689f99da3e4d65d78cea5e591cde28eb39c59b5363dc223fced38fc2cd9f81"
+    },
+    {
+      "prompt_index": 132,
+      "candidate_index": 1,
+      "seed": 831151,
+      "audio_sha256": "2cd3693dd352ceea48166701f6dd20342620f72f4bbc98c046cc3060061cd07e"
+    },
+    {
+      "prompt_index": 133,
+      "candidate_index": 0,
+      "seed": 831134,
+      "audio_sha256": "c85f2da1daea02fa93080e9afe4de65636f1f72e6881d976251aa8bc7f092562"
+    },
+    {
+      "prompt_index": 134,
+      "candidate_index": 1,
+      "seed": 831153,
+      "audio_sha256": "f73925e3b950553f3cb490f7fcdbd128033b28682490a3e70fd253baf63685a4"
+    },
+    {
+      "prompt_index": 135,
+      "candidate_index": 0,
+      "seed": 831136,
+      "audio_sha256": "4651283ebfe6128555dfbbb407f4553a5f96e5d6f6f28661650e3c70a7218eae"
+    },
+    {
+      "prompt_index": 136,
+      "candidate_index": 1,
+      "seed": 831155,
+      "audio_sha256": "4f7770799a1d2cd4afedb743bb46e0b606f7bf79825561d049cb88c3bf1ce194"
+    },
+    {
+      "prompt_index": 137,
+      "candidate_index": 0,
+      "seed": 831138,
+      "audio_sha256": "91d68f01c054b29faac5f6ea58270717e9aea1094122aef8a9cd5bcfb56ecd01"
+    },
+    {
+      "prompt_index": 138,
+      "candidate_index": 1,
+      "seed": 831157,
+      "audio_sha256": "f6c215a35807d85639137a0a8fb7845e0424ed65c12f8096455e7291c7eb3a4e"
+    },
+    {
+      "prompt_index": 139,
+      "candidate_index": 1,
+      "seed": 831158,
+      "audio_sha256": "e1e0443aee6c67745e2ce7d5120d27619c0d42a5b1a816e0f222f76e3d08e4b0"
+    },
+    {
+      "prompt_index": 140,
+      "candidate_index": 0,
+      "seed": 831141,
+      "audio_sha256": "1c8031c297c7f00da92781bdbe55610e226fb839594eab2bc163700d72ef0e1a"
+    },
+    {
+      "prompt_index": 141,
+      "candidate_index": 0,
+      "seed": 831142,
+      "audio_sha256": "040d98989916b8141a82354a451bbbb59f8d11ba7ad6363adfbd4c6010718aa5"
+    },
+    {
+      "prompt_index": 142,
+      "candidate_index": 1,
+      "seed": 831161,
+      "audio_sha256": "48c1a2eb528e6f7ae89b57c0ffbf5ebb82816b462b68e8c2fc7dc1d51cbd7901"
+    },
+    {
+      "prompt_index": 143,
+      "candidate_index": 1,
+      "seed": 831162,
+      "audio_sha256": "f55383865c8b951bec34a8a671298ebd5443a8287f98ee3d2e0c40286541b5c3"
+    },
+    {
+      "prompt_index": 144,
+      "candidate_index": 0,
+      "seed": 831145,
+      "audio_sha256": "caf82042151e1ae769fa880fa1a5d4314d245a9fc8a9f5951fb90d856c8ba1e6"
+    },
+    {
+      "prompt_index": 145,
+      "candidate_index": 0,
+      "seed": 831146,
+      "audio_sha256": "ccaa2d8dbd7c6bc49e1d1720fb8357344fcb7c0ce442840b03c4a30e31496b5f"
+    },
+    {
+      "prompt_index": 146,
+      "candidate_index": 1,
+      "seed": 831165,
+      "audio_sha256": "6296c16079440db4796561805f23d6f98be9b25efacf9598dba6ad1a0bec1ea0"
+    },
+    {
+      "prompt_index": 147,
+      "candidate_index": 0,
+      "seed": 831148,
+      "audio_sha256": "244c3ae092eda8156a5426eb56519e18b1b7b92bf0be5caf16f1418eca1513d2"
+    },
+    {
+      "prompt_index": 148,
+      "candidate_index": 0,
+      "seed": 831149,
+      "audio_sha256": "fe0dae795918e4f344a9411997fca9a058044d08c34949294da1f846cad5dfd5"
+    },
+    {
+      "prompt_index": 149,
+      "candidate_index": 0,
+      "seed": 831150,
+      "audio_sha256": "6b9f37156254aae3368b86a0405805b211e2deaa5a49cb6cee2038d6116787d4"
+    },
+    {
+      "prompt_index": 150,
+      "candidate_index": 1,
+      "seed": 831169,
+      "audio_sha256": "ccac5bfd7e2101cee8ca5d3bf9ed1ee04bcaac79fb21886d17b6a822f7348456"
+    },
+    {
+      "prompt_index": 151,
+      "candidate_index": 0,
+      "seed": 831152,
+      "audio_sha256": "7ec8a7d285a3b828bb2d222117e309d6ace791daf9642bcfc72ddcc9dfdd44a9"
+    },
+    {
+      "prompt_index": 152,
+      "candidate_index": 0,
+      "seed": 831153,
+      "audio_sha256": "79982b253e14e510934ed335c2f407a084d1c99e57ffffc9038136cbfbaf0cff"
+    },
+    {
+      "prompt_index": 153,
+      "candidate_index": 0,
+      "seed": 831154,
+      "audio_sha256": "3ff84c4ee45a1c28efc78c802881dffefdb2ffb9f056b4f7695ad9c528610453"
+    },
+    {
+      "prompt_index": 154,
+      "candidate_index": 1,
+      "seed": 831173,
+      "audio_sha256": "6ff9a45e3e4c13024f736e6e6f725ef37b6821037055337394c3d57bd5f6275d"
+    },
+    {
+      "prompt_index": 155,
+      "candidate_index": 0,
+      "seed": 831156,
+      "audio_sha256": "bc184dc4f9587402569294f9e2798ef0e539f43bad9d286a7a00a9fad245e922"
+    },
+    {
+      "prompt_index": 156,
+      "candidate_index": 1,
+      "seed": 831175,
+      "audio_sha256": "696d00b2c5ebfc1d6c2589e2e9d473fb746658910d345acfd5e3bc575b322c56"
+    },
+    {
+      "prompt_index": 157,
+      "candidate_index": 0,
+      "seed": 831158,
+      "audio_sha256": "094f8b8475f210b0ae25794c40cb77becc011246cb7979377000b1fd8abed671"
+    },
+    {
+      "prompt_index": 158,
+      "candidate_index": 1,
+      "seed": 831177,
+      "audio_sha256": "353143411c1920387906a28c611b590b12018d365fd00909366c0ac609a2ad33"
+    },
+    {
+      "prompt_index": 159,
+      "candidate_index": 1,
+      "seed": 831178,
+      "audio_sha256": "c7fe1e6be17429296096792049ccb35105068615eb55074f02cad658e5607a03"
+    },
+    {
+      "prompt_index": 160,
+      "candidate_index": 1,
+      "seed": 831179,
+      "audio_sha256": "f21637a1928988f4fd157a3e9ab1e083456fcc5541bccea7fb24c00ff013481d"
+    },
+    {
+      "prompt_index": 161,
+      "candidate_index": 0,
+      "seed": 831162,
+      "audio_sha256": "9087e4dea5282e1bd93dac72be5c3baaea9aabe5273af314c221918badd403bb"
+    },
+    {
+      "prompt_index": 162,
+      "candidate_index": 1,
+      "seed": 831181,
+      "audio_sha256": "a84a38b8c936a3ef42f2e591b0dcba54a9feace10952d843640d619d5f219596"
+    },
+    {
+      "prompt_index": 163,
+      "candidate_index": 0,
+      "seed": 831164,
+      "audio_sha256": "bed1efac5ee9393b8df6ca3f95ae6fbfd70d2db184f875093bb7160fa1bc2b0a"
+    },
+    {
+      "prompt_index": 164,
+      "candidate_index": 0,
+      "seed": 831165,
+      "audio_sha256": "4ca659ee7a1ab4b25470484c6ad26394b7661e0eabc6b3d526ea8325bc298aeb"
+    },
+    {
+      "prompt_index": 165,
+      "candidate_index": 1,
+      "seed": 831184,
+      "audio_sha256": "8f3dd67ecfd3cd666e49d93d3244f0f832adbd8d42c5ba5b9a714bbf9c1a9d12"
+    },
+    {
+      "prompt_index": 166,
+      "candidate_index": 1,
+      "seed": 831185,
+      "audio_sha256": "2a500e457ec608a88d2bd64adf2cefc6408d00e5ca06c01899924c0d94ecba4b"
+    },
+    {
+      "prompt_index": 167,
+      "candidate_index": 0,
+      "seed": 831168,
+      "audio_sha256": "10c32cc79ce6c327ddb6bf2180169509b2e942a35280e925e05d2921290fdd44"
+    },
+    {
+      "prompt_index": 168,
+      "candidate_index": 1,
+      "seed": 831187,
+      "audio_sha256": "fc69d8185e56e3a0a027ec0a669f0d7d1d09484eed2f4dfb505f821c8003c458"
+    },
+    {
+      "prompt_index": 169,
+      "candidate_index": 0,
+      "seed": 831170,
+      "audio_sha256": "863b855a85ddf81b0335fea396a2d1e7eebb5e4a2bed84b85ec68e52795aaf88"
+    },
+    {
+      "prompt_index": 170,
+      "candidate_index": 0,
+      "seed": 831171,
+      "audio_sha256": "adf1681bc7a425edfe160ecefff234ae60dfbadcf377973fbefe0a402b0b6d78"
+    },
+    {
+      "prompt_index": 171,
+      "candidate_index": 0,
+      "seed": 831172,
+      "audio_sha256": "b269ef1b80eb4dfe5ec061d9fbd3742bf7d3af3122374a2993e9b2da99e8a5ae"
+    },
+    {
+      "prompt_index": 172,
+      "candidate_index": 0,
+      "seed": 831173,
+      "audio_sha256": "2d7b976f45c923573cc09cf25d190c7ee83d968b9fc5d8a76afe566db0161ecc"
+    },
+    {
+      "prompt_index": 173,
+      "candidate_index": 0,
+      "seed": 831174,
+      "audio_sha256": "c7ebc604cb58ad1c0cf7645ba58c622534b48d56777ba8c8c449059b11b1d4ac"
+    },
+    {
+      "prompt_index": 174,
+      "candidate_index": 0,
+      "seed": 831175,
+      "audio_sha256": "f5e5a34a035dcf34f443051b855831d2e76aad412e4680083d7b573fc3330ddf"
+    },
+    {
+      "prompt_index": 175,
+      "candidate_index": 1,
+      "seed": 831194,
+      "audio_sha256": "e096719d336d14e4a9f3d8b4aa7c4b703b17e504d8ac57edfd275f6cd589ead0"
+    },
+    {
+      "prompt_index": 176,
+      "candidate_index": 0,
+      "seed": 831177,
+      "audio_sha256": "8cb6f9c20d9c49e82dc1d337ba10156a8fa926ba18dc6d0a890b28570c6d35f8"
+    },
+    {
+      "prompt_index": 177,
+      "candidate_index": 0,
+      "seed": 831178,
+      "audio_sha256": "f9b782451177e3cab89d448ce61621fc27ca6ee392fb9831d7d1bad8778fe7e6"
+    },
+    {
+      "prompt_index": 178,
+      "candidate_index": 0,
+      "seed": 831179,
+      "audio_sha256": "1b62805e047a9ab48f9032b6c61a246a0afd74d8b4e608108c3917b42d65c2c8"
+    },
+    {
+      "prompt_index": 179,
+      "candidate_index": 1,
+      "seed": 831198,
+      "audio_sha256": "b71ac7bba3585074b2022b14e5610704e23828c7b86e4eb3a682149e9d2a98be"
+    },
+    {
+      "prompt_index": 180,
+      "candidate_index": 1,
+      "seed": 831199,
+      "audio_sha256": "829d5a61dbf2b73a9658db027624f55b46a9374ddacf7eb94f2da53cdfd478a3"
+    },
+    {
+      "prompt_index": 181,
+      "candidate_index": 0,
+      "seed": 831182,
+      "audio_sha256": "adeb4f4e4764b27ae4f9bd0e47663ec1b22d89cc05cc52f5d43e013b1efdef66"
+    },
+    {
+      "prompt_index": 182,
+      "candidate_index": 1,
+      "seed": 831201,
+      "audio_sha256": "68517a46cb6638cf00cb3818883181deb75c3adcbd444daab550f4c0e5bee45e"
+    },
+    {
+      "prompt_index": 183,
+      "candidate_index": 1,
+      "seed": 831202,
+      "audio_sha256": "687f427e83534b7ef1eff6fd5d91e3d624b0bf99f034054aa50dfd6b9ac6f47c"
+    },
+    {
+      "prompt_index": 184,
+      "candidate_index": 0,
+      "seed": 831185,
+      "audio_sha256": "3e880f4ffabc0d6ab3db7ff6d777bfd1c5eb005f653c5b3d8bf7628b69123535"
+    },
+    {
+      "prompt_index": 185,
+      "candidate_index": 1,
+      "seed": 831204,
+      "audio_sha256": "ae02a07295e6ee5ff4a05a8e83efd5ed0b36b9f52844baa62926326d8d204c57"
+    },
+    {
+      "prompt_index": 186,
+      "candidate_index": 0,
+      "seed": 831187,
+      "audio_sha256": "5f0e38e4579d6c10d92f132eaea3dac4a0f06243210e16a1aa1a52fe08ca886d"
+    },
+    {
+      "prompt_index": 187,
+      "candidate_index": 0,
+      "seed": 831188,
+      "audio_sha256": "07bfe03ddd3e0a54f1f0957a9e03e4ae6b78cb2d52684cb19c1ed733ef6ae239"
+    },
+    {
+      "prompt_index": 188,
+      "candidate_index": 0,
+      "seed": 831189,
+      "audio_sha256": "446fca509801a593c1ea265d35ef6a5121e474cdabc79b2acefb1e5f2d7cd123"
+    },
+    {
+      "prompt_index": 189,
+      "candidate_index": 1,
+      "seed": 831208,
+      "audio_sha256": "2163da9b226deffe56870de09713da09d91ad05ca5f4e80a10787d311ff6ac65"
+    },
+    {
+      "prompt_index": 190,
+      "candidate_index": 1,
+      "seed": 831209,
+      "audio_sha256": "1b827ff117ae11e8e3c994ca730fdf7d4f02ea606e3eae95fb6ba3f1c6bb9333"
+    },
+    {
+      "prompt_index": 191,
+      "candidate_index": 1,
+      "seed": 831210,
+      "audio_sha256": "0321caa05b261faa0f85997e2d2c23260f6863c7937daee8ccca66d95392bac5"
+    }
+  ]
+}

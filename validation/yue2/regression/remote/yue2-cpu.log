@@ -1,0 +1,27 @@
+........................................................................ [ 29%]
+........................................................................ [ 58%]
+........................................................................ [ 87%]
+..............................                                           [100%]
+=============================== warnings summary ===============================
+../venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /root/autodl-tmp/yue2-repatch-20261019/venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+../venv/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py:24
+  /root/autodl-tmp/yue2-repatch-20261019/venv/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py:24: DeprecationWarning: `vllm.entrypoints.openai.api_server` is deprecated and will likely beunsupported in a future version. Use the corresponding function from `vllm.entrypoints.launchers` instead.
+    warnings.warn(
+
+vllm_omni/protocol/realtime/audio.py:17
+  /root/autodl-tmp/yue2-repatch-20261019/source/vllm_omni/protocol/realtime/audio.py:17: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    from audioop import alaw2lin, lin2alaw, lin2ulaw, ulaw2lin
+
+tests/worker/test_yue2_acoustic_batch.py::test_vae_tile_batch_matches_original_crops_and_cancellation[1]
+tests/worker/test_yue2_acoustic_batch.py::test_vae_tile_batch_matches_original_crops_and_cancellation[2]
+tests/worker/test_yue2_loading.py::test_vae_checkpoint_loading[local]
+tests/worker/test_yue2_loading.py::test_vae_checkpoint_loading[hf]
+  /root/autodl-tmp/yue2-repatch-20261019/venv/lib/python3.12/site-packages/torch/nn/utils/weight_norm.py:144: FutureWarning: `torch.nn.utils.weight_norm` is deprecated in favor of `torch.nn.utils.parametrizations.weight_norm`.
+    WeightNorm.apply(module, name, dim)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- Running Summary
+246 passed, 20 warnings in 15.02s

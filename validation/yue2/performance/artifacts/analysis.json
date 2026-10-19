@@ -1,0 +1,174 @@
+{
+  "complete": true,
+  "results": [
+    {
+      "label": "upstream-01",
+      "arm": "upstream",
+      "elapsed_s": 2098.4227073119255,
+      "throughput": 3.5174978366435186,
+      "request_throughput": 0.01524954904867186,
+      "e2el": {
+        "p50": 132.43021450244123,
+        "p95": 165.78389294618393
+      },
+      "rtf": {
+        "p50": 0.5496849245314963,
+        "p95": 0.7365634664037733
+      },
+      "semantic_tokens": 184531,
+      "abc_content_tokens": 66965,
+      "semantic_tps": 87.9379542343896,
+      "abc_content_tps": 31.91206412638472,
+      "total_content_tps": 119.85001836077431,
+      "peak_gib": 22.687744140625,
+      "allocated_gib": 14.943838119506836,
+      "reserved_gib": 22.833984375,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      },
+      "total_audio_s": 7381.1973333333335,
+      "abc_truncated": 0,
+      "semantic_truncated": 1,
+      "temperature": [
+        60,
+        82
+      ],
+      "sm_median": 2760.0,
+      "thermal_fraction": 0.2255276477891319,
+      "returned_token_sequence_equal_to_first": 32,
+      "abc_equal_to_first": 32
+    },
+    {
+      "label": "candidate-01",
+      "arm": "candidate",
+      "elapsed_s": 1926.9693853990175,
+      "throughput": 3.736456524887873,
+      "request_throughput": 0.016606387336752505,
+      "e2el": {
+        "p50": 118.3906400440028,
+        "p95": 142.67495408869
+      },
+      "rtf": {
+        "p50": 0.5335225294156409,
+        "p95": 0.6205420180708251
+      },
+      "semantic_tokens": 180002,
+      "abc_content_tokens": 64334,
+      "semantic_tps": 93.41196666844138,
+      "abc_content_tps": 33.386103841332364,
+      "total_content_tps": 126.79807050977375,
+      "peak_gib": 21.373291015625,
+      "allocated_gib": 14.729520797729492,
+      "reserved_gib": 20.40234375,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 7200.037333333334,
+      "abc_truncated": 0,
+      "semantic_truncated": 0,
+      "temperature": [
+        61,
+        82
+      ],
+      "sm_median": 2760.0,
+      "thermal_fraction": 0.2365451614580625,
+      "returned_token_sequence_equal_to_first": 0,
+      "abc_equal_to_first": 4
+    },
+    {
+      "label": "candidate-02",
+      "arm": "candidate",
+      "elapsed_s": 1926.4047113499837,
+      "throughput": 3.737551767244018,
+      "request_throughput": 0.01661125505531757,
+      "e2el": {
+        "p50": 118.41123163409065,
+        "p95": 142.6930721461773
+      },
+      "rtf": {
+        "p50": 0.5331196541611382,
+        "p95": 0.6206942238168353
+      },
+      "semantic_tokens": 180002,
+      "abc_content_tokens": 64334,
+      "semantic_tps": 93.43934788960229,
+      "abc_content_tps": 33.39589008527501,
+      "total_content_tps": 126.8352379748773,
+      "peak_gib": 21.373291015625,
+      "allocated_gib": 14.729520797729492,
+      "reserved_gib": 20.40234375,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 7200.037333333334,
+      "abc_truncated": 0,
+      "semantic_truncated": 0,
+      "temperature": [
+        61,
+        82
+      ],
+      "sm_median": 2760.0,
+      "thermal_fraction": 0.23661898569570872,
+      "returned_token_sequence_equal_to_first": 0,
+      "abc_equal_to_first": 4
+    },
+    {
+      "label": "upstream-02",
+      "arm": "upstream",
+      "elapsed_s": 2100.867595653981,
+      "throughput": 3.5134043423786703,
+      "request_throughput": 0.01523180235927181,
+      "e2el": {
+        "p50": 132.582655570528,
+        "p95": 166.1244754182757
+      },
+      "rtf": {
+        "p50": 0.55043056877758,
+        "p95": 0.7377137677328396
+      },
+      "semantic_tokens": 184531,
+      "abc_content_tokens": 66965,
+      "semantic_tps": 87.83561628621207,
+      "abc_content_tps": 31.874926405894897,
+      "total_content_tps": 119.71054269210697,
+      "peak_gib": 22.687744140625,
+      "allocated_gib": 14.943838119506836,
+      "reserved_gib": 22.833984375,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 1,
+        "num_ooms": 0
+      },
+      "total_audio_s": 7381.1973333333335,
+      "abc_truncated": 0,
+      "semantic_truncated": 1,
+      "temperature": [
+        60,
+        82
+      ],
+      "sm_median": 2760.0,
+      "thermal_fraction": 0.2310627742797176,
+      "returned_token_sequence_equal_to_first": 21,
+      "abc_equal_to_first": 32
+    }
+  ],
+  "scope": "4090 frozen upstream/final unified main path ABBA; each process has 32 measured + 2 warmups; no batch/step/Nsight observers; full E2E content TPS, not phase-local decode TPS."
+}

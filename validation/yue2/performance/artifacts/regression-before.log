@@ -1,0 +1,189 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+____________ test_coalesced_tokens_reach_delayed_audio_once[False] _____________
+
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7f13495b8d70>
+failed = False
+
+    @pytest.mark.parametrize("failed", [False, True])
+    def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+        from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
+    
+        request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
+        request.status = RequestStatus.RUNNING
+        request.prefill_stats.set(num_prompt_tokens=3, num_local_cached_tokens=0, num_external_cached_tokens=0)
+        scheduler = object.__new__(Yue2QueueScheduler)
+        scheduler.__dict__.update(vars(_make_scheduler_stub([request])))
+        _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
+        del scheduler._update_request_with_output
+        scheduler._hold_payloadless_outputs = True
+        scheduler._held_token_ids = {}
+        scheduler._pending_input_timeout_outputs = {}
+        scheduler._streaming_context_overflow = {}
+        scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
+        scheduler.vllm_config.model_config.engine_output_type = "audio"
+        scheduler._inflight_prefills = set()
+        scheduler._free_request_blocks = lambda req: None
+        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
+    
+        def step(token=None, *, started=False, payload=None):
+            scheduled = {"song": 1} if token is not None else {}
+            schedule = mocker.Mock(
+                spec=OmniSchedulerOutput,
+                num_scheduled_tokens=scheduled,
+                total_num_scheduled_tokens=len(scheduled),
+                scheduled_spec_decode_tokens={},
+            )
+            output = Yue2QueueOutput(
+                req_ids=["song"] if scheduled else [],
+                req_id_to_index={"song": 0} if scheduled else {},
+                sampled_token_ids=[[token]] if scheduled else [],
+                multimodal_outputs=[{}] if scheduled else [],
+                acoustic_started=["song"] if started else [],
+                acoustic_ready={"song": payload} if payload is not None else {},
+            )
+            result = scheduler.update_from_output(schedule, output)
+            return [item for batch in result.values() for item in batch.outputs]
+    
+>       first, = step(151853)
+                 ^^^^^^^^^^^^
+
+tests/worker/test_yue2_queue.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/worker/test_yue2_queue.py:164: in step
+    result = scheduler.update_from_output(schedule, output)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/model_executor/models/yue2/queued.py:255: in update_from_output
+    outputs = super().update_from_output(scheduler_output, model_runner_output)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/core/sched/omni_ar_scheduler.py:675: in update_from_output
+    new_token_ids, stopped = self._update_request_with_output(request, new_token_ids)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/model_executor/models/yue2/queued.py:228: in _update_request_with_output
+    return super()._update_request_with_output(request, new_token_ids, is_stale=is_stale)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <vllm_omni.model_executor.models.yue2.queued.Yue2QueueScheduler object at 0x7f13495b90a0>
+request = <vllm_omni.request.OmniRequest object at 0x7f134989fec0>
+new_token_ids = [151853], is_stale = False
+
+    def _update_request_with_output(
+        self, request: Request, new_token_ids: list[int], is_stale: bool = False
+    ) -> tuple[list[int], bool]:
+        # is_stale is only used by the AsyncScheduler override.
+        # Append generated tokens and check for stop. Note that if
+        # a request is still being prefilled, we expect the model runner
+        # to return empty token ids for the request.
+        stopped = False
+        for num_new, output_token_id in enumerate(new_token_ids, 1):
+            request.append_output_token_ids(output_token_id)
+    
+            # Check for stop and update request state.
+            # This must be called before we make the EngineCoreOutput.
+>           stopped = check_stop(request, self.max_model_len)
+                                          ^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'Yue2QueueScheduler' object has no attribute 'max_model_len'
+
+../../yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/vllm/v1/core/sched/scheduler.py:2447: AttributeError
+---------------------------- Captured stdout setup -----------------------------
+--- Running test: test_coalesced_tokens_reach_delayed_audio_once[False]
+_____________ test_coalesced_tokens_reach_delayed_audio_once[True] _____________
+
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7f13495b9340>
+failed = True
+
+    @pytest.mark.parametrize("failed", [False, True])
+    def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+        from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
+    
+        request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
+        request.status = RequestStatus.RUNNING
+        request.prefill_stats.set(num_prompt_tokens=3, num_local_cached_tokens=0, num_external_cached_tokens=0)
+        scheduler = object.__new__(Yue2QueueScheduler)
+        scheduler.__dict__.update(vars(_make_scheduler_stub([request])))
+        _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
+        del scheduler._update_request_with_output
+        scheduler._hold_payloadless_outputs = True
+        scheduler._held_token_ids = {}
+        scheduler._pending_input_timeout_outputs = {}
+        scheduler._streaming_context_overflow = {}
+        scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
+        scheduler.vllm_config.model_config.engine_output_type = "audio"
+        scheduler._inflight_prefills = set()
+        scheduler._free_request_blocks = lambda req: None
+        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
+    
+        def step(token=None, *, started=False, payload=None):
+            scheduled = {"song": 1} if token is not None else {}
+            schedule = mocker.Mock(
+                spec=OmniSchedulerOutput,
+                num_scheduled_tokens=scheduled,
+                total_num_scheduled_tokens=len(scheduled),
+                scheduled_spec_decode_tokens={},
+            )
+            output = Yue2QueueOutput(
+                req_ids=["song"] if scheduled else [],
+                req_id_to_index={"song": 0} if scheduled else {},
+                sampled_token_ids=[[token]] if scheduled else [],
+                multimodal_outputs=[{}] if scheduled else [],
+                acoustic_started=["song"] if started else [],
+                acoustic_ready={"song": payload} if payload is not None else {},
+            )
+            result = scheduler.update_from_output(schedule, output)
+            return [item for batch in result.values() for item in batch.outputs]
+    
+>       first, = step(151853)
+                 ^^^^^^^^^^^^
+
+tests/worker/test_yue2_queue.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/worker/test_yue2_queue.py:164: in step
+    result = scheduler.update_from_output(schedule, output)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/model_executor/models/yue2/queued.py:255: in update_from_output
+    outputs = super().update_from_output(scheduler_output, model_runner_output)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/core/sched/omni_ar_scheduler.py:675: in update_from_output
+    new_token_ids, stopped = self._update_request_with_output(request, new_token_ids)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vllm_omni/model_executor/models/yue2/queued.py:228: in _update_request_with_output
+    return super()._update_request_with_output(request, new_token_ids, is_stale=is_stale)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <vllm_omni.model_executor.models.yue2.queued.Yue2QueueScheduler object at 0x7f13495b92b0>
+request = <vllm_omni.request.OmniRequest object at 0x7f13495b90d0>
+new_token_ids = [151853], is_stale = False
+
+    def _update_request_with_output(
+        self, request: Request, new_token_ids: list[int], is_stale: bool = False
+    ) -> tuple[list[int], bool]:
+        # is_stale is only used by the AsyncScheduler override.
+        # Append generated tokens and check for stop. Note that if
+        # a request is still being prefilled, we expect the model runner
+        # to return empty token ids for the request.
+        stopped = False
+        for num_new, output_token_id in enumerate(new_token_ids, 1):
+            request.append_output_token_ids(output_token_id)
+    
+            # Check for stop and update request state.
+            # This must be called before we make the EngineCoreOutput.
+>           stopped = check_stop(request, self.max_model_len)
+                                          ^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'Yue2QueueScheduler' object has no attribute 'max_model_len'
+
+../../yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/vllm/v1/core/sched/scheduler.py:2447: AttributeError
+---------------------------- Captured stdout setup -----------------------------
+--- Running test: test_coalesced_tokens_reach_delayed_audio_once[True]
+=============================== warnings summary ===============================
+../../yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- Running Summary
+=========================== short test summary info ============================
+FAILED tests/worker/test_yue2_queue.py::test_coalesced_tokens_reach_delayed_audio_once[False]
+FAILED tests/worker/test_yue2_queue.py::test_coalesced_tokens_reach_delayed_audio_once[True]
+2 failed, 2 deselected, 14 warnings in 2.23s

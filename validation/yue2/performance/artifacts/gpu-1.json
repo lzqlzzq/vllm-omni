@@ -1,0 +1,49 @@
+{
+  "complete": true,
+  "slots": 1,
+  "records": [
+    {
+      "name": "ordinary",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "automatic",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 32
+    },
+    {
+      "name": "external",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    },
+    {
+      "name": "reject-cfg",
+      "rejected": true,
+      "message": "YuE2 CFG requires complete prefills and sufficient AR slots, prefill token budget and KV capacity; disable chunked prefill, increase deployment capacity or reduce the request budget"
+    },
+    {
+      "name": "after-rejection",
+      "shape": [
+        2,
+        383936
+      ],
+      "abc_tokens": 0
+    }
+  ],
+  "state": {
+    "states": 0,
+    "active": false,
+    "waiting": 0,
+    "cfg_steps": 0
+  }
+}

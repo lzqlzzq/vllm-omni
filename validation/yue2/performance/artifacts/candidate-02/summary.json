@@ -1,0 +1,76 @@
+{
+  "complete": true,
+  "arm": "candidate",
+  "count": 32,
+  "elapsed_s": 1926.4047113499837,
+  "throughput_audio_s_s": 3.737551767244018,
+  "throughput_requests_s": 0.01661125505531757,
+  "initial_memory": [
+    [
+      {
+        "allocated": 11154143744,
+        "reserved": 19105054720,
+        "peak_allocated": 11154143744,
+        "peak_reserved": 19105054720,
+        "batches": [],
+        "nar_batches": [],
+        "allocator": {
+          "num_alloc_retries": 0,
+          "num_ooms": 0
+        },
+        "model_states": 0
+      }
+    ]
+  ],
+  "memory": [
+    [
+      {
+        "allocated": 11155330048,
+        "reserved": 18861785088,
+        "peak_allocated": 15815702528,
+        "peak_reserved": 21906849792,
+        "batches": [],
+        "nar_batches": [],
+        "allocator": {
+          "num_alloc_retries": 0,
+          "num_ooms": 0
+        },
+        "model_states": 0
+      }
+    ]
+  ],
+  "thermal_precondition": null,
+  "device_peak_all_bytes": 22949396480,
+  "device_peak_measured_bytes": 22949396480,
+  "device_sample_columns": [
+    "monotonic_s",
+    "used_bytes",
+    "gpu_busy_pct",
+    "temperature_c",
+    "sm_mhz",
+    "clock_reasons",
+    "power_mw"
+  ],
+  "measured_start": 757840.456982801,
+  "measured_end": 759766.862093386,
+  "abc_truncated": 0,
+  "semantic_truncated": 0,
+  "semantic_tokens": 180002,
+  "abc_content_tokens": 64334,
+  "semantic_tps": 93.43934788960229,
+  "abc_content_tps": 33.39589008527501,
+  "total_content_tps": 126.8352379748773,
+  "tps_scope": "Aggregate retained ABC + semantic content tokens per full E2E makespan; no prompts/control tokens/negative CFG or ODE work.",
+  "e2el_s": {
+    "p50": 118.41123163409065,
+    "p95": 142.6930721461773
+  },
+  "offered_e2el_s": {
+    "p50": 910.4716573625337,
+    "p95": 1803.6857240591664
+  },
+  "rtf": {
+    "p50": 0.5331196541611382,
+    "p95": 0.6206942238168353
+  }
+}

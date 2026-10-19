@@ -1,0 +1,11 @@
+{
+  "python": "3.12.11",
+  "packages": {
+    "torch": "2.13.0",
+    "vllm": "0.31.0",
+    "vllm-omni": "0.0.0+yue2.repatch",
+    "pytest": "9.1.1",
+    "flashinfer-python": "0.7.0.post1"
+  },
+  "cpu_only": true
+}

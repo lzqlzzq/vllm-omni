@@ -1,0 +1,29 @@
+{
+  "label": "smoke-candidate",
+  "config": "configs/candidate.yaml",
+  "count": 4,
+  "concurrency": 2,
+  "offset": 1,
+  "warmup": 1,
+  "max_frames": 256,
+  "max_abc": 128,
+  "observe": false,
+  "thermal_warmup": 0,
+  "arm": "candidate",
+  "model": [
+    {
+      "repo": "m-a-p/YuE2-3B",
+      "revision": "1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+      "path": "/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+      "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9"
+    },
+    {
+      "repo": "m-a-p/YuE2-Vae-legacy",
+      "revision": "b54118f0fc462f08999d1ec07e88817f4ee3f770",
+      "path": "/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-Vae-legacy/snapshots/b54118f0fc462f08999d1ec07e88817f4ee3f770",
+      "sha256": "b6d283628913bb41145ba99e2314eef613905ee95f690eb70e8212d5f4965044"
+    }
+  ],
+  "source": "/root/autodl-tmp/yue2-rebase-abba-20261014-01/source",
+  "harness_sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df"
+}

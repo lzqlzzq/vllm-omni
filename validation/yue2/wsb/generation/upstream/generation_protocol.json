@@ -1,0 +1,187 @@
+{
+  "schema": "wildsongbench-yue2-reproduction-v1",
+  "evidence_date": "2026-09-05",
+  "prompt_count": 192,
+  "languages": {
+    "zh": 94,
+    "en": 98
+  },
+  "seed_index": "compact zero-based line index in reproduction_manifest.jsonl, not the numeric eval_id prefix",
+  "base_seeds": [
+    831001,
+    831019,
+    831037,
+    831061,
+    831083,
+    831109,
+    831127,
+    831149
+  ],
+  "actual_seed": "base_seed + prompt_index",
+  "per_stage_seed": "Reset ABC, semantic and NAR to actual_seed separately",
+  "historical_ar": {
+    "backend": "vllm",
+    "dtype": "bfloat16",
+    "batch_size": 1,
+    "context_length": 24576,
+    "cfg_scale_effective": 1.0,
+    "prepend_eod": true,
+    "abc": {
+      "temperature": 0.7,
+      "top_k": 30,
+      "top_p": 0.9,
+      "repetition_penalty": 1.005,
+      "penalty_window": 100,
+      "minimum_tokens": 32,
+      "maximum_tokens": 4096,
+      "end_logit_bias": 0.0
+    },
+    "semantic": {
+      "temperature": 1.0,
+      "top_k": 100,
+      "top_p": 0.95,
+      "repetition_penalty": 1.2,
+      "penalty_window": 50,
+      "minimum_tokens": 200,
+      "maximum_tokens": 9000
+    },
+    "repetition_penalty_semantics": "sign-aware penalty raised to count within the recent generated-token window"
+  },
+  "nar": {
+    "dtype": "bfloat16",
+    "device": "cuda",
+    "ode_method": "midpoint",
+    "ode_steps": 32,
+    "cfg": false,
+    "noise": {
+      "device": "cpu",
+      "dtype": "float32",
+      "shape": [
+        "semantic_frames",
+        64
+      ],
+      "generator": "torch.Generator(device=cpu).manual_seed(actual_seed)",
+      "draw": "torch.randn entire song, then slice if needed"
+    },
+    "max_sequence_length": 24576,
+    "chunk_frames": "min((24576 - exact_prefix_tokens - 3)//2,24576)",
+    "full_prefix_repeated_per_chunk": true,
+    "historical_candidate_chunk_count": {
+      "1": 1536
+    }
+  },
+  "historical_decode": {
+    "dtype": "float32",
+    "mode": "full_song",
+    "sample_rate": 48000,
+    "channels": 2,
+    "clamp": [
+      -1,
+      1
+    ],
+    "flac_subtype": "PCM_24",
+    "scored_audio": "MP3",
+    "mp3_encoder": "libmp3lame",
+    "mp3_bitrate": "192k",
+    "vae_repo": "a43992899/YuE2-Vae-legacy",
+    "source_ema_checkpoint_sha256": "2b93b2550c9323adc1deeddb923a1a52b40190d0c926def16900cb8887793b67"
+  },
+  "hf_models": {
+    "YuE2-3B": {
+      "repo_id": "a43992899/YuE2-3B",
+      "revision": "321eed2a686a01856150b9905cdcb1a90cbdadb5",
+      "file": "model.safetensors",
+      "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9"
+    },
+    "YuE2-Vae-legacy": {
+      "repo_id": "a43992899/YuE2-Vae-legacy",
+      "revision": "f1c0dad4e7dcef829bdfd5de78b56350e6385aff",
+      "file": "model.safetensors",
+      "sha256": "b6d283628913bb41145ba99e2314eef613905ee95f690eb70e8212d5f4965044"
+    }
+  },
+  "generation_wheel": {
+    "version": "0.1.3",
+    "sha256": "15e0f6cb414484e205edb9da300aba9ce55ccb30fce6c0b093a5bd3ff9d50e3d",
+    "fresh_canary_backend": "torch",
+    "historical_backend_match": false
+  },
+  "selection": {
+    "YuE2": {
+      "candidate_indices": [
+        0,
+        1
+      ],
+      "keys": [
+        "minimum candidate PER",
+        "minimum edits",
+        "minimum absolute hypothesis/reference phoneme-count difference",
+        "minimum candidate_index"
+      ]
+    },
+    "YuE2 (best-of-8)": {
+      "candidate_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "pareto_objectives": {
+        "songbench_musicality": "maximize",
+        "control_overall": "maximize",
+        "per": "minimize"
+      },
+      "musicality_gate_tolerance": 0.1,
+      "control_gate_tolerance": 0.1,
+      "final_keys": [
+        "minimum PER",
+        "maximum Musicality",
+        "maximum Control",
+        "minimum candidate_index"
+      ],
+      "manual_overrides": []
+    }
+  },
+  "asr": {
+    "repo_id": "Qwen/Qwen3-ASR-1.7B",
+    "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+    "repeats": 4,
+    "batch_size": 8,
+    "max_new_tokens": 4096,
+    "dtype": "bfloat16",
+    "language": null,
+    "historical_explicit_seed": null,
+    "historical_seed_note": "No explicit seed argument or per-repeat seed recorded by original launcher",
+    "per_aggregate": "sum edits / sum reference phoneme tokens",
+    "repeat_selection": [
+      "minimum PER",
+      "minimum edits",
+      "minimum absolute hypothesis/reference phoneme-count difference",
+      "minimum repeat_index"
+    ]
+  },
+  "control": {
+    "scale": [
+      0,
+      5
+    ],
+    "title": "",
+    "lang": "",
+    "genre_raw": "",
+    "prompt": "exact raw lyrics",
+    "tags": "exact raw style tags",
+    "weights": "stored per-candidate weights; differ between selected settings on10/192prompts",
+    "key": "traditional MIREX override in original scores"
+  },
+  "reconstruction_checks": {
+    "candidate_count": 1536,
+    "asr_transcript_count": 6144,
+    "selected_winner_matches": 384,
+    "comparison_metric_matches": 150
+  },
+  "fresh_192_prompt_reproduction_complete": false
+}

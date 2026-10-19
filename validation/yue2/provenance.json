@@ -1,0 +1,914 @@
+{
+  "performance/scripts/analyze.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/analyze.py",
+    "sha256": "8ea680450f9beab4b36374928164ba5a25fc29f48d517fa9087fd94bc5a4c20d",
+    "transformation": "none"
+  },
+  "performance/scripts/bench_e2e.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/bench_e2e.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/scripts/compare.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/compare.py",
+    "sha256": "68a6be429b667f27827b5bb776092c6d57503ae8b5f3637e01f9452d2835d85c",
+    "transformation": "none"
+  },
+  "performance/scripts/env.sh": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/env.sh",
+    "sha256": "29bd5ebc21aff4f73b353bebf066441c5e67ce9672b2e4ea22b1b3c336edb476",
+    "transformation": "none"
+  },
+  "performance/scripts/http_smoke.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/http_smoke.py",
+    "sha256": "4bfba3077320023edc83a0c7e2d859f36c5d768f869c24c6717e8bb346201028",
+    "transformation": "none"
+  },
+  "performance/scripts/preflight.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/preflight.py",
+    "sha256": "2dea8b21342647219c196bbc48df593166de3944e13c9b68ff9090e2bee992dd",
+    "transformation": "none"
+  },
+  "performance/scripts/run.sh": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/run.sh",
+    "sha256": "74a1582974e4be57bbc81e3b53889d181c7afa5ec86d01a9839819174e240b0b",
+    "transformation": "none"
+  },
+  "performance/scripts/smoke.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/smoke.py",
+    "sha256": "e1ae424e59f50fa62c887248e1a1533c4afba090564aacb8c414ec76b36ce978",
+    "transformation": "none"
+  },
+  "performance/scripts/tps.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/tps.py",
+    "sha256": "1a04943911b20c08da11a8194f3ef11a010ac0320d6d03940124fae0b9072eca",
+    "transformation": "none"
+  },
+  "performance/scripts/validate.sh": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/scripts/validate.sh",
+    "sha256": "c66cfca1868b98b976eef91441f83f91b4405b4e0df644c68502e968e3689ae6",
+    "transformation": "none"
+  },
+  "performance/configs/candidate.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/configs/candidate.yaml",
+    "sha256": "4458daa2a7a7dd15e1d936f39ec4c370d6521769ee98af643f47cb8f6b09ad5d",
+    "transformation": "none"
+  },
+  "performance/configs/upstream.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/configs/upstream.yaml",
+    "sha256": "8db28e34df1b2575b32bf427da306b7e215dce35a1446fb85c46b5de5758c7a6",
+    "transformation": "none"
+  },
+  "performance/artifacts/analysis.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/analysis.json",
+    "sha256": "52bdc2170ca1b84e595e4d1b8312c5837289c1840a42c3a322d6622e55f02ca0",
+    "transformation": "none"
+  },
+  "performance/artifacts/analysis.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/analysis.log",
+    "sha256": "52bdc2170ca1b84e595e4d1b8312c5837289c1840a42c3a322d6622e55f02ca0",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/config.yaml",
+    "sha256": "4458daa2a7a7dd15e1d936f39ec4c370d6521769ee98af643f47cb8f6b09ad5d",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/device-memory.json",
+    "sha256": "8fd28b259c88dfc7be570363214c53aeffa8dc88951c2f4c5f4ddf394068f4c3",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/final-memory.json",
+    "sha256": "336e8c94ac56cdffb8fd766793518d0c429b86dbd399491a649dcc64c5d86b99",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/mps-after.json",
+    "sha256": "6ab11fc6966e3a5eb3967abb73ced8f6ce9644657383bb72bbd690a32ef20aa9",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/mps-before.json",
+    "sha256": "6ab11fc6966e3a5eb3967abb73ced8f6ce9644657383bb72bbd690a32ef20aa9",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/protocol.json",
+    "sha256": "a7d598ecad15e566d1751d24ca170520ece10857e7aae15ff55120f1195f09a3",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/requests.jsonl",
+    "sha256": "050091b038d6d010fc02330fc893d6ea1836094aa97a664518fc1e4063566aef",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/source-after.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/source-hashes.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/summary.json",
+    "sha256": "09794c6ac045b22330739c1f80c529bd1c50e8ab2002a461658310baadeb3b67",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01/warmup.jsonl",
+    "sha256": "30ea6bd693bb051e758fc6c8826daa3bedb9453321288a5b790c30f2643ae4ff",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-01.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-01.log",
+    "sha256": "5ea3bcbf6d8490fd0537457d34660197340bd88d31a2bdd259af161d259abd8b",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/config.yaml",
+    "sha256": "4458daa2a7a7dd15e1d936f39ec4c370d6521769ee98af643f47cb8f6b09ad5d",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/device-memory.json",
+    "sha256": "8cc9a69cb0706e56a9422c84fa32fb96b29df7ab9a24f6484f3c3570c9d25a3d",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/final-memory.json",
+    "sha256": "336e8c94ac56cdffb8fd766793518d0c429b86dbd399491a649dcc64c5d86b99",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/mps-after.json",
+    "sha256": "c74d84f46848764d54b122466d6b3a0d5776e3a8ce0d7bc3368293a7abdac8d1",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/mps-before.json",
+    "sha256": "c74d84f46848764d54b122466d6b3a0d5776e3a8ce0d7bc3368293a7abdac8d1",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/protocol.json",
+    "sha256": "7f90f15be03406c8a8bc664ffec3f61ce432608bed47d2f7e5040daf0671706c",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/requests.jsonl",
+    "sha256": "4220052f526307573eaf4374e990cfe51da1689a0195fdcc978e5ae77d7eae1c",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/source-after.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/source-hashes.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/summary.json",
+    "sha256": "515ea54e997b14e5e9d3208df7d16752339dc9274494ea10ed32f18a054ce6cc",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02/warmup.jsonl",
+    "sha256": "9cc5d04c19c7a6607cf519766741deccda1905fe725218b116d79ef015827922",
+    "transformation": "none"
+  },
+  "performance/artifacts/candidate-02.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/candidate-02.log",
+    "sha256": "6734156f3a97846a10aa013b8b8276d2dc4585f3b100f558b82566961d4786dc",
+    "transformation": "none"
+  },
+  "performance/artifacts/comparison.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/comparison.json",
+    "sha256": "e9a7ab2aef88a92a9224a194c7b19c16f8fc8655e2381db56a77d5073ff60aea",
+    "transformation": "none"
+  },
+  "performance/artifacts/comparison.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/comparison.log",
+    "sha256": "e9a7ab2aef88a92a9224a194c7b19c16f8fc8655e2381db56a77d5073ff60aea",
+    "transformation": "none"
+  },
+  "performance/artifacts/controller.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/controller.log",
+    "sha256": "33decae33e29402502c5c2452a7f6ad3dfc4f177d814bee237c2873c69a1dc8d",
+    "transformation": "none"
+  },
+  "performance/artifacts/cpu.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/cpu.log",
+    "sha256": "dfe050d450d595cfd652c4879f6edd4660efc6c1a38e0dfbd6f9a0578577f3f9",
+    "transformation": "none"
+  },
+  "performance/artifacts/gpu-1.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/gpu-1.json",
+    "sha256": "02773dcf10150c1ce525124c01a4505f7aa9573777facbca1a65348634fe6f86",
+    "transformation": "none"
+  },
+  "performance/artifacts/gpu-1.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/gpu-1.log",
+    "sha256": "a4326195da54b78856c3af92485f93fd22ad62cb605aed587f51843c3abb2e7d",
+    "transformation": "none"
+  },
+  "performance/artifacts/gpu-2.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/gpu-2.json",
+    "sha256": "b901c78322e7621a51c1357b2a3b55ed43f38655b9d7f0b78df960a948fa18ae",
+    "transformation": "none"
+  },
+  "performance/artifacts/gpu-2.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/gpu-2.log",
+    "sha256": "49f4afe94d2b76385feda4e920c7994001cb939138874dee8f7a2f47f4518e88",
+    "transformation": "none"
+  },
+  "performance/artifacts/http/result.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/http/result.json",
+    "sha256": "19a491f596397e33343a65fc79caf091671ca8ff6facc3b581755273efd56c93",
+    "transformation": "none"
+  },
+  "performance/artifacts/http/serve.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/http/serve.yaml",
+    "sha256": "d2da736b06bfc19e0d32c38e408f470ef2a89353aa34a7523b3683584db7e59c",
+    "transformation": "none"
+  },
+  "performance/artifacts/http/server.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/http/server.log",
+    "sha256": "4f28dfbc906a9b517bc0e74369ade9d9be6c6550dcfecc10f6506c7c5ab296be",
+    "transformation": "none"
+  },
+  "performance/artifacts/http.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/http.log",
+    "sha256": "0437d6db5b544c0e4f3904d4fb2604ad8104b07d55a803feea08afdc681caced",
+    "transformation": "none"
+  },
+  "performance/artifacts/precommit-applicable.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/precommit-applicable.log",
+    "sha256": "23f45b2f03a6d32f1a464b00eb82c54312b3204ef6c27e93de2a37f89d691632",
+    "transformation": "none"
+  },
+  "performance/artifacts/precommit-final.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/precommit-final.log",
+    "sha256": "c3e4bd0be1d71a656f2cd270b0a81c18e02eef60b8e276fb328f84ff555f0817",
+    "transformation": "none"
+  },
+  "performance/artifacts/precommit.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/precommit.log",
+    "sha256": "be2e58356e368db0113e26a2501b8dc9720daa6bc98196c6c03792803f7d40ea",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/collection.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/collection.log",
+    "sha256": "4959024dcca8f3b43e8b3a4bde37eb0ca710f0fbee0b8342cacb7d71c53cf783",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/controller.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/controller.log",
+    "sha256": "cf15f0f4a56460b0925ef51356f318ded1a023956f5a0fc56c9d181e4600515a",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/plan.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/plan.json",
+    "sha256": "ba33cfb68b2c660c522bd04a35fdd7d7304295af7c321ecd2b3660320a26ff09",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/preflight.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/preflight.json",
+    "sha256": "5f92dcc84a27241b49ac7ddb24ae2fa4443a5f38aa07950095b2dbd89b01844c",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/recovery-manifest.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/recovery-manifest.json",
+    "sha256": "bc194aa2663c83101cec7d8d04c697e7ba167709dfb35ce4ae250bd8fd636b19",
+    "transformation": "none"
+  },
+  "performance/artifacts/preflight-attempt-1/recovery-validation.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/preflight-attempt-1/recovery-validation.json",
+    "sha256": "c18aa572b53de7886cf2231413e704b2eb91fbe239a258d829485217cfa6ee06",
+    "transformation": "none"
+  },
+  "performance/artifacts/regression-before-2.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/regression-before-2.log",
+    "sha256": "980a552191401187b273fc139f57a9e109425be161d4d8fecfdd55976c1c1443",
+    "transformation": "none"
+  },
+  "performance/artifacts/regression-before.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/regression-before.log",
+    "sha256": "d285f1ca7e96144725cee7bda4c4bb7795d697dbcc12f8d73f2622f0ea5e2ee4",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/config.yaml",
+    "sha256": "4458daa2a7a7dd15e1d936f39ec4c370d6521769ee98af643f47cb8f6b09ad5d",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/device-memory.json",
+    "sha256": "9ed21d24834dc85b57a0290d9bd7bced4d3d0cfa5edeed461cc225e56c115f19",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/final-memory.json",
+    "sha256": "dac7613a9d0a1bada5e17b604eabdb23edc866997ae429f63c4b6a09d4ced802",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/mps-after.json",
+    "sha256": "460a9c467503d0aff7c57c247fffe03a088ddaffea029ca851ac3270f7b1d3a8",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/mps-before.json",
+    "sha256": "460a9c467503d0aff7c57c247fffe03a088ddaffea029ca851ac3270f7b1d3a8",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/protocol.json",
+    "sha256": "03d54b9df862edeab96418cb1302c9a5e41c93fd20391788ba68db6c69d63d38",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/requests.jsonl",
+    "sha256": "675cb5f66a892afb24ccdf7b79c05adfbb614a276443087d0549f525e352d8b3",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/source-after.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/source-hashes.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/summary.json",
+    "sha256": "25a2d20dd3a8e2ffea0221c7e0ae4f418fb413c4806bfbdfe670c08bbd76678e",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate/warmup.jsonl",
+    "sha256": "62eca1dbf0163ba0e86ffc79c47a90b99246393c7edc905f67275dd19dc0378a",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-candidate.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-candidate.log",
+    "sha256": "d46ec879be1331c674c895703b35fba58f7d9337722baa358787bd0b06800849",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/config.yaml",
+    "sha256": "8db28e34df1b2575b32bf427da306b7e215dce35a1446fb85c46b5de5758c7a6",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/device-memory.json",
+    "sha256": "d8b2f3108e1d66b304d70d20cd0148eb912d8c8548553edd0a34bfda99cede5e",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/final-memory.json",
+    "sha256": "5e61378952e7c41e8a25f05fbceaf4a8d11ca8002dc5d98ad25397879c0a1ac7",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/mps-after.json",
+    "sha256": "5544bd9dc055261c2ecbdea2147065898427d848062d5678bcb37d8524d4e67c",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/mps-before.json",
+    "sha256": "5544bd9dc055261c2ecbdea2147065898427d848062d5678bcb37d8524d4e67c",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/protocol.json",
+    "sha256": "877f50b7f7b15bec112a2397b7adee525a01d94bb9314e71273e190c4395ad86",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/requests.jsonl",
+    "sha256": "7aa466de96177840ecd6ca76d3e7ffc532c2987b6c8e8449fc8cbfa3f8f53a23",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/source-after.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/source-hashes.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/summary.json",
+    "sha256": "a9a6fa0f5130a955e97611e3ddf5c87cf12fffc339c62d3c00b79ccea036801c",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream/warmup.jsonl",
+    "sha256": "837a666cda87ab2382ad4adc31071757965b17995486820be958def4df1e645e",
+    "transformation": "none"
+  },
+  "performance/artifacts/smoke-upstream.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/smoke-upstream.log",
+    "sha256": "21dc6331905993def1ab589c47bd654949659327f9afa389b0b9126d794aa9b2",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/config.yaml",
+    "sha256": "8db28e34df1b2575b32bf427da306b7e215dce35a1446fb85c46b5de5758c7a6",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/device-memory.json",
+    "sha256": "de5c1d7670294eb979e5a03dcc9ce3f399c37a8af22dee0c8f541d6adf14f170",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/final-memory.json",
+    "sha256": "94f81c98f6daa716bdd5aa3b96022de91cd25b2871786d2f8344e6d0bf53c596",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/mps-after.json",
+    "sha256": "57ee43fc906154bb08869f3e648fae2754103e46024d84372cdc740c69e6c28f",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/mps-before.json",
+    "sha256": "57ee43fc906154bb08869f3e648fae2754103e46024d84372cdc740c69e6c28f",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/protocol.json",
+    "sha256": "fe87f544456e4b06ce5016ba7cb62e13b3f47e87d571b7aecb611f5c87a74311",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/requests.jsonl",
+    "sha256": "d2d344cfc7e7b98544d389a78a9e1b95186f290eaa9467058dd960b6850f4cfa",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/source-after.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/source-hashes.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/summary.json",
+    "sha256": "9b38ab58565b5065658d4c18524311f6501552d3acabbb3094e970b49bc96291",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01/warmup.jsonl",
+    "sha256": "32b2706fc86c9f978f33ce9238590c90531a347f2b6a7c15669ca03c16dfd147",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-01.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-01.log",
+    "sha256": "8d3fa5e2728980f93db23274f05c28126ecf06111557efe4f02e541d7d4e19a0",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/config.yaml": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/config.yaml",
+    "sha256": "8db28e34df1b2575b32bf427da306b7e215dce35a1446fb85c46b5de5758c7a6",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/device-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/device-memory.json",
+    "sha256": "36ffdfcfe8c902944064f25b86750ad78f0c65d7ea0beb09df3b861930a942d0",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/final-memory.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/final-memory.json",
+    "sha256": "94f81c98f6daa716bdd5aa3b96022de91cd25b2871786d2f8344e6d0bf53c596",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/harness.py": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/harness.py",
+    "sha256": "297310e4b37a48b4eeb989f53989fa0dec15ef602169abc77292d7874d6a93df",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/mps-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/mps-after.json",
+    "sha256": "925cfe5eecfc4f43b852a4f9f6365701f7f48a3d2ed5f2504dbee00bbd04e72b",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/mps-before.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/mps-before.json",
+    "sha256": "925cfe5eecfc4f43b852a4f9f6365701f7f48a3d2ed5f2504dbee00bbd04e72b",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/protocol.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/protocol.json",
+    "sha256": "376d2dde81786e6999d59b9ef85c0957bc412617af1c93f89b5579c1f3240858",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/requests.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/requests.jsonl",
+    "sha256": "e587b39542c42106932a2d3c1ae8329e14ea6ec841e3f97dce5ec2dd0a47c291",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/source-after.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/source-after.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/source-hashes.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/source-hashes.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/summary.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/summary.json",
+    "sha256": "fc2d06d4189560fcfb1936f5a6b34a28ae0619834c4da12977747052538a173f",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02/warmup.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02/warmup.jsonl",
+    "sha256": "2c5bbd9a3f79d945a7c4ef588550c7a8546d6b8eb3aa53173f6ec7ab26dff6f3",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-02.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-02.log",
+    "sha256": "2fd425bf118feee544c5c8ee0238ccf8af66fa0c69608ff3e78f0ca513d45179",
+    "transformation": "none"
+  },
+  "performance/artifacts/upstream-contracts.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/upstream-contracts.log",
+    "sha256": "681bd2f014e91f9ef21c9a2149958a1e9f144e6c077c56eaee33019258450942",
+    "transformation": "none"
+  },
+  "performance/artifacts/validation.log": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/artifacts/validation.log",
+    "sha256": "db295cd72c3c2ae8f12ca698a934574e23b93fc647fbdcfd9caf6c98ac5fa9da",
+    "transformation": "none"
+  },
+  "performance/evidence/environment.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/environment.json",
+    "sha256": "ba6938976b158f685557da15c04b2b0845d1e603cd8ff2e6b4897f9177bd661c",
+    "transformation": "none"
+  },
+  "performance/evidence/assets.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/assets.json",
+    "sha256": "22c5969e84a8b3ffc656d1c6bf5bea32238773ccf7872ec944df2690152737f6",
+    "transformation": "none"
+  },
+  "performance/evidence/base.txt": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/base.txt",
+    "sha256": "2772818dd8770d87feff15f6fc9c7e5f9c8aa196e183da9749406ed125eb6a59",
+    "transformation": "none"
+  },
+  "performance/evidence/reproduction_manifest.jsonl": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/reproduction_manifest.jsonl",
+    "sha256": "859e5225d319912efb64d587d1d5eb6cf0abc9fb162cc3d5f02d1688cff2edc0",
+    "transformation": "none"
+  },
+  "performance/evidence/candidate-source.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/candidate-source.json",
+    "sha256": "5809f7c1e012b7314b7ff97636051293cee2a90c758a78beaf8a581472ccdb67",
+    "transformation": "none"
+  },
+  "performance/evidence/upstream-source.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/upstream-source.json",
+    "sha256": "4a245d2e373fb15659494c861ca5281e19ede0485c995e080bf39c329caafd83",
+    "transformation": "none"
+  },
+  "performance/evidence/shared-loading.patch": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/shared-loading.patch",
+    "sha256": "637cab1dd1d9a6f18893600fae65d9693fb3e4c4d6a8d1e458b4f506f340adae",
+    "transformation": "none"
+  },
+  "performance/evidence/candidate.patch": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/candidate.patch",
+    "sha256": "01fc5dcf0a507af0deeaf19cbecf52a70aa8da279c8afe2d37a629b53a27c56a",
+    "transformation": "none"
+  },
+  "performance/evidence/plan.json": {
+    "source": "docs/validation/2026-10-14-yue2-rebase-abba/evidence/plan.json",
+    "sha256": "7d6b35e299f6cb95505bf56b0ec2d52b2edfda2ed2dc4953eca2fc148a8871cf",
+    "transformation": "none"
+  },
+  "performance/original-parent-env.sh": {
+    "source": "docs/validation/2026-10-12-yue2-4090-e2e/scripts/env.sh",
+    "sha256": "3539bed67ca016af8644ec56000afbcd98174132d49f5e4f578797e2db917d66",
+    "transformation": "none"
+  },
+  "regression/remote/yue2-cpu.log": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/yue2-cpu.log",
+    "sha256": "16b4fca943ffe6492848d8549a280cc07f57f8448310a4e4ebb8dfd36ed23df9",
+    "transformation": "none"
+  },
+  "regression/remote/shared-cpu.log": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/shared-cpu.log",
+    "sha256": "0fee90b2860fb91239917d5a192393dbbd5208c0a70e042abc14f25d885198d1",
+    "transformation": "none"
+  },
+  "regression/remote/regress.log": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/regress.log",
+    "sha256": "bb880a5551cb0b35c9c7bfd90e390dfcc620886803ed371a02f78cca17933409",
+    "transformation": "none"
+  },
+  "regression/remote/regress.exit": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/regress.exit",
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "transformation": "none"
+  },
+  "regression/remote/environment.json": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/environment.json",
+    "sha256": "14a3d300a5b40f356e6416e551d4d1ea589ea0e05118c42a613a90f471fa95e4",
+    "transformation": "none"
+  },
+  "regression/remote/installed.txt": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/remote/installed.txt",
+    "sha256": "37980008e45cf0ea64c48445fb9cbad360d81dab81e91789559c685a32e41dc7",
+    "transformation": "none"
+  },
+  "regression/precommit-final.log": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/precommit-final.log",
+    "sha256": "8006bc4cafa4cb23e5d0ffb41a947abcf2bb2cd39fe5819ce43635b5b8a734b2",
+    "transformation": "none"
+  },
+  "regression/candidate.patch": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/candidate.patch",
+    "sha256": "065340f4531019c4081984ae8298998a70fc07e86dbcb591d652a1609d631e4c",
+    "transformation": "none"
+  },
+  "regression/source-manifest.json": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/source-manifest.json",
+    "sha256": "6ce3f26ad5b00106eea15af2b33be6f7b5b375a6f03d8466f72c55b10bc7c1db",
+    "transformation": "none"
+  },
+  "regression/runtime-rename-check.json": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/runtime-rename-check.json",
+    "sha256": "de4b0ce4917e637d2c72a80bb91db9aaec5f8aa54517ae7c5bb2b420aa00eec7",
+    "transformation": "none"
+  },
+  "regression/scope.json": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/evidence/scope.json",
+    "sha256": "60f4393cfbd5bf9fdee54bfb6806ce3f5bee0b7bdf90b36ff95d4121a1d7d995",
+    "transformation": "none"
+  },
+  "regression/original-scripts/regress.sh": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/scripts/regress.sh",
+    "sha256": "fc4189b93bba1b5b5c8bfa8ee70baa22f69c5d086a773d324046435749bb6627",
+    "transformation": "none"
+  },
+  "regression/original-scripts/restore-env.sh": {
+    "source": "docs/validation/2026-10-19-yue2-repatch/scripts/restore-env.sh",
+    "sha256": "81d011586a9525d919dc085d50e0433257c4371d16bbd6d36943aa2a11df6bee",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/generate_wsb.py": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/generate_wsb.py",
+    "sha256": "c96caa78ce66903f7825a1916017793f6837b3795b04e45850b7ac251c651452",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/prepare.py": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/prepare.py",
+    "sha256": "708be5b3dada13740c114b534a06c9e60d4da09bff7850408e3ef18b3eb22b54",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/check_capture.py": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/check_capture.py",
+    "sha256": "c3de5545a135f34fb588a16ea6e61af3ebf61e2d14a1f0d3f6e754149195d44d",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/env.sh": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/env.sh",
+    "sha256": "e81be7fcf18205bba9f88bb06ed5183b18348219fdb5755ef436b22ff66774b8",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/run.sh": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/run.sh",
+    "sha256": "231ae36ccb514c1f8b7aa6eca3034e0d44f4db220e40180d095ba739646882d8",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/canary.sh": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/canary.sh",
+    "sha256": "7b6fe2f453e7d28df878597d1af95fac5563fcfcf0e2468845bddf9449552d0e",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/install-evaluator.sh": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/install-evaluator.sh",
+    "sha256": "2fa54c3c9cd6ed8b22be1b3fb257248b313a654d1bc80164da0685621294e82a",
+    "transformation": "none"
+  },
+  "wsb/generation/scripts/prepare-evaluator-assets.sh": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/scripts/prepare-evaluator-assets.sh",
+    "sha256": "26205035d7f266cf985c46bb47032cdc374562046e701b70b0a352f026633f04",
+    "transformation": "none"
+  },
+  "wsb/generation/configs/nar1.yaml": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/configs/nar1.yaml",
+    "sha256": "bf4d5676ff0adcfb7a3c81f4ae3b6c19e834ae50af7bf3983cf3bedcf95aabe0",
+    "transformation": "none"
+  },
+  "wsb/generation/configs/nar2.yaml": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/configs/nar2.yaml",
+    "sha256": "c75889837b4ae9d1748d6ddb6ef3f7713bda7a4d4f1ead1406972b3bcfd1d4ee",
+    "transformation": "none"
+  },
+  "wsb/generation/generation_report.json": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/remote/artifacts/nar1-full-01/generation_report.json",
+    "sha256": "103cbcc52d7c839c42a5132f886fb79a14b031c313e927706aad93e3d58279b0",
+    "transformation": "none"
+  },
+  "wsb/generation/batch_summary.json": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/remote/artifacts/nar1-full-01/batch_summary.json",
+    "sha256": "21e4a10c38a76f120ca3f80a745bd9555baf0fa2f9e970a76e5a6ed1a57abf13",
+    "transformation": "none"
+  },
+  "wsb/generation/evaluation_inputs.jsonl": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/remote/artifacts/nar1-full-01/evaluation_inputs.jsonl",
+    "sha256": "a906ab391bf80992549fafd4b12631ec335963676d67fd790d30c39d588ac100",
+    "transformation": "none"
+  },
+  "wsb/generation/requirements.txt": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/requirements.txt",
+    "sha256": "9322a21106e2f47222b2957819157ade41baf3b7eebb047a0525bcc976043d06",
+    "transformation": "none"
+  },
+  "wsb/generation/upstream/generation_protocol.json": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/upstream/generation_protocol.json",
+    "sha256": "7f852ff79d77a3d537648b494812d6f2669c6af0f05874beb1aed9dd9e94dabb",
+    "transformation": "none"
+  },
+  "wsb/generation/upstream/assets.lock.json": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/upstream/assets.lock.json",
+    "sha256": "de1b1b9f526027fd685e5d6432c5d28f363e6d21d56f88678f5f78bab3206b8c",
+    "transformation": "none"
+  },
+  "wsb/generation/upstream/revision.txt": {
+    "source": "docs/validation/2026-10-16-yue2-wsb-4090d/upstream/revision.txt",
+    "sha256": "e0471f43e7b7625f3c34f8bd42f502526af8432e06d12aa28e60b0c48eaf3b37",
+    "transformation": "none"
+  },
+  "wsb/scoring/scripts/per_worker.py": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/scripts/per_worker.py",
+    "sha256": "d8f5c20aba89de6f33c2add5f9d103c341cfe8e9889cd3b3928d76034294e673",
+    "transformation": "none"
+  },
+  "wsb/scoring/scripts/per-python": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/scripts/per-python",
+    "sha256": "f039076876ad23cbf92a2a25abe1f0035a44e0a97e609c609c77142cfe7e32b4",
+    "transformation": "none"
+  },
+  "wsb/scoring/scripts/run_nar1_scores.sh": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/scripts/run_nar1_scores.sh",
+    "sha256": "568ac5f331c22401ef5aa8b404f24eab128989bf370c15509fe4d3c0ca2e1b02",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/summary.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/summary.json",
+    "sha256": "572ea576eb7cfc272a4d173cddc7ed8076b5e3c0eb4443fc03027f1b98c824a7",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per.log": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per.log",
+    "sha256": "130d7a7d280b19d7fe5b01939069cd90950da5944f7d713a578bb334e6052299",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/songbench.log": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/songbench.log",
+    "sha256": "4f4fd5b67ab081ebdbbeea5f05204f642521070342145c4f93d5a0bcea476ce0",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per.environment.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per.environment.json",
+    "sha256": "60bee1d5250ab4bd335367203522ffe265ca44ec6e59c7ff2f0ace3c40a6a3d3",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/songbench.environment.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/songbench.environment.json",
+    "sha256": "9d3ec6dedaa72cfbfdfe8e40eed012ea242d1e2adc512a13307fa33ae72fa7e1",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per-worker.original.py": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per-worker.original.py",
+    "sha256": "a980eed65c8e7fb533981493d3c758941e1a403c87fa35d3eb7f8e83024034a5",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per-worker.executed.py": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per-worker.executed.py",
+    "sha256": "502202015b5dde8022b4368d19e842a2dbb33aec70dd5bf64d0fb0ced8062aa2",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/protocol.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/protocol.json",
+    "sha256": "a40eaa96bd44b568014dcb384917977846038f3dd14d3ac6a933b3030012c8d9",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per-worker-execution.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per-worker-execution.json",
+    "sha256": "fe22c706d9520661f392fca561e9991729ae93c8a6bd44b6bbfbce2505c4eead",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-full-scores-01/per-song-numeric.jsonl": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-full-scores-01/per_song.jsonl",
+    "original_sha256": "fcc4cb7dcafba50f0db1c33deb2645e327a7c14cdef023adb439f9d917361718",
+    "sha256": "bba5635080fa79ec95e036e371bb2ec417a22074d283887fc02b2287b42dac8f",
+    "transformation": "Numeric and identity fields selected; lyrics, transcripts, phonemes, captions, paths and raw scorer payloads omitted. No rows removed."
+  },
+  "wsb/scoring/nar1-additional-01/summary.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/summary.json",
+    "sha256": "436556394db4be5546b97d7153440041dd9830c3c7927cf2b1569d4ba8ee20d6",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/allmusiccaps.environment.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/allmusiccaps.environment.json",
+    "sha256": "60bee1d5250ab4bd335367203522ffe265ca44ec6e59c7ff2f0ace3c40a6a3d3",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/allmusiccaps.log": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/allmusiccaps.log",
+    "sha256": "ae20d0f414527f628175f7f2e5c55c5373213335762873d2b3e8cc2829b1407b",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/protocol.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/protocol.json",
+    "sha256": "c5ea469df04b734a1f5499d47a5730466a528580627e5a57bf6a68a394b19192",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/mulan.environment.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/mulan.environment.json",
+    "sha256": "60bee1d5250ab4bd335367203522ffe265ca44ec6e59c7ff2f0ace3c40a6a3d3",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/mulan.log": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/mulan.log",
+    "sha256": "3eb3a1f74a3e53c6ca2a43fa7f483cd5071a20b761ba870f49b40104b313b283",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-additional-01/per-song-numeric.jsonl": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/nar1-additional-01/per_song.jsonl",
+    "original_sha256": "c9e51682aa5e719863f2675fae794bee78184bf5107dd00c1cee35332de702c4",
+    "sha256": "d293c34a1e6c85657c47a0ebaa7f8e46dbaa21d22f5e07089c953e0a4f273aa6",
+    "transformation": "Numeric and identity fields selected; lyrics, transcripts, phonemes, captions, paths and raw scorer payloads omitted. No rows removed."
+  },
+  "wsb/scoring/nar1-scores.log": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/evidence/nar1-scores.log",
+    "sha256": "85d38415086c26a864558e329db10e64d9ab5981d1135841d49b5a0b90ed7625",
+    "transformation": "none"
+  },
+  "wsb/scoring/nar1-scores.exit": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/evidence/nar1-scores.exit",
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "transformation": "none"
+  },
+  "wsb/scoring/per-no-parent-sync-comparison.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/evidence/per-no-parent-sync-comparison.json",
+    "sha256": "431a0727a825941ae2887b12e620233ca310fa5e5942eb9b471a13e584c9cc40",
+    "transformation": "none"
+  },
+  "wsb/scoring/songbench-canary-comparison.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/remote/evidence/songbench-canary-comparison.json",
+    "sha256": "a982a4736181f7371f4528f716550a397c66324609bd29c26605aa0e026f0c63",
+    "transformation": "none"
+  },
+  "wsb/scoring/collection-result.json": {
+    "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/collection-result.json",
+    "sha256": "d0b129c4aae66543a5bcd6c84f77fb5ef469d8fd078b8060b294d767af75e72d",
+    "transformation": "none"
+  }
+}

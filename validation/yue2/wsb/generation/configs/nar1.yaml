@@ -1,0 +1,46 @@
+model_runner: v1
+pipeline: yue2
+async_chunk: false
+dtype: bfloat16
+stages:
+- stage_id: 0
+  max_num_seqs: 1
+  gpu_memory_utilization: 0.7
+  enforce_eager: false
+  enable_prefix_caching: false
+  max_num_batched_tokens: 24576
+  max_model_len: 24576
+  devices: '0'
+  skip_tokenizer_init: true
+  tokenizer: /root/autodl-tmp/yue2-wsb-4090d-20261016-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19
+  hf_overrides:
+    # Packed batch upper bound; actual grouping also obeys the token budget.
+    yue2_nar_batch_wait_ms: 0
+    yue2_nar_batch_max_tokens: 0
+    yue2_nar_batch_size: 1
+    yue2_vae_batch_size: 1
+    architectures:
+    - Yue2ForCausalLM
+    yue2_vae_path: null
+    yue2_vae_revision: main
+  default_sampling_params:
+    extra_args:
+      yue2_phase: semantic
+      yue2_seed: 831001
+      yue2_max_audio_frames: 200
+      yue2_max_hold_steps: 0
+    detokenize: false
+    stop_token_ids:
+    - 151848
+    - 151852
+    max_tokens: 202
+    temperature: 1.0
+  async_scheduling: false
+  enable_chunked_prefill: false
+  compilation_config:
+    mode: 3
+    cudagraph_mode: FULL_AND_PIECEWISE
+    cudagraph_capture_sizes:
+    - 1
+  kv_cache_memory_bytes: 3221225472
+  worker_cls: vllm_omni.model_executor.models.yue2.queued.Yue2QueueWorker

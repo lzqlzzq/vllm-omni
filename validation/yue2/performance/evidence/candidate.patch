@@ -1,0 +1,2850 @@
+diff --git a/examples/offline_inference/yue2/end2end.py b/examples/offline_inference/yue2/end2end.py
+index 4d04a5633..3496dbeee 100644
+--- a/examples/offline_inference/yue2/end2end.py
++++ b/examples/offline_inference/yue2/end2end.py
+@@ -43,7 +43,6 @@ from vllm_omni.model_executor.models.yue2.yue2 import (
+     KEY_TOP_P,
+     SEMANTIC_SAMPLING,
+     STOP_TOKEN_IDS,
+-    SYNTHESIS_HOLD_STEPS,
+ )
+ from vllm_omni.tokenizers.yue2_prompt import (
+     abc_ids_from_generated,
+@@ -78,10 +77,9 @@ def sampling_params(engine, *, phase, seed, max_frames, prompt_ids):
+     if phase == "abc":
+         params.max_tokens = preset["max_tokens"]
+     else:
+-        # The song is synthesized on a side stream while the request is held;
+-        # leave max_tokens headroom for the hold tokens.
+-        params.max_tokens = min(max_frames + 1 + SYNTHESIS_HOLD_STEPS, CONTEXT - len(prompt_ids))
+-        params.extra_args[KEY_MAX_HOLD_STEPS] = max(0, params.max_tokens - max_frames - 1)
++        # Acoustic completion no longer consumes AR tokens.
++        params.max_tokens = min(max_frames + 2, CONTEXT - len(prompt_ids))
++        params.extra_args[KEY_MAX_HOLD_STEPS] = 0
+     params.stop_token_ids = list(STOP_TOKEN_IDS)
+     params.detokenize = False
+     return params
+@@ -90,7 +88,10 @@ def sampling_params(engine, *, phase, seed, max_frames, prompt_ids):
+ def main() -> None:
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("--model", required=True, help="m-a-p/YuE2-3B checkpoint dir or repo id")
+-    parser.add_argument("--vae", default=None, help="m-a-p/YuE2-Vae dir or repo id (or $YUE2_VAE)")
++    parser.add_argument("--revision", default=None, help="main model and tokenizer revision")
++    parser.add_argument("--vae", default=None, help="m-a-p/YuE2-Vae directory or repo id")
++    parser.add_argument("--vae-revision", default=None, help="independent VAE revision")
++    parser.add_argument("--deploy-config", default=None, help="deployment YAML")
+     parser.add_argument("--style", required=True)
+     parser.add_argument("--lyrics", required=True)
+     parser.add_argument("--cot", choices=["off", "melody", "full"], default="full")
+@@ -114,16 +115,28 @@ def main() -> None:
+     )
+     args = parser.parse_args()
+ 
++    vae_overrides = {}
++    if args.vae_revision:
++        vae_overrides["yue2_vae_revision"] = args.vae_revision
+     if args.vae:
+-        import os
+-
+-        os.environ["YUE2_VAE"] = args.vae
+-
+-    tokenizer = YuE2TextTokenizer(Path(args.model) / "qwen.tiktoken")
+-    engine_kwargs: dict = {}
++        vae_overrides["yue2_vae_path"] = args.vae
++    engine_kwargs: dict = {
++        "revision": args.revision,
++        "stage_overrides": {"0": {"hf_overrides": vae_overrides}},
++    }
++    if args.deploy_config:
++        engine_kwargs["deploy_config"] = args.deploy_config
+     if args.gpu_memory_utilization is not None:
+         engine_kwargs["gpu_memory_utilization"] = args.gpu_memory_utilization
+     engine = Omni(model=args.model, **engine_kwargs)
++    vllm_config = engine.engine.stage_vllm_configs[0]
++    config = vllm_config.model_config
++    tokenizer = YuE2TextTokenizer.from_pretrained(
++        config.model,
++        revision=config.revision,
++        token=config.hf_token,
++        cache_dir=vllm_config.load_config.download_dir,
++    )
+ 
+     abc_ids = None
+     if args.abc_file is not None:
+diff --git a/recipes/m-a-p/YuE2-3B.md b/recipes/m-a-p/YuE2-3B.md
+index 64ede18eb..b6681d426 100644
+--- a/recipes/m-a-p/YuE2-3B.md
++++ b/recipes/m-a-p/YuE2-3B.md
+@@ -39,22 +39,139 @@ validation details.
+ | MoT | NAR path (`nar_self_attn`/`nar_mlp` per layer) shares embed_tokens, final norm and lm_head with the AR path |
+ | Frames | Single codebook: one codec token per frame, 25 frames/s, span [151853, 184521) |
+ | Sampling | temperature/top-k/top-p + windowed repetition penalty, seeded; model-owned (phase-masked vocab) |
+-| Guidance | Off by default (1.0 full/melody, 1.01 off); not exercised |
++| Guidance | Paired semantic CFG, default scale 1.0 (disabled) |
+ | Acoustic | 32-step midpoint flow matching over 64-dim latents on the NAR path, chunked ~12k frames |
+ | VAE | `m-a-p/YuE2-Vae` decoder-only, tiled (1024 core + 16 halo frames), FP32 |
+ | Output | 48 kHz stereo, whole song delivered when the semantic request finishes |
+ 
+-Generation is one or two requests on a single AR stage: the abc phase writes
+-the score, the semantic phase generates codec frames, then queues the ODE and VAE on a
+-high-priority CUDA stream. Other requests keep decoding while the finishing
+-request emits HOLD tokens (up to 4096 steps, within its token/context budget).
+-The scheduler is unchanged. Weights load once; the VAE loads at startup from
+-`$YUE2_VAE` or the hub id.
++The single `yue2` pipeline uses one worker and one set of model weights.
++Semantic completion releases the request's native AR slot and paged KV
++blocks. NAR and VAE finish in a model-owned acoustic queue, while the native
++request stays alive until complete audio is returned or cancellation cleans
++it up. Synthesis does not consume HOLD tokens. The VAE is loaded at startup
++from `hf_overrides.yue2_vae_path`.
++
++### Automatic ABC and paired CFG
++
++The queue supports automatic ABC: with `cot=full` or `cot=melody`, omit
++`abc` to generate the score and then semantic tokens within one request.
++Supplying `abc` uses that score directly; `cot=off` skips ABC. ABC and semantic
++sampling retain their independent presets and restart at the same request
++seed. Offline outputs include `abc_token_ids` and `meta.abc_truncated` when
++ABC was generated. The speech endpoint returns the final audio and reports
++budget truncation through its existing response metadata.
++
++```bash
++vllm serve m-a-p/YuE2-3B --omni \
++    --deploy-config vllm_omni/deploy/yue2.yaml
++```
++
++```bash
++curl http://localhost:8000/v1/audio/speech \
++    -H 'Content-Type: application/json' \
++    -d '{"model":"m-a-p/YuE2-3B","input":"[Verse]\nWalking home tonight", "instructions":"Gentle acoustic folk", "seed":831001, "max_new_tokens":200, "response_format":"wav", "extra_params":{"cot":"full","abc_max_tokens":4096}}' \
++    --output song.wav
++```
++
++`max_new_tokens` is the semantic frame budget (up to 9000); `abc_max_tokens`
++is a separate ABC budget (1–4096). The prompt plus both budgets must fit
++`max_model_len`. A truncated nonempty ABC can still proceed to synthesis;
++an empty or invalid score fails that request. The existing offline script
++continues to use two calls. Native callers can use
++`vllm_omni.model_executor.models.yue2.request.prepare_song` to obtain a
++token prompt and `SamplingParams` for one queue request.
++
++Set `extra_params.cfg_scale`, for example `1.5`, to enable paired semantic
++CFG on the same endpoint. The default is `1.0` (no negative branch); finite
++values from 0 to 20 are accepted. The negative branch shares the exact ABC,
++uses a separate native AR slot and paged KV, and receives the token sampled
++once from guided logits on the positive branch. Only the positive branch
++synthesizes audio.
++
++CFG needs at least two AR slots, complete prefills, sufficient prefill token
++budget for both actual prefixes, and enough KV capacity to reserve both
++branches through their output budgets. A pair that cannot fit fails its
++request instead of waiting forever. Set deployment capacity for the expected
++request lengths; four AR slots allow at most two guided semantic songs.
++Ordinary CFG=1 songs retain native AR admission and support one-slot servers.
++
++This implementation requires one GPU (`TP=PP=1`), model runner v1,
++synchronous FCFS scheduling, prefix caching disabled, and no external KV
++connector or speculative decoding. Chunked prefill remains available for
++ordinary requests; CFG requests require it disabled. The default config
++keeps the existing 24576 context, four AR slots and eager backbone, with
++chunked prefill disabled. Existing two-call ABC/semantic clients and external
++scores remain supported; pipeline, architecture and HTTP endpoint names stay
++`yue2`, `Yue2ForCausalLM` and `/v1/audio/speech`.
++
++### Acoustic batching and memory
++
++Set `hf_overrides.yue2_nar_batch_size: 2` in `yue2.yaml` to batch up to two
++ready songs; VAE decoding stays at one tile at a time. NAR packs real tokens with separate
++attention spans; each request writes its conditioning KV directly into the
++final packed storage. This removes an intermediate KV copy, not all memory
++movement in synthesis. A single-song batch retains the original NAR path.
++
++Set these fields under the stage's `hf_overrides` and restart to apply them:
++
++| Setting | Default | Meaning |
++| --- | --- | --- |
++| `yue2_nar_batch_size` | 1 | Positive batch cap, independent of AR `max_num_seqs`; use 2 to enable packing |
++| `yue2_nar_batch_wait_ms` | 0 | Maximum wait from the oldest ready song; full batches start immediately, B1 never waits |
++| `yue2_nar_batch_max_tokens` | 0 | Aggregate conditioning plus NAR token budget; 0 disables this limit |
++| `yue2_vae_batch_size` | 1 | VAE tile batch cap; retain 1 for lower peak memory |
++| `yue2_vae_tile_frames` | 1024 | Core frames per VAE tile, with the existing halo |
++
++The token budget preserves FIFO order. An oversized first request runs alone;
++the budget is not a hard memory limit or an OOM recovery mechanism. Waiting
++time includes time spent behind the previous acoustic job. B2 requires two
++ready songs and may rarely trigger when AR is the bottleneck. Packed kernels
++can change floating-point results and subsequent generated audio; do not
++assume bitwise equivalence across batching configurations.
++
++AR paged KV, NAR conditioning KV, graphs and VAE activations all contribute to
++peak memory. Before capturing a new NAR graph, the worker synchronizes the
++device and releases unused allocator cache so the graph's private pool can
++grow. This preparation is not repeated on graph replay.
++
++The supplied four-slot / 0.70 memory-utilization settings are starting points,
++not a 24 GiB deployment guarantee. A full-CoT RTX 4090 ABBA comparison used
++one AR slot, 3 GiB KV and two client requests, with NAR1/VAE1, window 0,
++token budget 0 and a 9000-frame limit. Each of the four fresh processes ran
++two warmups and 32 measured songs. The candidate completed both rounds without
++OOM or allocation retries, with a sampled device peak of 21.37 GiB versus
++23.31/23.80 GiB upstream. Audio throughput improved 6.67%/6.90%, and E2EL P95
++decreased 14.32%/14.58%. The candidate generated 2.45% less total audio; these
++results do not establish audio quality equivalence or isolate any one optimization.
++This comparison used CUDA cache-preparation calls; the implementation uses
++their portable `torch.accelerator` equivalents. It did not exercise B2 or
++establish a general speedup or safe memory limit. Tune AR slots, client
++concurrency and acoustic caps together on the actual workload.
++
++## Checkpoints and revisions
++
++Both checkpoints accept a local directory or HF repository ID. The deployment
++YAML selects the VAE independently of the main model:
++
++```yaml
++hf_overrides:
++  architectures: [Yue2ForCausalLM]
++  yue2_vae_path: m-a-p/YuE2-Vae
++  yue2_vae_revision: main
++```
++
++Use a commit SHA for each revision to pin the weights. `vllm serve --revision`
++selects the main checkpoint and its `qwen.tiktoken`; the VAE uses
++`yue2_vae_revision`. The offline example accepts `--revision`, `--vae`,
++`--vae-revision`, and `--deploy-config` for the same settings. HF cache and
++authentication follow the engine configuration. An explicit `yue2_vae_path`
++takes precedence over the existing `YUE2_VAE` environment variable. With the
++default YAML value `null`, that variable remains supported; if unset, the VAE
++loads from `m-a-p/YuE2-Vae`.
+ 
+ ## Running
+ 
+ ```bash
+-export YUE2_VAE=/models/YuE2-Vae   # or omit and let it resolve from the hub
+ python examples/offline_inference/yue2/end2end.py \
+     --model /models/YuE2-3B \
+     --style "A melancholic lo-fi hip-hop track at 85 BPM in F minor" \
+@@ -82,7 +199,6 @@ and cached YuE2-3B and YuE2-Vae weights:
+ 
+ ```bash
+ export YUE2_MODEL_DIR=/path/to/YuE2-3B
+-export YUE2_VAE=/path/to/YuE2-Vae
+ CUDA_VISIBLE_DEVICES=0 python -m pytest tests/e2e/online_serving/test_yue2.py \
+     -k preemption_and_synthesis_abort -m 'slow and tts' --run-level full_model -q -s
+ ```
+diff --git a/tests/e2e/offline_inference/test_yue2.py b/tests/e2e/offline_inference/test_yue2.py
+index 996f42e9f..d0e57b2eb 100644
+--- a/tests/e2e/offline_inference/test_yue2.py
++++ b/tests/e2e/offline_inference/test_yue2.py
+@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
+ 
+ @pytest.fixture(scope="module")
+ def vae_path() -> Path:
+-    path = Path(os.environ.get("YUE2_VAE", get_model_prefix() + "m-a-p/YuE2-Vae"))
++    path = Path(get_model_prefix() + "m-a-p/YuE2-Vae")
+     if not path.is_dir():
+         path = Path(hf_api().snapshot_download(str(path), allow_patterns=["*.json", "*.safetensors"]))
+     return path
+diff --git a/tests/e2e/online_serving/test_yue2.py b/tests/e2e/online_serving/test_yue2.py
+index 17b020517..f14e58224 100644
+--- a/tests/e2e/online_serving/test_yue2.py
++++ b/tests/e2e/online_serving/test_yue2.py
+@@ -317,7 +317,7 @@ async def test_yue2_preemption_and_synthesis_abort(chunked, enforce_eager, monke
+                         "cudagraph_mode": "NONE" if enforce_eager else "FULL_AND_PIECEWISE",
+                     },
+                     "enable_chunked_prefill": chunked,
+-                    "async_scheduling": True,
++                    "async_scheduling": False,
+                     "max_num_batched_tokens": 256 if chunked else 1024,
+                     "max_model_len": 1000,
+                     "num_gpu_blocks_override": 64,
+diff --git a/tests/worker/test_yue2_acoustic_batch.py b/tests/worker/test_yue2_acoustic_batch.py
+new file mode 100644
+index 000000000..61e426201
+--- /dev/null
++++ b/tests/worker/test_yue2_acoustic_batch.py
+@@ -0,0 +1,316 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Fixed-input independent-request oracle for packed NAR batching."""
++
++import pytest
++import torch
++from torch import nn
++
++from vllm_omni.model_executor.models.yue2 import batched_nar, yue2
++from vllm_omni.model_executor.models.yue2.batched_synthesis import BatchedSynthesisQueue, decode_tiles_iter
++from vllm_omni.transformers_utils.configs.yue2 import Yue2Config
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.fixture
++def tiny_model(monkeypatch, mocker):
++    torch.manual_seed(721)
++
++    def kernels():
++        return yue2._nar_pre_attention, yue2._nar_post_attention
++
++    monkeypatch.setattr(yue2, "_nar_kernels", kernels)
++    monkeypatch.setattr(batched_nar, "_nar_kernels", kernels)
++    monkeypatch.setattr(yue2, "_flash_attention_fn", lambda: None)
++    config = Yue2Config(
++        num_hidden_layers=2,
++        hidden_size=32,
++        num_attention_heads=4,
++        num_key_value_heads=2,
++        head_dim=8,
++        intermediate_size=48,
++        rms_norm_eps=1e-6,
++    )
++    layers = nn.ModuleList([yue2._NARLayer(config) for _ in range(2)])
++    fused = yue2.fuse_nar_projections(layers)
++    rotary = yue2._RotaryEmbedding(8, 1000000.0)
++    return mocker.Mock(
++        spec=yue2.Yue2ForCausalLM,
++        config=config,
++        vae2llm=nn.Linear(64, 32),
++        llm2vae=nn.Linear(32, 64),
++        time_embedder=yue2._TimestepEmbedder(32),
++        latent_pos_embed=yue2._AudioPositionEmbedding(64, 32),
++        rotary=rotary,
++        model=mocker.Mock(norm=nn.RMSNorm(32, eps=1e-6)),
++        vocab_size=100,
++        max_position_embeddings=64,
++        max_latent_frames=64,
++        _timestep_shift=1.0,
++        nar_weights=lambda: fused,
++    )
++
++
++@pytest.fixture(autouse=True)
++def fixed_prefill(monkeypatch):
++    def prefill(self):
++        if self.keys is None:
++            self.keys, self.values = (x.clone() for x in self.chunk.test_condition)
++        else:
++            for target, condition in zip((self.keys, self.values), self.chunk.test_condition):
++                target[:, : self.ar_length].copy_(condition[:, : self.ar_length])
++
++    monkeypatch.setattr(yue2.CachedNAR, "_prefill", prefill)
++
++
++def inputs(lengths):
++    chunks, conditions = [], []
++    for ar, frames in lengths:
++        chunks.append(yue2.Chunk(ar_tokens=list(range(ar)), noise=torch.randn(frames, 64)))
++        conditions.append(tuple(torch.randn(2, ar + frames + 2, 2, 8) for _ in range(2)))
++    for chunk, condition in zip(chunks, conditions):
++        chunk.test_condition = condition
++    return chunks, conditions
++
++
++@pytest.mark.parametrize("lengths", [[(5, 4), (5, 4)], [(3, 2), (7, 5)], [(7, 2), (3, 5), (4, 3), (6, 4)]])
++@torch.inference_mode()
++def test_batched_solver_matches_independent_requests(tiny_model, lengths):
++    chunks, conditions = inputs(lengths)
++    expected = [yue2.CachedNAR(tiny_model, c).solve(3) for c, kv in zip(chunks, conditions)]
++    engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
++    yue2._drain(engine.prefill_iter())
++    actual = yue2._drain(engine.solve_iter(3)).split(engine.lengths)
++    for index, value in enumerate(expected):
++        torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
++
++
++@torch.inference_mode()
++def test_request_order_and_lengths_do_not_leak_between_songs(tiny_model):
++    chunks, conditions = inputs([(3, 2), (7, 5)])
++    reference = batched_nar.BatchedCachedNAR(tiny_model, chunks)
++    yue2._drain(reference.prefill_iter())
++    first = yue2._drain(reference.solve_iter(2)).split(reference.lengths)
++    # A drastically different neighbour and reversed order must not affect
++    # request zero. This catches missing batch/length masks and bad offsets.
++    chunks[1].noise.mul_(100)
++    for value in conditions[1]:
++        value.mul_(100)
++    reverse = batched_nar.BatchedCachedNAR(tiny_model, chunks[::-1])
++    yue2._drain(reverse.prefill_iter())
++    second = yue2._drain(reverse.solve_iter(2)).split(reverse.lengths)
++    torch.testing.assert_close(first[0], second[1], atol=2e-6, rtol=2e-5)
++
++
++@torch.inference_mode()
++def test_packed_varlen_boundaries_match_independent_requests(tiny_model):
++    chunks, conditions = inputs([(7, 2), (3, 5), (4, 3), (6, 4)])
++    expected = [yue2.CachedNAR(tiny_model, c).solve(2) for c, kv in zip(chunks, conditions)]
++    engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
++
++    def varlen_oracle(q, k, v, *, cu_seqlens_q, cu_seqlens_k, **kwargs):
++        # Independent attention on the packed spans checks both gather indices
++        # and cumulative boundaries; CUDA tests use the real flash kernel.
++        outputs = []
++        for qa, qb, ka, kb in zip(cu_seqlens_q[:-1], cu_seqlens_q[1:], cu_seqlens_k[:-1], cu_seqlens_k[1:]):
++            outputs.append(yue2._attention(q[qa:qb], k[ka:kb], v[ka:kb], causal=False))
++        return torch.cat(outputs)
++
++    yue2._drain(engine.prefill_iter())
++    engine.batch_flash = varlen_oracle
++    actual = yue2._drain(engine.solve_iter(2)).split(engine.lengths)
++    for index, value in enumerate(expected):
++        torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
++
++
++@pytest.mark.parametrize("batch_size", [1, 2])
++@torch.inference_mode()
++def test_vae_tile_batch_matches_original_crops_and_cancellation(batch_size):
++    torch.manual_seed(731)
++    vae = object.__new__(yue2.YuE2VAE)
++    nn.Module.__init__(vae)
++    vae.config = yue2.YuE2VAEConfig(
++        latent_dim=64,
++        audio_channels=2,
++        downsampling_ratio=16,
++        decoder_config=dict(channels=8, c_mults=[1, 2], strides=[4, 4], latent_dim=64),
++    )
++    vae.decoder = yue2.OobleckDecoder(channels=8, latent_dim=64, c_mults=(1, 2), strides=(4, 4))
++    vae.eval()
++    latents = [torch.randn(n, 64) for n in (48, 48, 65, 17)]
++    originals = [z.clone() for z in latents]
++    expected = [vae.decode_tiled(z.T[None], core_frames=16, halo_frames=16)[0] for z in latents]
++    actual = yue2._drain(decode_tiles_iter(vae, latents, batch_size, 16))
++    for a, b in zip(actual, expected):
++        torch.testing.assert_close(a, b, atol=2e-6, rtol=2e-5)
++    actual = yue2._drain(decode_tiles_iter(vae, latents, batch_size, 16, {1}))
++    assert not actual[1].count_nonzero()
++    for i in (0, 2, 3):
++        torch.testing.assert_close(actual[i], expected[i], atol=2e-6, rtol=2e-5)
++    for latent, original in zip(latents, originals):
++        assert torch.equal(latent, original)
++
++
++def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
++    queue = BatchedSynthesisQueue(None, 2, 2, 1024)
++    a, b, c = [yue2._RequestState(x, mocker.Mock(spec=yue2._RowConstants)) for x in ("a", "b", "c")]
++    queue.members = [a, b]
++    queue.waiting = [c]
++    queue.sizes = [2, 3]
++    cancelled = []
++    source = torch.tensor([[1, 1, 2, 2, 2], [1, 1, 2, 2, 2]])
++    queue.active = mocker.Mock(
++        spec=yue2._SynthesisJob,
++        done=lambda: True,
++        finish=lambda: (source, False),
++        cancel=lambda: cancelled.append(True),
++    )
++    queue.cancel_request("c")
++    queue.cancel_request("a")
++    assert not cancelled and not queue.waiting
++    ready = queue.poll()
++    assert set(ready) == {"b"} and torch.equal(ready["b"]["audio"], torch.full((2, 3), 2))
++    assert ready["b"]["audio"].is_contiguous() and ready["b"]["audio"]._base is None
++    source.zero_()
++    assert torch.equal(ready["b"]["audio"], torch.full((2, 3), 2))
++    assert not queue.active and not queue.members
++    queue.members = [a, b]
++    queue.active = mocker.Mock(spec=yue2._SynthesisJob, cancel=lambda: cancelled.append(True))
++    queue.cancelled = set()
++    queue.cancel_request("a")
++    queue.cancel_request("b")
++    assert cancelled == [True] and queue.active is None and not queue.members
++
++
++def test_batch_window_deadline_full_cancel_and_drain(monkeypatch, mocker):
++    from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
++
++    now = [10.0]
++    monkeypatch.setattr(module.time, "monotonic", lambda: now[0])
++    monkeypatch.setattr(module, "_SynthesisJob", lambda *a: mocker.Mock(start=lambda stream: None))
++    monkeypatch.setattr(BatchedSynthesisQueue, "stream", lambda self: None)
++    queue = BatchedSynthesisQueue(None, 2, 1, 1024, batch_wait_ms=100)
++
++    def submit(name):
++        state = yue2._RequestState(name, mocker.Mock(spec=yue2._RowConstants), history=[yue2.CODEC_OFFSET])
++        queue.submit(state)
++        return state
++
++    submit("a")
++    queue.pump()
++    assert queue.active is None
++    now[0] += 0.05
++    submit("b")
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["a", "b"]
++    queue.active, queue.members = None, []
++    submit("c")
++    now[0] += 0.05
++    submit("d")
++    queue.cancel_request("c")
++    now[0] += 0.06
++    queue.pump()
++    assert queue.active is None  # d keeps its own arrival deadline.
++    now[0] += 0.05
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["d"]  # no AR arrivals needed.
++    queue.active, queue.members = None, []
++    submit("e")
++    now[0] += 1
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["e"]  # prior job time counts.
++    for cap, wait in [(1, 100), (2, 0)]:
++        queue = BatchedSynthesisQueue(None, cap, 1, 1024, batch_wait_ms=wait)
++        submit("immediate")
++        queue.pump()
++        assert queue.active is not None
++    for invalid in [-1, float("nan"), float("inf"), True, "1"]:
++        with pytest.raises(ValueError):
++            BatchedSynthesisQueue(None, 2, 1, 1024, batch_wait_ms=invalid)
++
++
++@pytest.mark.parametrize("frames", [7, 20000])
++def test_token_cost_matches_real_chunk_kv_lengths(frames, mocker):
++    state = yue2._RequestState(
++        "cost", mocker.Mock(spec=yue2._RowConstants), prefix_ids=[1, 2, 3], history=[yue2.CODEC_OFFSET] * frames
++    )
++    queue = BatchedSynthesisQueue(None, 4, 1, 1024, batch_max_tokens=100)
++    queue.submit(state)
++    chunks = yue2.song_chunks(state.prefix_ids, [0] * frames, 17)
++    assert state.acoustic_batch_tokens == max(len(c.ar_tokens) + len(c.noise) + 2 for c in chunks)
++
++
++def test_token_budget_preserves_fifo_and_flushes_without_wait(monkeypatch, mocker):
++    from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
++
++    monkeypatch.setattr(module.time, "monotonic", lambda: 10.0)
++    monkeypatch.setattr(module, "_SynthesisJob", lambda *a: mocker.Mock(start=lambda stream: None))
++    monkeypatch.setattr(BatchedSynthesisQueue, "stream", lambda self: None)
++    queue = BatchedSynthesisQueue(None, 4, 1, 1024, batch_wait_ms=1000, batch_max_tokens=30)
++
++    def submit(name, frames):
++        state = yue2._RequestState(
++            name, mocker.Mock(spec=yue2._RowConstants), prefix_ids=[1], history=[yue2.CODEC_OFFSET] * frames
++        )
++        queue.submit(state)
++
++    # Costs 10, 24, 10: do not skip the middle request to fill the first batch.
++    submit("a", 3)
++    submit("b", 10)
++    submit("c", 3)
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["a"]
++    assert [s.request_id for s in queue.waiting] == ["b", "c"]
++    queue.active, queue.members = None, []
++    queue.cancel_request("b")
++    queue.pump()
++    assert queue.active is None  # c can still wait for a compatible neighbour.
++    submit("d", 8)  # Cost 20: exact budget, flush without waiting.
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["c", "d"]
++    queue.active, queue.members = None, []
++    submit("oversize", 20)
++    submit("tail", 3)
++    queue.pump()
++    assert [s.request_id for s in queue.members] == ["oversize"]
++    assert [s.request_id for s in queue.waiting] == ["tail"]
++
++
++@pytest.mark.parametrize("invalid", [-1, 1.5, float("nan"), float("inf"), True, "30", None])
++def test_token_budget_rejects_invalid_config(invalid):
++    with pytest.raises(ValueError, match="token budget"):
++        BatchedSynthesisQueue(None, 4, 1, 1024, batch_max_tokens=invalid)
++
++
++@torch.inference_mode()
++def test_packed_prefill_writes_final_storage_and_close_keeps_views_alive(tiny_model, monkeypatch):
++    chunks, conditions = inputs([(3, 2), (7, 5), (4, 3)])
++    original = yue2.CachedNAR._prefill
++    members = []
++
++    def observe(self):
++        members.append(self)
++        original(self)
++
++    monkeypatch.setattr(yue2.CachedNAR, "_prefill", observe)
++    engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
++    assert len(list(engine.prefill_iter())) == len(chunks)
++    for member, start, end, condition in zip(members, engine.key_offsets, engine.key_offsets[1:], conditions):
++        for target, packed, expected in zip((member.keys, member.values), (engine.keys, engine.values), condition):
++            assert target.untyped_storage().data_ptr() == packed.untyped_storage().data_ptr()
++            assert target.data_ptr() == packed[:, start:end].data_ptr()
++            torch.testing.assert_close(target[:, : member.ar_length], expected[:, : member.ar_length], rtol=0, atol=0)
++    for member in members:
++        member.close()
++    result = yue2._drain(engine.solve_iter(2))
++    assert torch.isfinite(result).all()
++    engine.close()
++    assert engine.keys is None and engine.values is None
++
++
++def test_supplied_condition_storage_rejects_wrong_shape(tiny_model):
++    chunks, _ = inputs([(3, 2)])
++    wrong = torch.zeros(2, 8, 2, 8)
++    with pytest.raises(ValueError, match="Condition KV storage"):
++        yue2.CachedNAR(tiny_model, chunks[0], kv=(wrong, wrong.clone()))
+diff --git a/tests/worker/test_yue2_auto_abc.py b/tests/worker/test_yue2_auto_abc.py
+new file mode 100644
+index 000000000..20c98a8e8
+--- /dev/null
++++ b/tests/worker/test_yue2_auto_abc.py
+@@ -0,0 +1,136 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""One native request owns ABC, semantic and acoustic completion."""
++
++import pytest
++from vllm import SamplingParams
++from vllm.config import ModelConfig, VllmConfig
++from vllm.v1.request import Request, RequestStatus
++
++from vllm_omni.entrypoints.async_omni import AsyncOmni
++from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
++from vllm_omni.model_executor.models.yue2.queued import Yue2QueueScheduler
++from vllm_omni.model_executor.models.yue2.request import AUTO_ABC, SEMANTIC_ARGS, prepare_song
++from vllm_omni.model_executor.models.yue2.yue2 import ABC_END, ABC_SAMPLING, MUSIC_START, SEMANTIC_SAMPLING
++from vllm_omni.tokenizers.yue2_prompt import abc_prefix_ids, semantic_prefix_ids
++from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def encode(text):
++    return list(text.encode())
++
++
++@pytest.mark.parametrize(
++    "cot,abc", [("off", None), ("melody", "CDEF"), ("full", "CDEF"), ("melody", None), ("full", None)]
++)
++def test_song_prefix_and_independent_phase_presets(cot, abc):
++    prompt, params = prepare_song(encode, "style", "lyrics", cot=cot, abc=abc, max_frames=200, max_abc_tokens=32)
++    automatic = cot != "off" and abc is None
++    expected = (
++        abc_prefix_ids(encode, "style", "lyrics", cot)
++        if automatic
++        else semantic_prefix_ids(encode, "style", "lyrics", cot, None if abc is None else encode(abc))
++    )
++    assert prompt["prompt_token_ids"] == expected
++    args = params.extra_args
++    assert bool(args.get(AUTO_ABC)) == automatic
++    assert params.max_tokens == (32 if automatic else 202)
++    assert args["yue2_temperature"] == (ABC_SAMPLING if automatic else SEMANTIC_SAMPLING)["temperature"]
++    if automatic:
++        assert args[SEMANTIC_ARGS]["yue2_temperature"] == SEMANTIC_SAMPLING["temperature"]
++        assert args[SEMANTIC_ARGS]["yue2_seed"] == args["yue2_seed"]
++        assert args[SEMANTIC_ARGS]["yue2_max_audio_frames"] == 200
++        assert not args[SEMANTIC_ARGS]["yue2_skip_synthesis"]
++
++
++@pytest.mark.parametrize(
++    "kwargs",
++    [
++        {"cot": "bad"},
++        {"abc": "CDEF"},
++        {"cot": "full", "abc": ""},
++        {"max_frames": True},
++        {"max_abc_tokens": 0},
++        {"seed": -1},
++        {"cot": "full", "max_model_len": 100},
++    ],
++)
++def test_bad_song_rejected_before_admission(kwargs):
++    with pytest.raises(ValueError):
++        prepare_song(encode, "style", "lyrics", **kwargs)
++
++
++@pytest.mark.parametrize("eos", [True, False])
++def test_abc_tokens_are_hidden_and_budget_rolls_to_semantic(eos):
++    prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=2)
++    request = Request("song", prompt["prompt_token_ids"], params, None)
++    scheduler = object.__new__(Yue2QueueScheduler)
++    scheduler.max_model_len = 24576
++    assert scheduler._update_request_with_output(request, [42]) == ([], False)
++    assert not hasattr(request, "yue2_next_prefix")
++    assert scheduler._update_request_with_output(request, [ABC_END if eos else 43]) == ([], False)
++    abc = [42] if eos else [42, 43]
++    assert request.yue2_abc_ids == abc
++    assert request.yue2_abc_truncated == (not eos)
++    assert request.yue2_next_prefix == prompt["prompt_token_ids"] + abc + [ABC_END, MUSIC_START]
++    assert not request.is_finished()
++
++
++def test_invalid_or_overlong_abc_fails_only_request():
++    for tokens, context in (([ABC_END], 24576), ([MUSIC_START], 24576), ([42], 1)):
++        prompt, params = prepare_song(encode, "style", "lyrics", cot="full", max_abc_tokens=1)
++        request = Request("song", prompt["prompt_token_ids"], params, None)
++        scheduler = object.__new__(Yue2QueueScheduler)
++        scheduler.max_model_len = context
++        assert scheduler._update_request_with_output(request, tokens) == ([], True)
++        assert request.status == RequestStatus.FINISHED_ERROR
++
++
++@pytest.mark.asyncio
++async def test_http_existing_adapter_accepts_automatic_abc(mocker):
++    from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
++    from vllm_omni.entrypoints.openai.tts_adapters import detect_tts_model_type
++    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++
++    ctx = SpeechServingContext(
++        server=None,
++        engine_client=mocker.Mock(
++            spec=AsyncOmni,
++            vllm_config=mocker.Mock(spec=VllmConfig, model_config=mocker.Mock(spec=ModelConfig, max_model_len=24576)),
++        ),
++    )
++    request = OpenAICreateSpeechRequest(
++        input="lyrics",
++        instructions="style",
++        seed=42,
++        max_new_tokens=200,
++        extra_params={"cot": "full", "abc_max_tokens": 32},
++    )
++    queue = Yue2Adapter(ctx)
++    assert detect_tts_model_type("yue2", "Yue2ForCausalLM") == "yue2"
++    queue._cached_tokenizer = mocker.Mock(spec=YuE2TextTokenizer, encode=encode)
++    assert queue.validate(request) is None
++    defaults = [SamplingParams(extra_args={"unchanged": True})]
++    built = await queue.build(request, defaults, False)
++    params = queue.apply_sampling_overrides(defaults, request, built.prompt)
++    assert params[0].extra_args[AUTO_ABC] and params[0].extra_args["yue2_seed"] == 42
++    assert params[0].max_tokens == 32
++    assert defaults[0].extra_args == {"unchanged": True}
++    request.extra_params["cfg_scale"] = 1.01
++    assert queue.validate(request) is None
++
++
++@pytest.mark.parametrize(
++    "abc_truncated,semantic_truncated", [(True, False), (False, True), (True, True), (False, False)]
++)
++def test_speech_truncation_includes_either_phase(abc_truncated, semantic_truncated):
++    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++
++    adapter = object.__new__(Yue2Adapter)
++    metadata: dict[str, bool] = {}
++    adapter.collect_response_metadata(
++        {"meta.abc_truncated": abc_truncated, "meta.truncated": semantic_truncated}, metadata
++    )
++    assert metadata["audio_truncated"] == (abc_truncated or semantic_truncated)
+diff --git a/tests/worker/test_yue2_internal_cfg.py b/tests/worker/test_yue2_internal_cfg.py
+new file mode 100644
+index 000000000..940f97825
+--- /dev/null
++++ b/tests/worker/test_yue2_internal_cfg.py
+@@ -0,0 +1,233 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Internal CFG uses native rows, one sample and parent-only client outputs."""
++
++import pytest
++import torch
++from vllm.config import ModelConfig, SchedulerConfig, VllmConfig
++from vllm.v1.engine import EngineCoreOutputs
++from vllm.v1.outputs import SamplerOutput
++from vllm.v1.request import RequestStatus
++
++from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
++from vllm_omni.core.sched.output import OmniSchedulerOutput
++from vllm_omni.engine import OmniEngineCoreOutput
++from vllm_omni.entrypoints.async_omni import AsyncOmni
++from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
++from vllm_omni.model_executor.models.yue2.queued import Yue2Backbone, Yue2ForCausalLM, Yue2QueueScheduler, Yue2Scheduler
++from vllm_omni.model_executor.models.yue2.request import SEMANTIC_ARGS, prepare_song
++from vllm_omni.model_executor.models.yue2.yue2 import ABC_END, CODEC_OFFSET, CODEC_SIZE, MUSIC_END, MUSIC_START
++from vllm_omni.request import OmniRequest
++from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def encode(text):
++    return list(text.encode())
++
++
++@pytest.mark.parametrize("scale", [float("nan"), float("inf"), -1, 21, True, "2"])
++def test_invalid_guidance(scale):
++    with pytest.raises(ValueError, match="cfg_scale"):
++        prepare_song(encode, "style", "lyrics", cfg_scale=scale)
++
++
++@pytest.mark.parametrize("cot,abc", [("off", None), ("full", "CDEF"), ("melody", None)])
++def test_internal_negative_uses_native_registry_and_exact_abc(monkeypatch, mocker, cot, abc):
++    prompt, params = prepare_song(encode, "style", "lyrics", cot=cot, abc=abc, cfg_scale=1.5)
++    scheduler = object.__new__(Yue2Scheduler)
++    scheduler._pairs, scheduler._request_pairs, scheduler.requests = {}, {}, {}
++    scheduler._internal_ids = set()
++    scheduler._rejected = {}
++    scheduler.scheduler_config = mocker.Mock(spec=SchedulerConfig, enable_chunked_prefill=False)
++    scheduler.max_model_len = 24576
++    scheduler.block_size = 16
++    scheduler.max_num_running_reqs = scheduler.max_num_active_reqs = 4
++    scheduler.max_num_scheduled_tokens = 24576
++    scheduler._capacity = 4096
++    monkeypatch.setattr(OmniARScheduler, "add_request", lambda self, r: self.requests.update({r.request_id: r}))
++    request = OmniRequest("song", prompt["prompt_token_ids"], params, None)
++    scheduler.add_request(request)
++    if cot == "melody":
++        assert list(scheduler.requests) == ["song"]
++        request.yue2_abc_ids = [42, 43]
++        request.sampling_params.extra_args = params.extra_args[SEMANTIC_ARGS]
++        scheduler._add_negative(request)
++    scheduler._add_negative(request)
++    assert set(scheduler.requests) == {"song", "song-yue2-negative"}
++    child = scheduler.requests["song-yue2-negative"]
++    assert child.sampling_params.extra_args["yue2_cfg_parent"] == "song"
++    assert child.sampling_params.extra_args["yue2_skip_synthesis"]
++    assert "yue2_cfg_parent" not in request.sampling_params.extra_args
++    assert child.sampling_params.extra_args is not request.sampling_params.extra_args
++    if cot == "melody":
++        assert child.prompt_token_ids[-4:] == [42, 43, ABC_END, MUSIC_START]
++    if abc is not None:
++        assert child.prompt_token_ids[-6:] == encode(abc) + [ABC_END, MUSIC_START]
++    assert child.max_tokens == request.max_tokens
++    monkeypatch.setattr(
++        OmniARScheduler, "finish_requests", lambda self, ids, status: [self.requests.pop(i) for i in ids]
++    )
++    stopped = scheduler.finish_requests("song", RequestStatus.FINISHED_ABORTED)
++    assert [r.request_id for r in stopped] == ["song"]
++    assert not scheduler.requests and not scheduler._pairs
++
++
++def test_guidance_precedes_one_native_sample_and_copies_token(monkeypatch):
++    model = Yue2ForCausalLM.__new__(Yue2ForCausalLM)
++    torch.nn.Module.__init__(model)
++    model._step_rows = [("negative", 5, 1), ("parent", 20, 1)]
++    model._cfg_step = [{"yue2_cfg_parent": "parent", "yue2_cfg_scale": 1.5}, {}]
++    model._step_discard = [False, False]
++    logits = torch.full((2, CODEC_OFFSET + CODEC_SIZE), -torch.inf, dtype=torch.bfloat16)
++    logits[0, MUSIC_END:] = 0.25
++    logits[1, MUSIC_END:] = 0.5
++
++    def sample(self, guided, metadata):
++        assert self._step_discard == [True, False]
++        assert (guided[1, MUSIC_END:] == 0.625).all()
++        assert torch.isneginf(guided[:, :MUSIC_END]).all()
++        return SamplerOutput(sampled_token_ids=torch.tensor([[0], [123]], dtype=torch.int32), logprobs_tensors=None)
++
++    monkeypatch.setattr(Yue2Backbone, "sample", sample)
++    result = model.sample(logits, None)
++    assert result.sampled_token_ids.tolist() == [[123], [123]]
++    assert model._step_discard == [False, False]
++    model._step_rows[1] = ("missing", 20, 1)
++    with pytest.raises(RuntimeError, match="without its parent"):
++        model.sample(logits, None)
++
++
++def test_child_outputs_hidden_but_worker_cleanup_preserved(monkeypatch, mocker):
++    scheduler = object.__new__(Yue2Scheduler)
++    scheduler._internal_ids = {"negative"}
++    scheduler._rejected = {}
++    scheduler.requests = {}
++    scheduler.finished_req_ids = {"negative", "parent"}
++    batch = EngineCoreOutputs(
++        outputs=[OmniEngineCoreOutput(request_id=i, new_token_ids=[]) for i in ("negative", "parent")],
++        finished_requests={"negative", "parent"},
++    )
++    monkeypatch.setattr(Yue2QueueScheduler, "update_from_output", lambda *args: {0: batch})
++    scheduler.update_from_output(mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={}), None)
++    assert [o.request_id for o in batch.outputs] == ["parent"]
++    assert batch.finished_requests == {"parent"}
++    assert scheduler.finished_req_ids == {"negative", "parent"}
++    assert not scheduler._internal_ids
++
++
++@pytest.mark.asyncio
++async def test_http_cfg_detection_and_sampling(mocker):
++    from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
++    from vllm_omni.entrypoints.openai.tts_adapters import detect_tts_model_type
++    from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++
++    assert detect_tts_model_type("yue2", "Yue2ForCausalLM") == "yue2"
++    ctx = SpeechServingContext(
++        server=None,
++        engine_client=mocker.Mock(
++            spec=AsyncOmni,
++            vllm_config=mocker.Mock(spec=VllmConfig, model_config=mocker.Mock(spec=ModelConfig, max_model_len=16384)),
++        ),
++    )
++    adapter = Yue2Adapter(ctx)
++    adapter._cached_tokenizer = mocker.Mock(spec=YuE2TextTokenizer, encode=encode)
++    request = OpenAICreateSpeechRequest(
++        input="lyrics",
++        instructions="style",
++        seed=42,
++        max_new_tokens=200,
++        extra_params={"cot": "full", "cfg_scale": 1.5},
++    )
++    assert adapter.validate(request) is None
++    built = await adapter.build(request, [], False)
++    semantic = built.prompt["additional_information"]["yue2_song_sampling"][SEMANTIC_ARGS]
++    assert semantic["yue2_cfg_scale"] == 1.5 and semantic["yue2_cfg_needs_abc"]
++
++
++def test_existing_model_and_pipeline_names_resolve_to_unified_path():
++    from vllm_omni.config.pipeline_registry import OMNI_PIPELINES
++    from vllm_omni.entrypoints.openai.tts_adapters import detect_tts_model_type
++    from vllm_omni.model_executor.models.registry import _OMNI_MODELS
++
++    assert [key for key in OMNI_PIPELINES if key.startswith("yue2")] == ["yue2"]
++    assert [key for key in _OMNI_MODELS if key.startswith("Yue2")] == ["Yue2ForCausalLM"]
++    assert _OMNI_MODELS["Yue2ForCausalLM"] == ("yue2", "queued", "Yue2ForCausalLM")
++    pipeline = OMNI_PIPELINES["yue2"]
++    assert pipeline.default_deploy_config_name == "yue2.yaml"
++    assert pipeline.stages[0].scheduler_cls.endswith(".Yue2Scheduler")
++    assert detect_tts_model_type("yue2", "Yue2ForCausalLM") == "yue2"
++
++
++@pytest.mark.parametrize("paired", [False, True])
++def test_unpaired_admission_stays_native(monkeypatch, paired):
++    from vllm.v1.core.sched.output import SchedulerOutput
++    from vllm.v1.core.sched.request_queue import SchedulingPolicy, create_request_queue
++
++    from vllm_omni.core.sched.omni_cfg_ar_scheduler import OmniCFGARScheduler
++
++    scheduler = object.__new__(Yue2Scheduler)
++    scheduler._pairs = {"pair": {}} if paired else {}
++    scheduler._rejected = {}
++    scheduler.requests = {}
++    scheduler.waiting = create_request_queue(SchedulingPolicy.FCFS)
++    called = []
++
++    def advance(name):
++        def run(self, throttle_prefills=False):
++            called.append(name)
++            return SchedulerOutput.make_empty()
++
++        return run
++
++    monkeypatch.setattr(OmniARScheduler, "schedule", advance("native"))
++    monkeypatch.setattr(OmniCFGARScheduler, "schedule", advance("atomic"))
++    scheduler.schedule()
++    assert called == ["atomic" if paired else "native"]
++
++
++@pytest.mark.parametrize("limit", ["slots", "prefill", "kv", "chunked"])
++def test_unfit_cfg_returns_request_error_without_admitting_negative(monkeypatch, mocker, limit):
++    from vllm.v1.core.sched.request_queue import SchedulingPolicy, create_request_queue
++    from vllm.v1.engine import FinishReason
++
++    prompt, params = prepare_song(encode, "style", "lyrics", cfg_scale=1.5)
++    request = OmniRequest("bad", prompt["prompt_token_ids"], params, None)
++    scheduler = object.__new__(Yue2Scheduler)
++    scheduler._pairs, scheduler._request_pairs = {}, {}
++    scheduler._internal_ids, scheduler._rejected = set(), {}
++    scheduler.requests = {"bad": request}
++    scheduler.waiting = create_request_queue(SchedulingPolicy.FCFS)
++    scheduler.waiting.add_request(request)
++    scheduler.scheduler_config = mocker.Mock(spec=SchedulerConfig, enable_chunked_prefill=limit == "chunked")
++    scheduler.max_model_len, scheduler.block_size = 24576, 16
++    scheduler.max_num_running_reqs = scheduler.max_num_active_reqs = 1 if limit == "slots" else 4
++    scheduler.max_num_scheduled_tokens = 1 if limit == "prefill" else 24576
++    scheduler._capacity = 1 if limit == "kv" else 4096
++    scheduler._add_negative(request)
++    assert not scheduler._pairs and not scheduler._internal_ids
++    assert list(scheduler._rejected) == ["bad"]
++
++    def finish(self, ids, status):
++        assert set(ids) == {"bad"} and status == RequestStatus.FINISHED_ERROR
++        request.status = status
++        self.requests.pop("bad")
++        self.waiting.remove_requests([request])
++        return [request]
++
++    monkeypatch.setattr(OmniARScheduler, "finish_requests", finish)
++    monkeypatch.setattr(Yue2QueueScheduler, "update_from_output", lambda *args: {})
++    output = scheduler.update_from_output(mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={}), None)
++    assert output[0].outputs[0].finish_reason == FinishReason.ERROR
++    assert "capacity" in output[0].outputs[0].stop_reason
++    assert not scheduler.requests and not scheduler._rejected and not scheduler.waiting
++
++
++def test_cfg1_sample_calls_original_sampler_directly(monkeypatch):
++    model = Yue2ForCausalLM.__new__(Yue2ForCausalLM)
++    torch.nn.Module.__init__(model)
++    model._cfg_step = [{}, None]
++    expected = SamplerOutput(torch.tensor([[2], [3]]), None)
++    monkeypatch.setattr(Yue2Backbone, "sample", lambda *args: expected)
++    assert model.sample(None, None) is expected
+diff --git a/tests/worker/test_yue2_loading.py b/tests/worker/test_yue2_loading.py
+new file mode 100644
+index 000000000..b99b36d10
+--- /dev/null
++++ b/tests/worker/test_yue2_loading.py
+@@ -0,0 +1,116 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Checkpoint locations and independent revisions for YuE2."""
++
++import pytest
++import torch
++from safetensors.torch import save_file
++from vllm.config import LoadConfig, ModelConfig, VllmConfig
++
++from vllm_omni.entrypoints.async_omni import AsyncOmni
++from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
++from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++from vllm_omni.model_executor.models.yue2 import yue2 as y
++from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
++from vllm_omni.transformers_utils.configs.yue2 import Yue2Config
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def test_tokenizer_local_directory(tmp_path, mocker):
++    merge = tmp_path / "qwen.tiktoken"
++    merge.write_text("test")
++    init = mocker.patch.object(YuE2TextTokenizer, "__init__", return_value=None)
++    YuE2TextTokenizer.from_pretrained(tmp_path)
++    init.assert_called_once_with(str(merge))
++
++
++def test_tokenizer_hf_revision(mocker):
++    cached = mocker.patch("transformers.utils.hub.cached_file", return_value="/cache/qwen.tiktoken")
++    mocker.patch.object(YuE2TextTokenizer, "__init__", return_value=None)
++    YuE2TextTokenizer.from_pretrained("m-a-p/YuE2-3B", revision="model-sha", cache_dir="/cache", token=True)
++    cached.assert_called_once_with(
++        "m-a-p/YuE2-3B", "qwen.tiktoken", revision="model-sha", cache_dir="/cache", token=True
++    )
++
++
++def test_missing_local_tokenizer(tmp_path):
++    with pytest.raises(OSError, match="qwen.tiktoken"):
++        YuE2TextTokenizer.from_pretrained(tmp_path)
++
++
++def test_adapter_uses_model_revision_not_placeholder_tokenizer(mocker):
++    config = mocker.Mock(spec=ModelConfig, model="m-a-p/YuE2-3B", revision="model-sha", hf_token=True)
++    engine = mocker.Mock(
++        spec=AsyncOmni,
++        vllm_config=mocker.Mock(spec=VllmConfig, model_config=config, load_config=LoadConfig(download_dir="/cache")),
++    )
++    adapter = Yue2Adapter(SpeechServingContext(server=None, engine_client=engine))
++    load = mocker.patch.object(YuE2TextTokenizer, "from_pretrained")
++    assert adapter._tokenizer() is adapter._tokenizer()
++    load.assert_called_once_with("m-a-p/YuE2-3B", revision="model-sha", token=True, cache_dir="/cache")
++
++
++@pytest.mark.parametrize(
++    "path,legacy,expected",
++    [
++        ("m-a-p/YuE2-Vae", "/legacy", "m-a-p/YuE2-Vae"),
++        ("/models/vae", "/legacy", "/models/vae"),
++        (None, "/legacy", "/legacy"),
++        (None, None, "m-a-p/YuE2-Vae"),
++    ],
++)
++def test_model_vae_revision_and_credentials(path, legacy, expected, monkeypatch, mocker):
++    if legacy is None:
++        monkeypatch.delenv("YUE2_VAE", raising=False)
++    else:
++        monkeypatch.setenv("YUE2_VAE", legacy)
++    model = object.__new__(y.Yue2ForCausalLM)
++    torch.nn.Module.__init__(model)
++    model.config = Yue2Config(yue2_vae_path=path, yue2_vae_revision="vae-sha")
++    model.vllm_config = mocker.Mock(
++        spec=VllmConfig,
++        model_config=mocker.Mock(spec=ModelConfig, revision="different-model-sha", hf_token=True),
++        load_config=LoadConfig(download_dir="/cache"),
++    )
++    model._vae = None
++    model._vae_device = None
++    vae = mocker.Mock(spec=y.YuE2VAE)
++    load = mocker.patch.object(y.YuE2VAE, "from_pretrained", return_value=vae)
++    assert model._vae_model(torch.device("cpu")) is vae
++    load.assert_called_once_with(
++        expected, revision="vae-sha", token=True, cache_dir="/cache", decoder_only=True, device="cpu"
++    )
++    assert model._vae_model(torch.device("cpu")) is vae
++    assert load.call_count == 1
++
++
++@pytest.mark.parametrize("from_hub", [False, True], ids=["local", "hf"])
++def test_vae_checkpoint_loading(tmp_path, mocker, from_hub):
++    config = y.YuE2VAEConfig(
++        latent_dim=2,
++        downsampling_ratio=2,
++        decoder_config=dict(out_channels=2, channels=4, c_mults=[1], strides=[2], latent_dim=2),
++    )
++    original = y.YuE2VAE(config, decoder_only=True).float()
++    config.save_pretrained(tmp_path)
++    save_file(original.state_dict(), tmp_path / "model.safetensors")
++    api = mocker.patch("vllm_omni.transformers_utils.repo_utils.hf_api")
++    api.return_value.snapshot_download.return_value = str(tmp_path)
++    loaded = y.YuE2VAE.from_pretrained(
++        "m-a-p/YuE2-Vae" if from_hub else tmp_path, revision="vae-sha", decoder_only=True
++    )
++    assert loaded.state_dict().keys() == original.state_dict().keys()
++    for name, value in original.state_dict().items():
++        assert torch.equal(value, loaded.state_dict()[name])
++    if from_hub:
++        assert api.return_value.snapshot_download.call_args.kwargs["revision"] == "vae-sha"
++    else:
++        api.assert_not_called()
++
++
++def test_vae_config_round_trip():
++    config = Yue2Config(yue2_vae_path="m-a-p/YuE2-Vae", yue2_vae_revision="vae-sha")
++    restored = Yue2Config.from_dict(config.to_dict())
++    assert restored.yue2_vae_path == "m-a-p/YuE2-Vae"
++    assert restored.yue2_vae_revision == "vae-sha"
+diff --git a/tests/worker/test_yue2_nar_kernels.py b/tests/worker/test_yue2_nar_kernels.py
+new file mode 100644
+index 000000000..87ed79b02
+--- /dev/null
++++ b/tests/worker/test_yue2_nar_kernels.py
+@@ -0,0 +1,76 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""NAR activation fallback and compile-time output contract."""
++
++import pytest
++import torch
++import torch.nn.functional as F
++
++from vllm_omni.model_executor.models.yue2 import yue2
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.mark.parametrize("available", [False, True])
++@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
++@torch.inference_mode()
++def test_cpu_post_attention_preserves_reference(monkeypatch, available, dtype):
++    monkeypatch.setattr(yue2, "_USE_FLASHINFER_SILU", available)
++    torch.manual_seed(73)
++    x, attn, w_o, norm, gate_up, down = [
++        torch.randn(*shape, dtype=dtype) for shape in [(7, 32), (7, 4, 8), (32, 32), (32,), (96, 32), (32, 48)]
++    ]
++    residual = x + F.linear(attn.flatten(1), w_o)
++    gate, up = F.linear(yue2._rms(residual, norm, 1e-6), gate_up).chunk(2, dim=-1)
++    expected = residual + F.linear(F.silu(gate) * up, down)
++    actual = yue2._nar_post_attention(x, attn, w_o, norm, gate_up, down, 1e-6)
++    assert torch.equal(actual, expected)
++
++
++@pytest.mark.parametrize("shape", [(7, 12288), (2, 7, 12288)])
++def test_flashinfer_fake_output_contract(shape):
++    x = torch.empty(shape, dtype=torch.bfloat16, device="meta")
++    out = yue2._flashinfer_silu_and_mul(x)
++    assert out.shape == (*shape[:-1], shape[-1] // 2)
++    assert out.dtype == x.dtype and out.device == x.device
++    assert out.is_contiguous()
++
++
++@pytest.mark.parametrize("capture_fails", [False, True])
++def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails):
++    engine = object.__new__(yue2.CachedNAR)
++    engine.device = torch.device("cuda:0")
++    engine.pool = (0, 1)
++    engine.graph = None
++    engine.state_in = torch.zeros(2, 64)
++    engine.time_in = torch.zeros(())
++    state = torch.ones_like(engine.state_in)
++    calls = mocker.Mock()
++    graph = mocker.Mock(spec=torch.cuda.CUDAGraph)
++    for name in ("capture_begin", "capture_end", "replay"):
++        calls.attach_mock(getattr(graph, name), name)
++    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: graph)
++    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: "side")
++    monkeypatch.setattr(torch.cuda, "default_stream", lambda device: "default")
++    monkeypatch.setattr(torch.accelerator, "synchronize", calls.synchronize)
++    monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
++    engine._velocity = mocker.Mock(return_value=state.clone())
++    if capture_fails:
++        engine._velocity.side_effect = RuntimeError("capture failed")
++        with pytest.raises(RuntimeError, match="capture failed"):
++            engine.velocity(state, 0.5)
++    else:
++        assert torch.equal(engine.velocity(state, 0.5), state)
++        assert torch.equal(engine.velocity(state, 0.25), state)
++        assert torch.equal(engine.state_in, state)
++        assert engine.time_in.item() == 0.25
++    expected = [
++        mocker.call.synchronize(engine.device),
++        mocker.call.empty_cache(),
++        mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
++        mocker.call.capture_end(),
++    ]
++    if not capture_fails:
++        expected += [mocker.call.replay(), mocker.call.replay()]
++    assert calls.mock_calls == expected
++    engine._velocity.assert_called_once()
+diff --git a/tests/worker/test_yue2_queue.py b/tests/worker/test_yue2_queue.py
+new file mode 100644
+index 000000000..a8c725733
+--- /dev/null
++++ b/tests/worker/test_yue2_queue.py
+@@ -0,0 +1,182 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""AR detachment keeps the native request alive until audio or cancellation."""
++
++import pytest
++import torch
++from vllm import SamplingParams
++from vllm.v1.core.encoder_cache_manager import EncoderCacheManager
++from vllm.v1.engine import FinishReason
++from vllm.v1.request import RequestStatus
++
++from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
++from vllm_omni.core.sched.output import OmniSchedulerOutput
++from vllm_omni.model_executor.models.yue2.queued import (
++    Yue2ForCausalLM,
++    Yue2QueueOutput,
++    Yue2QueueRunner,
++    Yue2QueueScheduler,
++)
++from vllm_omni.model_executor.models.yue2.yue2 import (
++    MUSIC_END,
++    _RequestState,
++    _RowConstants,
++    _SynthesisJob,
++    _SynthesisQueue,
++)
++from vllm_omni.outputs import OmniModelRunnerOutput
++from vllm_omni.request import OmniRequest
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def test_b1_output_owns_audio_after_job_release(mocker):
++    audio = torch.arange(12, dtype=torch.float32).reshape(2, 6)[:, ::2]
++    state = _RequestState(
++        "song",
++        mocker.Mock(spec=_RowConstants),
++        job=mocker.Mock(spec=_SynthesisJob, done=lambda: True, finish=lambda: (audio, False)),
++        truncated=True,
++    )
++    model = mocker.Mock(
++        spec=Yue2ForCausalLM,
++        _synthesis=mocker.Mock(spec=_SynthesisQueue, pump=lambda: None),
++        _states={"song": state},
++        _decode_t0={"song": 0},
++    )
++    payload = Yue2ForCausalLM.poll_audio(model)["song"]
++    torch.testing.assert_close(payload["audio"], audio)
++    assert payload["audio"].is_contiguous() and payload["audio"]._base is None
++    assert payload["audio"].untyped_storage().data_ptr() != audio.untyped_storage().data_ptr()
++    audio.fill_(-1)
++    assert payload["audio"].tolist() == [[0, 2, 4], [6, 8, 10]]
++    assert payload["sr"].item() == 48000 and payload["meta.truncated"].item() == 1
++    assert payload["meta.error"].item() == 0 and state.job is None and not model._decode_t0
++    assert Yue2ForCausalLM.poll_audio(model) == {}
++
++
++def test_detach_zero_token_completion_and_abort_race(monkeypatch, mocker):
++    model = mocker.Mock(spec=Yue2ForCausalLM, acoustic_started=[], poll_audio=lambda: {})
++
++    class Wrapper:
++        def __getattr__(self, name):
++            return getattr(model, name)
++
++    runner = object.__new__(Yue2QueueRunner)
++    runner.model = Wrapper()
++    for rid in ("first", "second"):
++        model.acoustic_started.append(rid)
++        result = runner._with_audio(OmniModelRunnerOutput(req_ids=[], req_id_to_index={}))
++        assert result.acoustic_started == [rid] and not model.acoustic_started
++
++    def update(self, schedule, output):
++        for rid in schedule.num_scheduled_tokens:
++            tokens, stopped = self._update_request_with_output(self.requests[rid], [MUSIC_END])
++            assert tokens == [] and not stopped
++        return {}
++
++    monkeypatch.setattr(OmniARScheduler, "update_from_output", update)
++    monkeypatch.setattr(OmniARScheduler, "get_num_unfinished_requests", lambda self: len(self.running))
++
++    for outcome in ("success", "error", "abort"):
++        scheduler = object.__new__(Yue2QueueScheduler)
++        request = OmniRequest("song", [1], SamplingParams(extra_args={}), None)
++        request.status = RequestStatus.RUNNING
++        scheduler.requests = {"song": request}
++        scheduler.running = [request]
++        scheduler._inflight_prefills = {request}
++        scheduler.finished_req_ids_dict = {}
++        scheduler._held_token_ids = {}
++        freed = []
++        scheduler._free_request_blocks = lambda r: freed.append(r.request_id)
++        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager, free=lambda r: None)
++
++        def finish(r):
++            scheduler.requests.pop(r.request_id)
++            scheduler.finished_req_ids_dict.setdefault(r.client_index, set()).add(r.request_id)
++
++        scheduler._free_request = finish
++        output = Yue2QueueOutput(req_ids=["song"], req_id_to_index={"song": 0}, acoustic_started=["song"])
++        assert (
++            scheduler.update_from_output(
++                mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={"song": 1}), output
++            )
++            == {}
++        )
++        assert freed == ["song"] and not scheduler.running and not scheduler._inflight_prefills
++        assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
++        assert not list(request.output_token_ids)
++        if outcome == "abort":
++            request.status = RequestStatus.FINISHED_ABORTED
++            scheduler.requests.clear()
++        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(outcome == "error")}
++        result = scheduler.update_from_output(
++            mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={}),
++            Yue2QueueOutput(req_ids=[], req_id_to_index={}, acoustic_ready={"song": payload}),
++        )
++        assert not scheduler.requests and scheduler.get_num_unfinished_requests() == 0
++        if outcome == "abort":
++            assert not result
++        else:
++            assert list(request.output_token_ids) == [MUSIC_END]
++            assert result[0].finished_requests == {"song"}
++            final = result[0].outputs[0]
++            assert final.finish_reason == (FinishReason.ERROR if outcome == "error" else FinishReason.STOP)
++            assert final.multimodal_output is payload
++
++
++@pytest.mark.parametrize("failed", [False, True])
++def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
++    from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
++
++    request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
++    request.status = RequestStatus.RUNNING
++    request.prefill_stats.set(num_prompt_tokens=3, num_local_cached_tokens=0, num_external_cached_tokens=0)
++    scheduler = object.__new__(Yue2QueueScheduler)
++    scheduler.__dict__.update(vars(_make_scheduler_stub([request])))
++    _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
++    del scheduler._update_request_with_output
++    scheduler.max_model_len = 4096
++    scheduler._hold_payloadless_outputs = True
++    scheduler._held_token_ids = {}
++    scheduler._pending_input_timeout_outputs = {}
++    scheduler._streaming_context_overflow = {}
++    scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
++    scheduler.vllm_config.model_config.engine_output_type = "audio"
++    scheduler._inflight_prefills = set()
++    scheduler._free_request_blocks = lambda req: None
++    scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
++
++    def step(token=None, *, started=False, payload=None):
++        scheduled = {"song": 1} if token is not None else {}
++        schedule = mocker.Mock(
++            spec=OmniSchedulerOutput,
++            num_scheduled_tokens=scheduled,
++            total_num_scheduled_tokens=len(scheduled),
++            scheduled_spec_decode_tokens={},
++        )
++        output = Yue2QueueOutput(
++            req_ids=["song"] if scheduled else [],
++            req_id_to_index={"song": 0} if scheduled else {},
++            sampled_token_ids=[[token]] if scheduled else [],
++            multimodal_outputs=[{}] if scheduled else [],
++            acoustic_started=["song"] if started else [],
++            acoustic_ready={"song": payload} if payload is not None else {},
++        )
++        result = scheduler.update_from_output(schedule, output)
++        return [item for batch in result.values() for item in batch.outputs]
++
++    (first,) = step(151853)
++    assert first.new_token_ids == [151853]
++    assert step(151854) == []
++    assert scheduler._held_token_ids == {"song": [151854]}
++    assert step(MUSIC_END, started=True) == []
++    assert step() == []
++    payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(failed)}
++    (final,) = step(payload=payload)
++    assert final.new_token_ids == [151854, MUSIC_END]
++    assert final.is_coalesced
++    assert final.finish_reason == (FinishReason.ERROR if failed else FinishReason.STOP)
++    assert final.multimodal_output is payload
++    assert not scheduler._held_token_ids and not scheduler.requests
++    assert step(payload=payload) == []
+diff --git a/tests/worker/test_yue2_request_state.py b/tests/worker/test_yue2_request_state.py
+index 75b68c8f3..e6ffa5490 100644
+--- a/tests/worker/test_yue2_request_state.py
++++ b/tests/worker/test_yue2_request_state.py
+@@ -203,13 +203,18 @@ def test_real_prepare_hook_admits_reordered_requests(model) -> None:
+     assert model._step_discard == [True, False]
+ 
+ 
+-@pytest.mark.parametrize("spare", [0, 1, 4095, 4096, 5000])
+-def test_hold_budget_matches_engine_headroom(spare: int) -> None:
+-    """Adapter metadata advertises only the HOLD steps left after clipping."""
+-    frames = 250
+-    prompt = {"prompt_token_ids": [1] * (y.CONTEXT - frames - 1 - spare)}
++@pytest.mark.parametrize("frames", [200, 250, 9000])
++def test_queue_adapter_does_not_reserve_hold_tokens(frames: int) -> None:
++    from vllm_omni.model_executor.models.yue2.request import phase_params
++
++    prompt = {
++        "prompt_token_ids": [1, 2],
++        "additional_information": {
++            "yue2_song_sampling": phase_params([1, 2], "semantic", 42, frames).extra_args,
++        },
++    }
+     adapter = object.__new__(Yue2Adapter)
+     request = OpenAICreateSpeechRequest(model="m-a-p/YuE2-3B", input="lyrics", max_new_tokens=frames)
+     params = adapter.apply_sampling_overrides([SamplingParams()], request, prompt)[0]
+-    assert params.extra_args[y.KEY_MAX_HOLD_STEPS] == min(spare, 4096)
+-    assert params.max_tokens == frames + 1 + min(spare, 4096)
++    assert params.extra_args[y.KEY_MAX_HOLD_STEPS] == 0
++    assert params.max_tokens == frames + 2
+diff --git a/vllm_omni/deploy/yue2.yaml b/vllm_omni/deploy/yue2.yaml
+index 3958b02c7..74c686737 100644
+--- a/vllm_omni/deploy/yue2.yaml
++++ b/vllm_omni/deploy/yue2.yaml
+@@ -7,15 +7,18 @@
+ # model_type stays "yue2" so the registered Yue2Config is used; no
+ # trust_remote_code is needed (the registered config/model win over the
+ # checkpoint's auto_map).
++model_runner: v1
+ pipeline: yue2
+ async_chunk: false
+ dtype: bfloat16
+ 
+ stages:
+   - stage_id: 0
+-    # A finishing song keeps its slot during side-stream synthesis,
+-    # emitting HOLD tokens until its audio is ready.
++    # AR slots are released while the same worker finishes NAR/VAE synthesis.
+     max_num_seqs: 4
++    async_scheduling: false
++    enable_chunked_prefill: false
++    worker_cls: vllm_omni.model_executor.models.yue2.queued.Yue2QueueWorker
+     # Reserve synthesis headroom: NAR K/V, acoustic graph buffers and VAE
+     # activations are allocated beyond the engine budget. The earlier 4090
+     # memory measurement predates async/compiled synthesis; 0.70 is a starting
+@@ -25,11 +28,7 @@ stages:
+     # Keep AR capture off by default. Sampler/NAR graphs still need
+     # separate synthesis headroom.
+     enforce_eager: true
+-    # Prefix caching works (the runner builds the song from the live
+-    # outputs) but stays off by default: YuE2 prompts are short next to
+-    # the song, so a hit saves little, and on a hit the same seed gives a
+-    # different song than on a miss (a tail-only prefill is not bitwise
+-    # equal to a full one, so sampling drifts after a few frames).
++    # Model-owned acoustic state cannot be restored from an AR prefix cache.
+     enable_prefix_caching: false
+     max_num_batched_tokens: 24576
+     max_model_len: 24576
+@@ -42,6 +41,15 @@ stages:
+     tokenizer: gpt2
+     hf_overrides:
+       architectures: ["Yue2ForCausalLM"]
++      # An explicit path wins over the legacy YUE2_VAE environment variable.
++      # null keeps that fallback, then defaults to m-a-p/YuE2-Vae.
++      yue2_vae_path: null
++      yue2_vae_revision: main
++      # Packing is opt-in; VAE keeps the original one-tile execution.
++      yue2_nar_batch_size: 1
++      yue2_vae_batch_size: 1
++      yue2_nar_batch_wait_ms: 0
++      yue2_nar_batch_max_tokens: 0
+     default_sampling_params:
+       # Defaults for callers that omit model-owned sampling options. The
+       # opt-in prepare_runner_inputs hook reads each request's extra_args;
+@@ -50,10 +58,9 @@ stages:
+         yue2_phase: "semantic"
+         yue2_seed: 831001
+         yue2_max_audio_frames: 200
+-        yue2_max_hold_steps: 4096
++        yue2_max_hold_steps: 0
+       detokenize: false
+       stop_token_ids: [151848, 151852]  # ABC_END, MUSIC_END
+-      # 200 frames + 4096 synthesis holds + the final end token. Callers
+-      # changing the frame budget must also reserve this token headroom.
+-      max_tokens: 4297
++      # Frames plus terminal handoff; synthesis does not consume AR tokens.
++      max_tokens: 202
+       temperature: 1.0
+diff --git a/vllm_omni/entrypoints/openai/tts_adapters/yue2.py b/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
+index 1d343afb8..ec3fa6f3c 100644
+--- a/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
++++ b/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
+@@ -11,17 +11,19 @@ pinned by the checkpoint's reference config. Model-specific controls travel in
+ 
+ - ``cot``: ``"off"`` (default) | ``"melody"`` | ``"full"`` — how the ABC
+   score span in the prompt is handled.
+-- ``abc``: an ABC score as text, required for ``cot=melody|full``. Serving v1
+-  does not run the model-generated ABC phase (that is two sequential engine
+-  requests; use the offline example for it).
++- ``abc``: optional external score for ``cot=melody|full``; omitted scores
++  are generated within the same request.
++- ``abc_max_tokens``: automatic ABC budget, from 1 to 4096.
++- ``cfg_scale``: paired semantic guidance, from 0 to 20; default 1 disables CFG.
+ 
+ Unsupported parameters are rejected rather than silently ignored, following
+ the MiniMax Music 3 precedent.
+ """
+ 
++import asyncio
++import math
+ import secrets
+ from collections.abc import Mapping
+-from pathlib import Path
+ from typing import TYPE_CHECKING, Any
+ 
+ import torch
+@@ -30,28 +32,14 @@ from vllm_omni.entrypoints.openai.tts_adapters import register_tts_adapter
+ from vllm_omni.entrypoints.openai.tts_adapters.base import (
+     ARTTSAdapter,
+     PreparedRequest,
+-    resolve_stage_model_path,
+ )
+ from vllm_omni.model_executor.models.yue2.yue2 import (
+-    CONTEXT,
+     FRAMES_PER_SECOND,
+     KEY_MAX_AUDIO_FRAMES,
+-    KEY_MAX_HOLD_STEPS,
+-    KEY_MIN_TOKENS,
+-    KEY_PENALTY_WINDOW,
+     KEY_PHASE,
+-    KEY_PREFIX_IDS,
+-    KEY_REPETITION_PENALTY,
+-    KEY_SEED,
+-    KEY_SKIP_SYNTHESIS,
+-    KEY_TEMPERATURE,
+-    KEY_TOP_K,
+-    KEY_TOP_P,
+     SEMANTIC_SAMPLING,
+     STOP_TOKEN_IDS,
+-    SYNTHESIS_HOLD_STEPS,
+ )
+-from vllm_omni.tokenizers.yue2_prompt import semantic_prefix_ids
+ 
+ if TYPE_CHECKING:
+     from vllm_omni.entrypoints.openai.protocol.audio import OpenAICreateSpeechRequest
+@@ -100,12 +88,19 @@ class Yue2Adapter(ARTTSAdapter):
+         if cot == "off":
+             if abc is not None:
+                 return "extra_params.abc requires cot=melody|full"
+-        elif not isinstance(abc, str) or not abc.strip():
+-            return (
+-                f"cot={cot} requires extra_params.abc carrying an ABC score. "
+-                "Model-generated ABC is two engine requests and is not served "
+-                "in v1; use examples/offline_inference/yue2 for that."
+-            )
++        elif abc is not None and (not isinstance(abc, str) or not abc.strip()):
++            return "extra_params.abc must be a nonempty ABC score"
++        budget = extra.get("abc_max_tokens", 4096)
++        if type(budget) is not int or not 1 <= budget <= 4096:
++            return "extra_params.abc_max_tokens must be an integer in [1,4096]"
++        scale = extra.get("cfg_scale", 1.0)
++        if (
++            isinstance(scale, bool)
++            or not isinstance(scale, (int, float))
++            or not math.isfinite(scale)
++            or not 0 <= scale <= 20
++        ):
++            return "extra_params.cfg_scale must be finite and in [0,20]"
+ 
+         if request.max_new_tokens is not None:
+             if request.max_new_tokens < self.max_new_tokens_min:
+@@ -145,7 +140,7 @@ class Yue2Adapter(ARTTSAdapter):
+         # Resolve (and possibly download) qwen.tiktoken at startup: build()
+         # runs on the request path and must not block on a hub download, and a
+         # bad path should surface before the first request.
+-        self._tokenizer()
++        await asyncio.to_thread(self._tokenizer)
+ 
+     async def build(
+         self,
+@@ -153,30 +148,26 @@ class Yue2Adapter(ARTTSAdapter):
+         sampling_params_list: list,
+         has_inline_ref_audio: bool,
+     ) -> PreparedRequest:
+-        del sampling_params_list, has_inline_ref_audio
+-        extra: dict[str, Any] = request.extra_params or {}
+-        cot = extra.get("cot", "off")
+-        encode = self._tokenizer().encode
+-        abc_ids = encode(extra["abc"]) if cot != "off" else None
+-        # validate() has already rejected blank lyrics/caption.
+-        instructions = request.instructions or ""
+-        lyrics = request.input or ""
+-        prefix = semantic_prefix_ids(encode, instructions, lyrics, cot, abc_ids=abc_ids)
+-        max_frames = int(request.max_new_tokens or _DEFAULT_MAX_FRAMES)
+-        # +1: the song is delivered on the step after its last frame (the
+-        # model acts on its draws one step late), which also needs a slot.
+-        if len(prefix) + max_frames + 1 > CONTEXT:
+-            return_err = (
+-                f"YuE2 prompt is {len(prefix)} tokens and the {max_frames}-frame budget "
+-                f"exceeds the {CONTEXT}-token context. Shorten the lyrics/style or "
+-                "lower max_new_tokens."
+-            )
+-            raise ValueError(return_err)
+-        return PreparedRequest(
+-            prompt={"prompt_token_ids": prefix},
+-            tts_params={"max_audio_frames": [max_frames]},
+-            model_type=self.name,
++        from vllm_omni.model_executor.models.yue2.request import prepare_song
++
++        extra = request.extra_params or {}
++        seed = request.seed if request.seed is not None else secrets.randbelow(2**31)
++        engine = self.ctx.engine_client
++        assert engine is not None
++        prompt, params = prepare_song(
++            self._tokenizer().encode,
++            request.instructions,
++            request.input,
++            cot=extra.get("cot", "off"),
++            abc=extra.get("abc"),
++            seed=seed,
++            max_frames=int(request.max_new_tokens or _DEFAULT_MAX_FRAMES),
++            max_abc_tokens=extra.get("abc_max_tokens", 4096),
++            max_model_len=engine.vllm_config.model_config.max_model_len,
++            cfg_scale=extra.get("cfg_scale", 1.0),
+         )
++        prompt["additional_information"] = {"yue2_song_sampling": params.extra_args}
++        return PreparedRequest(prompt=prompt, tts_params={}, model_type=self.name)
+ 
+     def apply_sampling_overrides(
+         self,
+@@ -187,41 +178,15 @@ class Yue2Adapter(ARTTSAdapter):
+     ) -> list:
+         import copy
+ 
+-        sampling_params_list = copy.deepcopy(sampling_params_list)
+-        params = sampling_params_list[0]
+-        max_frames = int(request.max_new_tokens or _DEFAULT_MAX_FRAMES)
+-        # A service must not give every caller the same song; without an
+-        # explicit seed, draw one per request.
+-        seed = request.seed if request.seed is not None else secrets.randbelow(2**31)
+-        assert prompt is not None  # the engine always passes the scheduled prompt
+-        params.extra_args = {
+-            **(params.extra_args or {}),
+-            KEY_PHASE: "semantic",
+-            KEY_SEED: seed,
+-            KEY_TEMPERATURE: SEMANTIC_SAMPLING["temperature"],
+-            KEY_TOP_P: SEMANTIC_SAMPLING["top_p"],
+-            KEY_TOP_K: SEMANTIC_SAMPLING["top_k"],
+-            KEY_REPETITION_PENALTY: SEMANTIC_SAMPLING["repetition_penalty"],
+-            KEY_PENALTY_WINDOW: SEMANTIC_SAMPLING["penalty_window"],
+-            KEY_MIN_TOKENS: SEMANTIC_SAMPLING["min_tokens"],
+-            KEY_MAX_AUDIO_FRAMES: max_frames,
+-            KEY_SKIP_SYNTHESIS: False,
+-            # Full prompt ids: under a KV prefix-cache hit the engine schedules
+-            # only the uncached tail, so the model cannot rebuild its NAR
+-            # conditioning prefix from the scheduled tokens alone.
+-            KEY_PREFIX_IDS: list(prompt["prompt_token_ids"]),
+-        }
+-        # The model needs one decode step beyond the last frame to deliver the
+-        # terminal NAR/VAE pass, so do not cap the engine at exactly max_frames.
+-        # Synthesize on a side stream while other songs keep decoding; the
+-        # request may emit up to SYNTHESIS_HOLD_STEPS hold tokens meanwhile
+-        # (see the model), so max_tokens leaves that much headroom.
+-        prompt_len = len(prompt["prompt_token_ids"])
+-        params.max_tokens = min(max_frames + 1 + SYNTHESIS_HOLD_STEPS, CONTEXT - prompt_len)
+-        params.extra_args[KEY_MAX_HOLD_STEPS] = max(0, params.max_tokens - max_frames - 1)
+-        params.stop_token_ids = list(STOP_TOKEN_IDS)
+-        params.detokenize = False
+-        return sampling_params_list
++        assert prompt is not None
++        params = copy.deepcopy(sampling_params_list)
++        # Phase transitions mutate nested args; keep the prepared prompt reusable.
++        args = copy.deepcopy(prompt["additional_information"]["yue2_song_sampling"])
++        params[0].extra_args = args
++        params[0].max_tokens = args[KEY_MAX_AUDIO_FRAMES] + (2 if args[KEY_PHASE] == "semantic" else 0)
++        params[0].stop_token_ids = list(STOP_TOKEN_IDS)
++        params[0].detokenize = False
++        return params
+ 
+     @staticmethod
+     def _last_meta_flag(audio_output: Mapping[str, Any], name: str) -> Any:
+@@ -245,9 +210,13 @@ class Yue2Adapter(ARTTSAdapter):
+ 
+     def collect_response_metadata(self, audio_output: Mapping[str, Any], collect: dict) -> None:
+         """Surface meta.truncated / meta.error as response headers."""
++        if self._last_meta_flag(audio_output, "abc_truncated") in (True, 1, "1"):
++            collect["audio_truncated"] = True
+         truncated = self._last_meta_flag(audio_output, "truncated")
+         if truncated is not None:
+-            collect["audio_truncated"] = truncated is True or str(truncated) == "1"
++            collect["audio_truncated"] = (
++                collect.get("audio_truncated", False) or truncated is True or str(truncated) == "1"
++            )
+         # meta.error=1 marks a failed NAR/VAE pass (empty clip); serving turns
+         # it into a 500 via this generic key. Absent/0 means success.
+         error = self._last_meta_flag(audio_output, "error")
+@@ -259,17 +228,17 @@ class Yue2Adapter(ARTTSAdapter):
+         if self._cached_tokenizer is None:
+             from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
+ 
+-            model_path = resolve_stage_model_path(self.ctx.engine_client)
+-            if model_path is None:
+-                raise RuntimeError("YuE2 tokenizer needs a resolvable stage model path")
+-            merge_file = Path(model_path).expanduser() / "qwen.tiktoken"
+-            if not merge_file.is_file():
+-                # model_path is an HF repo id: pull just the merge file into
+-                # the hub cache (vae.py does the same for the VAE snapshot).
+-                from vllm_omni.transformers_utils.repo_utils import hf_api
+-
+-                merge_file = Path(hf_api().hf_hub_download(model_path, "qwen.tiktoken"))
+-            self._cached_tokenizer = YuE2TextTokenizer(merge_file)
++            engine = self.ctx.engine_client
++            assert engine is not None
++            vllm_config = engine.vllm_config
++            assert vllm_config is not None
++            config = vllm_config.model_config
++            self._cached_tokenizer = YuE2TextTokenizer.from_pretrained(
++                config.model,
++                revision=config.revision,
++                token=config.hf_token,
++                cache_dir=vllm_config.load_config.download_dir,
++            )
+         return self._cached_tokenizer
+ 
+ 
+diff --git a/vllm_omni/model_executor/models/registry.py b/vllm_omni/model_executor/models/registry.py
+index ca0fba7f8..fa341c831 100644
+--- a/vllm_omni/model_executor/models/registry.py
++++ b/vllm_omni/model_executor/models/registry.py
+@@ -486,7 +486,7 @@ _OMNI_MODELS = {
+     ## YuE2-3B (text-to-music; single-stage native-AR with terminal NAR/VAE)
+     "Yue2ForCausalLM": (
+         "yue2",
+-        "yue2",
++        "queued",
+         "Yue2ForCausalLM",
+     ),
+ }
+diff --git a/vllm_omni/model_executor/models/yue2/batched_nar.py b/vllm_omni/model_executor/models/yue2/batched_nar.py
+new file mode 100644
+index 000000000..5170fa084
+--- /dev/null
++++ b/vllm_omni/model_executor/models/yue2/batched_nar.py
+@@ -0,0 +1,138 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Packed request-batched YuE2 NAR with independent varlen attention spans."""
++
++from itertools import accumulate
++from numbers import Integral
++
++import torch
++
++from vllm_omni.model_executor.models.yue2.yue2 import CachedNAR, _attention, _nar_kernels
++
++
++class BatchedCachedNAR(CachedNAR):
++    """Batch GEMMs over real tokens; cu_seqlens isolate each song's attention.
++
++    There is no sequence padding. The two boundary tokens, rotary positions,
++    condition KV and CPU noise remain request-local. Batch one is dispatched
++    to the original CachedNAR by the caller.
++    """
++
++    def __init__(self, model, chunks, pool=None):
++        if len(chunks) < 2:
++            raise ValueError("Batched NAR requires batch >= 2")
++        self.model, self.chunks, self.pool = model, chunks, pool
++        weight = next(model.vae2llm.parameters())
++        self.device, self.dtype = weight.device, weight.dtype
++        self.lengths = [len(chunk.noise) for chunk in chunks]
++        self.query_offsets = list(accumulate([0, *(n + 2 for n in self.lengths)]))
++        self.key_offsets = list(accumulate([0, *(len(c.ar_tokens) + len(c.noise) + 2 for c in chunks)]))
++        self.max_query_length = max(n + 2 for n in self.lengths)
++        self.max_key_length = max(b - a for a, b in zip(self.key_offsets, self.key_offsets[1:]))
++        self.nar_length = self.query_offsets[-1]
++        config = model.config
++        shape = (
++            int(config.num_hidden_layers),
++            self.key_offsets[-1],
++            int(config.num_key_value_heads),
++            int(config.head_dim),
++        )
++        self.keys = torch.empty(shape, dtype=self.dtype, device=self.device)
++        self.values = torch.empty_like(self.keys)
++        self.graph = None
++        self.last_use = None
++
++    def prefill_iter(self):
++        members = []
++        for chunk, start, end in zip(self.chunks, self.key_offsets, self.key_offsets[1:]):
++            # The packed engine owns storage through the solve/cancellation event.
++            member = CachedNAR(self.model, chunk, self.pool, kv=(self.keys[:, start:end], self.values[:, start:end]))
++            members.append(member)
++            yield
++        nar_indices, frame_indices = [], []
++        for member, query_start, key_start in zip(members, self.query_offsets, self.key_offsets):
++            nar_indices.extend(range(key_start + member.ar_length, key_start + member.ar_length + member.nar_length))
++            frame_indices.extend(range(query_start + 1, query_start + member.nar_length - 1))
++        self.nar_indices = torch.tensor(nar_indices, device=self.device)
++        self.frame_indices = torch.tensor(frame_indices, device=self.device)
++        self.cos = torch.cat([member.cos for member in members])
++        self.sin = torch.cat([member.sin for member in members])
++        self.pos_emb = torch.cat([member.pos_emb[0] for member in members])
++        self.bounds_q = torch.tensor(self.query_offsets, dtype=torch.int32, device=self.device)
++        self.bounds_k = torch.tensor(self.key_offsets, dtype=torch.int32, device=self.device)
++        self.batch_flash = None
++        self.flash_version = 2
++        if self.device.type == "cuda":
++            from vllm.vllm_flash_attn import flash_attn_interface, flash_attn_varlen_func
++
++            self.flash_version = 3 if members[0].fa3 is not None else 2
++            if flash_attn_interface.is_fa_version_supported(self.flash_version):
++                self.batch_flash = flash_attn_varlen_func
++
++    def _velocity(self, state, raw_t):
++        model, config = self.model, self.model.config
++        pre, post = _nar_kernels()
++        eps = float(config.rms_norm_eps)
++        heads, kv_heads = int(config.num_attention_heads), int(config.num_key_value_heads)
++        x_nar = state.new_zeros((self.nar_length, state.shape[-1]))
++        x_nar.index_copy_(0, self.frame_indices, state)
++        t = torch.sigmoid(raw_t)
++        shift = model._timestep_shift
++        shifted = shift * t / (1 + (shift - 1) * t)
++        x = model.vae2llm(x_nar)
++        x = x + model.time_embedder(shifted.expand(self.nar_length))
++        x = x + self.pos_emb
++        for index, weights in enumerate(model.nar_weights()):
++            w_norm, w_qkv, w_q_norm, w_k_norm, w_o, w_mlp_norm, w_gate_up, w_down = weights
++            q, k, v = pre(x, w_norm, w_qkv, w_q_norm, w_k_norm, self.cos, self.sin, eps, heads, kv_heads)
++            self.keys[index].index_copy_(0, self.nar_indices, k)
++            self.values[index].index_copy_(0, self.nar_indices, v)
++            if self.batch_flash is not None:
++                h = self.batch_flash(
++                    q,
++                    self.keys[index],
++                    self.values[index],
++                    cu_seqlens_q=self.bounds_q,
++                    cu_seqlens_k=self.bounds_k,
++                    max_seqlen_q=self.max_query_length,
++                    max_seqlen_k=self.max_key_length,
++                    causal=False,
++                    fa_version=self.flash_version,
++                )
++            else:
++                # CPU/reference fallback also avoids a padded math-attention
++                # batch. The large linear projections above remain batched.
++                h = torch.cat(
++                    [
++                        _attention(q[qa:qb], self.keys[index, ka:kb], self.values[index, ka:kb], causal=False)
++                        for qa, qb, ka, kb in zip(
++                            self.query_offsets[:-1], self.query_offsets[1:], self.key_offsets[:-1], self.key_offsets[1:]
++                        )
++                    ]
++                )
++            x = post(x, h, w_o, w_mlp_norm, w_gate_up, w_down, eps)
++        return model.llm2vae(model.model.norm(x[None]))[0].index_select(0, self.frame_indices)
++
++    def solve_iter(self, steps=32):
++        if isinstance(steps, bool) or not isinstance(steps, Integral) or steps < 1:
++            raise ValueError("steps must be a positive integer")
++        # Draws have already happened independently on CPU in song_chunks.
++        state = torch.cat([chunk.noise for chunk in self.chunks]).to(
++            device=self.device, dtype=self.dtype, non_blocking=True
++        )
++        dt = 1.0 / steps
++        for step in range(steps):
++            t = 1.0 - step * dt
++            raw = torch.logit(torch.tensor(t, dtype=torch.float64, device="cpu")).clamp(-20, 20).item()
++            first = self.velocity(state, raw)
++            yield
++            mid = state - first * (dt / 2)
++            raw_mid = torch.logit(torch.tensor(t - dt / 2, dtype=torch.float64, device="cpu")).clamp(-20, 20).item()
++            state = state - self.velocity(mid, raw_mid) * dt
++            yield
++        return state.float()
++
++    def close(self):
++        super().close()
++        self.chunks = None
++        self.nar_indices = self.frame_indices = None
+diff --git a/vllm_omni/model_executor/models/yue2/batched_synthesis.py b/vllm_omni/model_executor/models/yue2/batched_synthesis.py
+new file mode 100644
+index 000000000..da3e51969
+--- /dev/null
++++ b/vllm_omni/model_executor/models/yue2/batched_synthesis.py
+@@ -0,0 +1,212 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Same-worker acoustic batches, using the upstream bounded synthesis job."""
++
++import math
++import time
++from collections import defaultdict
++from itertools import zip_longest
++
++import torch
++
++from .batched_nar import BatchedCachedNAR
++from .yue2 import (
++    CODEC_OFFSET,
++    CODEC_SIZE,
++    ODE_STEPS,
++    SAMPLE_RATE,
++    VAE_CORE_FRAMES,
++    VAE_HALO_FRAMES,
++    CachedNAR,
++    _SynthesisJob,
++    _SynthesisQueue,
++    chunk_ranges,
++    song_chunks,
++    synthesize_iter,
++)
++
++
++def decode_tiles_iter(vae, latents, batch_size, core_frames=VAE_CORE_FRAMES, cancelled=None):
++    """Batch equal-shaped halo windows, then scatter their exact output cores.
++
++    No padding, cross-song concatenation, or wait to fill a batch. A batch may
++    contain tiles from the same song or different songs already in this job.
++    """
++    if core_frames < 1 or batch_size < 1 or VAE_HALO_FRAMES < vae.required_halo(core_frames):
++        raise ValueError("Invalid VAE tile size, batch size, or insufficient halo")
++    cancelled = cancelled if cancelled is not None else set()
++    waves, buckets = [], defaultdict(list)
++    for index, latent in enumerate(latents):
++        z = vae._latent(latent.T.unsqueeze(0), check_finite=False)
++        frames = z.shape[-1]
++        total = vae.natural_output_length(frames)
++        wave = z.new_zeros((vae.config.audio_channels, total), dtype=torch.float32)
++        waves.append(wave)
++        for start in range(0, frames, core_frames):
++            end = min(frames, start + core_frames)
++            left, right = max(0, start - VAE_HALO_FRAMES), min(frames, end + VAE_HALO_FRAMES)
++            ratio = vae.config.downsampling_ratio
++            a, b = start * ratio, min(end * ratio, total)
++            buckets[right - left].append((index, z[..., left:right], a, b, (start - left) * ratio))
++    for tasks in buckets.values():
++        while tasks:
++            batch, tasks = tasks[:batch_size], tasks[batch_size:]
++            batch = [task for task in batch if task[0] not in cancelled]
++            if not batch:
++                continue
++            tiles = batch[0][1] if len(batch) == 1 else torch.cat([task[1] for task in batch])
++            decoded = vae.decode(tiles, check_finite=False)
++            for row, (index, _, a, b, crop_start) in enumerate(batch):
++                crop = decoded[row, :, crop_start : crop_start + b - a]
++                if crop.shape[-1] != b - a:
++                    raise RuntimeError("VAE tile did not cover its output core")
++                waves[index][:, a:b].copy_(crop)
++            yield
++    return waves
++
++
++class BatchedSynthesisQueue(_SynthesisQueue):
++    """FIFO ready requests; B=1 remains the original NAR arithmetic.
++
++    Cancellation drops a waiting member immediately. An active packed NAR
++    keeps a cancelled row until the solve ends; its VAE tiles/output are
++    skipped. If all members cancel, the original job releases in-flight work.
++    """
++
++    def __init__(self, model, nar_batch_size, vae_batch_size, tile_frames, batch_wait_ms=0, batch_max_tokens=0):
++        if (
++            isinstance(batch_wait_ms, bool)
++            or not isinstance(batch_wait_ms, (int, float))
++            or not math.isfinite(batch_wait_ms)
++            or batch_wait_ms < 0
++        ):
++            raise ValueError("YuE2 NAR batch wait must be finite nonnegative milliseconds")
++        if isinstance(batch_max_tokens, bool) or not isinstance(batch_max_tokens, int) or batch_max_tokens < 0:
++            raise ValueError("YuE2 NAR batch token budget must be a nonnegative integer")
++        super().__init__()
++        self.batch_wait_s = batch_wait_ms / 1000
++        self.batch_max_tokens = batch_max_tokens
++        self.model = model
++        self.nar_batch_size = nar_batch_size
++        self.vae_batch_size = vae_batch_size
++        self.tile_frames = tile_frames
++        self.members = []
++        self.cancelled = set()
++        self.sizes = []
++        self.ready = {}
++
++    def submit(self, state):
++        codec = [token - CODEC_OFFSET for token in state.history]
++        if not codec or min(codec) < 0 or max(codec) >= CODEC_SIZE:
++            self.ready[state.request_id] = self._payload(torch.zeros((2, 0)), True, state.truncated)
++            return
++        if self.batch_max_tokens:
++            try:
++                ranges = chunk_ranges(len(codec), len(state.prefix_ids))
++            except ValueError:
++                self.ready[state.request_id] = self._payload(torch.zeros((2, 0)), True, state.truncated)
++                return
++            # Both conditioning and NAR contain the chunk's codec frames.
++            state.acoustic_batch_tokens = len(state.prefix_ids) + 2 * max(b - a for a, b in ranges) + 3
++        # The runner pumps once after all rows in this AR step are submitted.
++        state.acoustic_ready_at = time.monotonic()
++        self.waiting.append(state)
++
++    @staticmethod
++    def _payload(audio, failed, truncated):
++        return {
++            # Native output transport may outlive this job. Do not export
++            # views of its shared pinned batch buffer to another request.
++            "audio": audio.clone(memory_format=torch.contiguous_format),
++            "sr": torch.tensor(SAMPLE_RATE, dtype=torch.int32),
++            "meta.error": torch.tensor(int(failed)),
++            "meta.truncated": torch.tensor(int(truncated)),
++        }
++
++    def _work(self, keep):
++        model = self.model
++        inputs = [(s.prefix_ids, [t - CODEC_OFFSET for t in s.history], s.constants.seed) for s in self.members]
++        if len(inputs) == 1:
++            latent = yield from synthesize_iter(model, *inputs[0], keep, self.graph_pool)
++            latents = [latent]
++        else:
++            chunks = [song_chunks(*values) for values in inputs]
++            pieces = [[] for _ in inputs]
++            pool = self.graph_pool.handle(next(model.vae2llm.parameters()).device)
++            for row in zip_longest(*chunks):
++                owners = [index for index, chunk in enumerate(row) if chunk is not None]
++                members = [row[index] for index in owners]
++                if len(members) == 1:
++                    engine = CachedNAR(model, members[0], pool)
++                    keep.append(engine)
++                    yield  # Bound condition prefill submission as in the original job.
++                else:
++                    engine = BatchedCachedNAR(model, members, pool)
++                    keep.append(engine)
++                    yield from engine.prefill_iter()
++                    yield
++                value = yield from engine.solve_iter(ODE_STEPS)
++                values = [value] if len(members) == 1 else value.split(engine.lengths)
++                for index, value in zip(owners, values):
++                    pieces[index].append(value)
++                engine.last_use = torch.cuda.Event()
++                engine.last_use.record()
++            latents = [parts[0] if len(parts) == 1 else torch.cat(parts) for parts in pieces]
++        keep.extend(latents)
++        vae = model._vae_model(latents[0].device)
++        waves = yield from decode_tiles_iter(vae, latents, self.vae_batch_size, self.tile_frames, self.cancelled)
++        self.sizes = [wave.shape[-1] for wave in waves]
++        return waves[0] if len(waves) == 1 else torch.cat(waves, dim=-1)
++
++    def pump(self):
++        if self.active is not None:
++            if not self.active.done():
++                return
++            audio, failed = self.active.finish()
++            waves = [torch.zeros((2, 0)) for _ in self.members] if failed else audio.split(self.sizes, dim=-1)
++            for index, (state, wave) in enumerate(zip(self.members, waves)):
++                if index not in self.cancelled:
++                    self.ready[state.request_id] = self._payload(wave, failed, state.truncated)
++            self.active = None
++            self.members = []
++        if self.waiting:
++            count, tokens = 0, 0
++            for state in self.waiting[: self.nar_batch_size]:
++                cost = state.acoustic_batch_tokens if self.batch_max_tokens else 0
++                if count and self.batch_max_tokens and tokens + cost > self.batch_max_tokens:
++                    break
++                count += 1
++                tokens += cost
++            # Preserve FIFO and let an oversized head run alone; this is a
++            # packing budget, not an OOM guarantee or a per-request length cap.
++            full = count == self.nar_batch_size or (
++                self.batch_max_tokens and (tokens >= self.batch_max_tokens or count < len(self.waiting))
++            )
++            if (
++                not full
++                and self.batch_wait_s
++                and time.monotonic() < self.waiting[0].acoustic_ready_at + self.batch_wait_s
++            ):
++                return
++            self.members = self.waiting[:count]
++            del self.waiting[:count]
++            self.cancelled = set()
++            self.sizes = []
++            self.active = _SynthesisJob(self.members[0].request_id, self._work)
++            self.active.start(self.stream())
++
++    def poll(self):
++        self.pump()
++        ready, self.ready = self.ready, {}
++        return ready
++
++    def cancel_request(self, request_id):
++        self.waiting[:] = [state for state in self.waiting if state.request_id != request_id]
++        self.ready.pop(request_id, None)
++        for index, state in enumerate(self.members):
++            if state.request_id == request_id:
++                self.cancelled.add(index)
++        if self.active is not None and len(self.cancelled) == len(self.members):
++            self.active.cancel()
++            self.active = None
++            self.members = []
+diff --git a/vllm_omni/model_executor/models/yue2/pipeline.py b/vllm_omni/model_executor/models/yue2/pipeline.py
+index 0a1fa51bd..1df43b595 100644
+--- a/vllm_omni/model_executor/models/yue2/pipeline.py
++++ b/vllm_omni/model_executor/models/yue2/pipeline.py
+@@ -7,8 +7,8 @@ Mixture-of-Transformers checkpoint — AR path, NAR path, projection heads —
+ lives in one ``model.safetensors``, so both the autoregressive sampling and
+ the terminal flow-matching + VAE pass run inside one stage and no weights are
+ duplicated across stages. The VAE decoder is a separate repository
+-(``m-a-p/YuE2-Vae``), loaded in ``load_weights`` from ``$YUE2_VAE`` or the
+-default hub id.
++(``m-a-p/YuE2-Vae``), selected with ``hf_overrides.yue2_vae_path`` and
++``hf_overrides.yue2_vae_revision`` in the deployment config.
+ 
+ Sampling is model-owned. ``sampling_constraints`` pins ``detokenize`` and the
+ union of both phase end tokens; ``extra_args`` carry the phase and the
+@@ -33,6 +33,7 @@ YUE2_PIPELINE = PipelineConfig(
+         StagePipelineConfig(
+             stage_id=0,
+             model_stage="yue2",
++            scheduler_cls="vllm_omni.model_executor.models.yue2.queued.Yue2Scheduler",
+             execution_type=StageExecutionType.LLM_AR,
+             input_sources=(),
+             final_output=True,
+diff --git a/vllm_omni/model_executor/models/yue2/queued.py b/vllm_omni/model_executor/models/yue2/queued.py
+new file mode 100644
+index 000000000..623c23c06
+--- /dev/null
++++ b/vllm_omni/model_executor/models/yue2/queued.py
+@@ -0,0 +1,441 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Same-worker acoustic synthesis after releasing native AR slots."""
++
++import copy
++import time
++from dataclasses import dataclass, field, replace
++
++import torch
++from vllm import SamplingParams
++from vllm.v1.core.sched.request_queue import SchedulingPolicy
++from vllm.v1.engine import EngineCoreOutputs, FinishReason
++from vllm.v1.outputs import AsyncModelRunnerOutput
++from vllm.v1.request import RequestStatus, StreamingUpdate
++
++from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
++from vllm_omni.core.sched.omni_cfg_ar_scheduler import OmniCFGARScheduler
++from vllm_omni.core.sched.output import OmniSchedulerOutput
++from vllm_omni.engine import OmniEngineCoreOutput
++from vllm_omni.outputs import OmniModelRunnerOutput
++from vllm_omni.request import OmniRequest
++from vllm_omni.worker.gpu_ar_model_runner import GPUARModelRunner
++from vllm_omni.worker.gpu_ar_worker import GPUARWorker
++
++from .batched_synthesis import BatchedSynthesisQueue
++from .request import AUTO_ABC, SEMANTIC_ARGS
++from .yue2 import ABC_END, CODEC_OFFSET, CODEC_SIZE, EOD, MUSIC_END, MUSIC_START, SAMPLE_RATE, STOP_TOKEN_IDS
++from .yue2 import Yue2ForCausalLM as Yue2Backbone
++
++
++@dataclass
++class Yue2QueueSchedule(OmniSchedulerOutput):
++    # Remove runner AR state without cancelling the model's acoustic job.
++    acoustic_req_ids: set[str] = field(default_factory=set)
++    replaced_req_ids: set[str] = field(default_factory=set)
++
++
++@dataclass
++class Yue2QueueOutput(OmniModelRunnerOutput):
++    acoustic_started: list[str] = field(default_factory=list)
++    acoustic_ready: dict[str, dict[str, torch.Tensor]] = field(default_factory=dict)
++
++
++class Yue2ForCausalLM(Yue2Backbone):
++    def __init__(self, *, vllm_config, prefix=""):
++        parallel = vllm_config.parallel_config
++        if parallel.tensor_parallel_size != 1 or parallel.pipeline_parallel_size != 1:
++            raise ValueError("YuE2 queued synthesis requires TP=PP=1")
++        if vllm_config.scheduler_config.async_scheduling:
++            raise ValueError("YuE2 queued synthesis requires synchronous scheduling")
++        if vllm_config.model_config.use_v2_model_runner or vllm_config.speculative_config is not None:
++            raise ValueError("YuE2 queued synthesis requires model runner v1 without speculative decoding")
++        if vllm_config.cache_config.enable_prefix_caching or vllm_config.kv_transfer_config is not None:
++            raise ValueError("YuE2 queued synthesis requires APC and external KV connectors disabled")
++        super().__init__(vllm_config=vllm_config, prefix=prefix)
++        self.acoustic_started: list[str] = []
++        config = vllm_config.model_config.hf_config
++        sizes = [
++            getattr(config, name, default)
++            for name, default in (
++                ("yue2_nar_batch_size", 1),
++                ("yue2_vae_batch_size", 1),
++                ("yue2_vae_tile_frames", 1024),
++            )
++        ]
++        if any(isinstance(size, bool) or not isinstance(size, int) or size < 1 for size in sizes):
++            raise ValueError("YuE2 acoustic batch and tile sizes must be positive integers")
++        batch_wait_ms = getattr(config, "yue2_nar_batch_wait_ms", 0)
++        batch_max_tokens = getattr(config, "yue2_nar_batch_max_tokens", 0)
++        if isinstance(batch_max_tokens, bool) or not isinstance(batch_max_tokens, int) or batch_max_tokens < 0:
++            raise ValueError("YuE2 NAR batch token budget must be a nonnegative integer")
++        if sizes != [1, 1, 1024] or batch_wait_ms != 0 or batch_max_tokens:
++            self._synthesis = BatchedSynthesisQueue(
++                self, *sizes, batch_wait_ms=batch_wait_ms, batch_max_tokens=batch_max_tokens
++            )
++
++    def _hold_allowed(self, state):
++        return False
++
++    def _queue_synthesis(self, state):
++        if isinstance(self._synthesis, BatchedSynthesisQueue):
++            self._synthesis.submit(state)
++        else:
++            super()._queue_synthesis(state)
++
++    def on_requests_finished(self, finished_req_ids):
++        if isinstance(self._synthesis, BatchedSynthesisQueue):
++            for request_id in finished_req_ids:
++                self._synthesis.cancel_request(request_id)
++        super().on_requests_finished(finished_req_ids)
++
++    def _finish_request_safely(self, state, *, hit_end):
++        if state.constants.skip_synthesis:
++            return super()._finish_request_safely(state, hit_end=hit_end)
++        self._queue_synthesis(state)
++        self.acoustic_started.append(state.request_id)
++
++    def poll_audio(self):
++        if isinstance(self._synthesis, BatchedSynthesisQueue):
++            return self._synthesis.poll()
++        self._synthesis.pump()
++        ready = {}
++        # shortcut: scan native model states; index jobs if polling becomes measurable.
++        for rid, state in self._states.items():
++            job = state.job
++            if job is None or not job.done():
++                continue
++            audio, failed = job.finish()
++            state.job = None
++            self._decode_t0.pop(rid, None)
++            ready[rid] = {
++                # Output transport must not own the job's pinned D2H buffer.
++                "audio": audio.clone(memory_format=torch.contiguous_format),
++                "sr": torch.tensor(SAMPLE_RATE, dtype=torch.int32),
++                "meta.truncated": torch.tensor(int(state.truncated)),
++                "meta.error": torch.tensor(int(failed)),
++            }
++        return ready
++
++    def prepare_runner_inputs(self, **kwargs):
++        result = super().prepare_runner_inputs(**kwargs)
++        self._cfg_step = kwargs.get("sampling_extra_args") or []
++        return result
++
++    def sample(self, logits, sampling_metadata):
++        if not any((args or {}).get("yue2_cfg_parent") is not None for args in self._cfg_step):
++            return super().sample(logits, sampling_metadata)
++        rows = {rid: i for i, (rid, _, _) in enumerate(self._step_rows)}
++        pairs = []
++        original_discard = self._step_discard
++        discard = list(original_discard) if original_discard is not None else [False] * len(rows)
++        for negative, args in enumerate(self._cfg_step):
++            parent = (args or {}).get("yue2_cfg_parent")
++            if parent is None:
++                continue
++            if parent not in rows:
++                raise RuntimeError("YuE2 CFG branch scheduled without its parent")
++            positive = rows[parent]
++            if discard[positive] or discard[negative]:
++                raise RuntimeError("YuE2 CFG requires complete paired prefills")
++            # Only semantic columns are projected on semantic-only steps; the
++            # unused -inf columns must not enter subtraction (-inf - -inf).
++            lo, hi = MUSIC_END, CODEC_OFFSET + CODEC_SIZE
++            cond, uncond = logits[positive, lo:hi], logits[negative, lo:hi]
++            cond.copy_(uncond + args["yue2_cfg_scale"] * (cond - uncond))
++            discard[negative] = True  # One RNG draw/history, on the positive row.
++            pairs.append((positive, negative))
++        self._step_discard = discard
++        try:
++            result = super().sample(logits, sampling_metadata)
++        finally:
++            self._step_discard = original_discard
++        for positive, negative in pairs:
++            result.sampled_token_ids[negative].copy_(result.sampled_token_ids[positive])
++        return result
++
++
++class Yue2QueueRunner(GPUARModelRunner):
++    def _update_states(self, scheduler_output):
++        # Only runner bookkeeping sees these IDs as finished. The model callback
++        # still receives the genuine terminal/abort IDs from execute_model.
++        detached = getattr(scheduler_output, "acoustic_req_ids", set())
++        return super()._update_states(
++            replace(scheduler_output, finished_req_ids=scheduler_output.finished_req_ids | detached)
++        )
++
++    def _with_audio(self, output):
++        if isinstance(output, AsyncModelRunnerOutput):
++            output = output.get_output()
++        ready = self.model.poll_audio()
++        # The runner may hold a CUDAGraphWrapper: assignment would shadow the
++        # underlying model's list on that wrapper instead of consuming it.
++        started = list(self.model.acoustic_started)
++        self.model.acoustic_started.clear()
++        return Yue2QueueOutput(**vars(output), acoustic_started=started, acoustic_ready=ready)
++
++    @torch.inference_mode()
++    def execute_model(self, scheduler_output, *args, **kwargs):
++        replaced = getattr(scheduler_output, "replaced_req_ids", set())
++        if replaced:
++            # A new prompt reuses the native request ID. Retire the old runner
++            # and model phase state before admitting its replacement prefill.
++            scheduler_output = replace(scheduler_output, finished_req_ids=scheduler_output.finished_req_ids | replaced)
++        output = super().execute_model(scheduler_output, *args, **kwargs)
++        if output is not None:
++            output = self._with_audio(output)
++            if not scheduler_output.total_num_scheduled_tokens and not output.acoustic_ready:
++                # shortcut: poll every 1ms while AR is idle; use events if this becomes costly.
++                time.sleep(0.001)
++        return output
++
++    @torch.inference_mode()
++    def sample_tokens(self, grammar_output):
++        return self._with_audio(super().sample_tokens(grammar_output))
++
++
++class Yue2QueueWorker(GPUARWorker):
++    model_runner_cls = Yue2QueueRunner
++
++
++class Yue2QueueScheduler(OmniARScheduler):
++    def _update_request_with_output(self, request, new_token_ids, is_stale=False):
++        args = request.sampling_params.extra_args or {}
++        if not is_stale and args.get(AUTO_ABC):
++            request.append_output_token_ids(new_token_ids)
++            tokens = list(request.output_token_ids)
++            if ABC_END in tokens or len(tokens) >= request.max_tokens:
++                hit_end = bool(tokens and tokens[-1] == ABC_END)
++                abc = tokens[:-1] if hit_end else tokens
++                if not abc or any(not 0 <= token < EOD for token in abc):
++                    request.status = RequestStatus.FINISHED_ERROR
++                    request.stop_reason = "YuE2 generated an empty or invalid ABC score"
++                    return [], True
++                request.yue2_abc_ids = abc
++                request.yue2_abc_truncated = not hit_end
++                prefix = list(request.prompt_token_ids) + abc + [ABC_END, MUSIC_START]
++                if len(prefix) + args[SEMANTIC_ARGS]["yue2_max_audio_frames"] + 2 > self.max_model_len:
++                    request.status = RequestStatus.FINISHED_ERROR
++                    request.stop_reason = "YuE2 semantic phase exceeds the configured context"
++                    return [], True
++                request.yue2_next_prefix = prefix
++            # ABC tokens are an internal phase; no client-visible completion.
++            return [], False
++        if getattr(request, "yue2_acoustic", False) and not is_stale:
++            assert new_token_ids == [MUSIC_END]
++            # Keep the end token for the final audio output, not this AR handoff.
++            return [], False
++        return super()._update_request_with_output(request, new_token_ids, is_stale=is_stale)
++
++    def get_num_unfinished_requests(self):
++        return super().get_num_unfinished_requests() + sum(
++            bool(getattr(r, "yue2_acoustic", False)) and not r.is_finished() for r in self.requests.values()
++        )
++
++    def schedule(self, throttle_prefills=False):
++        if isinstance(self, OmniCFGARScheduler) and self._pairs:
++            output = OmniCFGARScheduler.schedule(self, throttle_prefills)
++        else:
++            output = OmniARScheduler.schedule(self, throttle_prefills)
++        acoustic = {rid for rid, r in self.requests.items() if getattr(r, "yue2_acoustic", False)}
++        replaced = set()
++        for rid in output.num_scheduled_tokens:
++            request = self.requests[rid]
++            if getattr(request, "yue2_reset_phase", False):
++                replaced.add(rid)
++                request.yue2_reset_phase = False
++        return Yue2QueueSchedule(**vars(output), acoustic_req_ids=acoustic, replaced_req_ids=replaced)
++
++    def update_from_output(self, scheduler_output, model_runner_output):
++        started = getattr(model_runner_output, "acoustic_started", ())
++        for rid in started:
++            request = self.requests.get(rid)
++            if request is not None and not request.is_finished():
++                request.yue2_acoustic = True
++        outputs = super().update_from_output(scheduler_output, model_runner_output)
++        for rid in scheduler_output.num_scheduled_tokens:
++            request = self.requests.get(rid)
++            prefix = getattr(request, "yue2_next_prefix", None)
++            if request is None or request.is_finished() or prefix is None:
++                continue
++            args = dict(request.sampling_params.extra_args[SEMANTIC_ARGS])
++            args["yue2_prefix_ids"] = prefix
++            params = SamplingParams(
++                max_tokens=args["yue2_max_audio_frames"] + 2,
++                detokenize=False,
++                stop_token_ids=list(STOP_TOKEN_IDS),
++                extra_args=args,
++            )
++            self.running.remove(request)
++            self._release_replaced_streaming_prompt_cache(request)
++            update = StreamingUpdate(
++                mm_features=None,
++                prompt_token_ids=prefix,
++                max_tokens=params.max_tokens,
++                arrival_time=request.arrival_time,
++                sampling_params=params,
++            )
++            update.additional_information = request.additional_information
++            self._replace_streaming_session(request, update)
++            request.max_tokens = params.max_tokens
++            request.yue2_next_prefix = None
++            request.yue2_reset_phase = True
++            self.waiting.prepend_request(request)
++        for rid in started:
++            request = self.requests.get(rid)
++            if request is None or request.is_finished():
++                continue
++            self.running.remove(request)
++            self._inflight_prefills.discard(request)
++            self._free_request_blocks(request)
++            self.encoder_cache_manager.free(request)
++        for rid, payload in getattr(model_runner_output, "acoustic_ready", {}).items():
++            request = self.requests.get(rid)
++            if request is None or request.is_finished():
++                continue  # Abort won the race; normal finished-ID cleanup cancels the job.
++            failed = bool(payload["meta.error"])
++            if hasattr(request, "yue2_abc_ids"):
++                payload["abc_token_ids"] = torch.tensor(request.yue2_abc_ids, dtype=torch.int64)
++                payload["meta.abc_truncated"] = torch.tensor(request.yue2_abc_truncated)
++            request.append_output_token_ids(MUSIC_END)
++            request.status = RequestStatus.FINISHED_ERROR if failed else RequestStatus.FINISHED_STOPPED
++            self._free_request(request)
++            batch = outputs.setdefault(request.client_index, EngineCoreOutputs())
++            # Audio completes after the parent scheduler's coalesced-output flush.
++            held_tokens = self._held_token_ids.pop(rid, [])
++            batch.outputs.append(
++                OmniEngineCoreOutput(
++                    request_id=rid,
++                    new_token_ids=held_tokens + [MUSIC_END],
++                    is_coalesced=bool(held_tokens),
++                    finish_reason=FinishReason.ERROR if failed else FinishReason.STOP,
++                    stop_reason="YuE2 synthesis failed" if failed else MUSIC_END,
++                    multimodal_output=payload,
++                )
++            )
++        # Merge, since the base scheduler may already have emitted abort IDs.
++        for client, finished in (self.finished_req_ids_dict or {}).items():
++            batch = outputs.setdefault(client, EngineCoreOutputs())
++            batch.finished_requests = (batch.finished_requests or set()) | finished
++        if self.finished_req_ids_dict is not None:
++            self.finished_req_ids_dict.clear()
++        return outputs
++
++
++class Yue2Scheduler(Yue2QueueScheduler, OmniCFGARScheduler):
++    """Reuse native atomic admission; expose only the parent outside stage 0."""
++
++    def __init__(self, *args, **kwargs):
++        # Ordinary songs retain native admission, including one-slot deployments.
++        OmniARScheduler.__init__(self, *args, **kwargs)
++        if self.scheduler_config.async_scheduling:
++            raise ValueError("YuE2 requires synchronous scheduling")
++        if self.policy != SchedulingPolicy.FCFS or self.cache_config.enable_prefix_caching:
++            raise ValueError("YuE2 requires FCFS and disabled prefix caching")
++        if self.vllm_config.speculative_config is not None or self.connector is not None:
++            raise ValueError("YuE2 does not support speculative decoding or KV connectors")
++        if len(self.kv_cache_manager.kv_cache_config.kv_cache_groups) != 1:
++            raise ValueError("YuE2 requires one full-attention KV group")
++        self._capacity = self.kv_cache_manager.block_pool.num_gpu_blocks - 1 - self.kv_cache_manager.watermark_blocks
++        self._pairs = {}
++        self._request_pairs = {}
++        self._prefill_min_output_tokens = 0
++        self._internal_ids: set[str] = set()
++        self._rejected: dict[str, str] = {}
++
++    def get_num_unfinished_requests(self):
++        return super().get_num_unfinished_requests() + len(self._rejected)
++
++    def schedule(self, throttle_prefills=False):
++        self.waiting.remove_requests([self.requests[rid] for rid in self._rejected if rid in self.requests])
++        return super().schedule(throttle_prefills)
++
++    def add_request(self, request):
++        super().add_request(request)
++        self._add_negative(request)
++
++    def _add_negative(self, request):
++        args = request.sampling_params.extra_args or {}
++        if (
++            args.get("yue2_phase") != "semantic"
++            or args.get("yue2_cfg_scale", 1) == 1
++            or args.get("yue2_cfg_parent") is not None
++            or getattr(request, "yue2_cfg_created", False)
++        ):
++            return
++        prefix = list(args["yue2_negative_prefix"])
++        if args.get("yue2_cfg_needs_abc"):
++            prefix += request.yue2_abc_ids + [ABC_END, MUSIC_START]
++        lengths = (request.num_prompt_tokens, len(prefix))
++        pages = sum(-(-min(self.max_model_len, n + request.max_tokens) // self.block_size) for n in lengths)
++        if (
++            min(self.max_num_running_reqs, self.max_num_active_reqs) < 2
++            or self.scheduler_config.enable_chunked_prefill
++            or sum(lengths) > self.max_num_scheduled_tokens
++            or pages > self._capacity
++        ):
++            self._rejected[request.request_id] = (
++                "YuE2 CFG requires complete prefills and sufficient AR slots, prefill token budget and KV capacity; "
++                "disable chunked prefill, increase deployment capacity or reduce the request budget"
++            )
++            return
++        # Branch-local sampling state must not mutate the parent's nested args.
++        params = copy.deepcopy(request.sampling_params)
++        child_id = request.request_id + "-yue2-negative"
++        params.extra_args.update(
++            yue2_prefix_ids=prefix,
++            yue2_cfg_parent=request.request_id,
++            yue2_skip_synthesis=True,
++        )
++        negative = OmniRequest(
++            child_id,
++            prefix,
++            params,
++            None,
++            external_req_id=child_id,
++            client_index=request.client_index,
++            arrival_time=request.arrival_time,
++            priority=request.priority,
++        )
++        self._internal_ids.add(child_id)
++        request.yue2_cfg_created = True
++        self._pairs[request.request_id] = {"cond": request.request_id, "uncond": child_id}
++        self._request_pairs.update({request.request_id: request.request_id, child_id: request.request_id})
++        OmniARScheduler.add_request(self, negative)
++
++    def finish_requests(self, request_ids, finished_status):
++        finished = super().finish_requests(request_ids, finished_status)
++        # EngineCore uses this return value to send shutdown/abort outputs.
++        return [request for request in finished if request.request_id not in self._internal_ids]
++
++    def update_from_output(self, scheduler_output, model_runner_output):
++        outputs = super().update_from_output(scheduler_output, model_runner_output)
++        # Automatic ABC may have replaced a prompt during this update.
++        for rid in scheduler_output.num_scheduled_tokens:
++            request = self.requests.get(rid)
++            if request is not None and not request.is_finished():
++                self._add_negative(request)
++        for rid, reason in self._rejected.items():
++            request = self.requests.get(rid)
++            if request is None or request.is_finished():
++                continue
++            self.finish_requests(rid, RequestStatus.FINISHED_ERROR)
++            batch = outputs.setdefault(request.client_index, EngineCoreOutputs())
++            batch.outputs.append(
++                OmniEngineCoreOutput(
++                    request_id=rid,
++                    new_token_ids=[],
++                    finish_reason=FinishReason.ERROR,
++                    stop_reason=reason,
++                )
++            )
++            batch.finished_requests = (batch.finished_requests or set()) | {rid}
++        self._rejected.clear()
++        for batch in outputs.values():
++            batch.outputs = [output for output in batch.outputs if output.request_id not in self._internal_ids]
++            if batch.finished_requests is not None:
++                batch.finished_requests.difference_update(self._internal_ids)
++        # Keep scheduler.finished_req_ids intact: the worker needs them to
++        # release negative-row model/runner state, even though clients do not.
++        self._internal_ids.intersection_update(self.requests)
++        return outputs
+diff --git a/vllm_omni/model_executor/models/yue2/request.py b/vllm_omni/model_executor/models/yue2/request.py
+new file mode 100644
+index 000000000..5dcd3c16d
+--- /dev/null
++++ b/vllm_omni/model_executor/models/yue2/request.py
+@@ -0,0 +1,109 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Build native song inputs; no engine calls or inference orchestration."""
++
++import math
++
++from vllm import SamplingParams
++
++from vllm_omni.tokenizers.yue2_prompt import INSTRUCTIONS, abc_prefix_ids, semantic_prefix_ids
++
++from .yue2 import (
++    ABC_END,
++    ABC_SAMPLING,
++    ABC_START,
++    CONTEXT,
++    DEFAULT_SEED,
++    EOD,
++    MUSIC_START,
++    SEMANTIC_SAMPLING,
++    STOP_TOKEN_IDS,
++)
++
++AUTO_ABC = "yue2_auto_abc"
++SEMANTIC_ARGS = "yue2_semantic_args"
++
++
++def phase_params(prefix, phase, seed, budget):
++    preset = ABC_SAMPLING if phase == "abc" else SEMANTIC_SAMPLING
++    return SamplingParams(
++        max_tokens=budget + (2 if phase == "semantic" else 0),
++        detokenize=False,
++        stop_token_ids=list(STOP_TOKEN_IDS),
++        extra_args={
++            "yue2_phase": phase,
++            "yue2_seed": seed,
++            "yue2_prefix_ids": list(prefix),
++            "yue2_skip_synthesis": phase == "abc",
++            "yue2_max_audio_frames": budget,
++            "yue2_max_hold_steps": 0,
++            **{
++                f"yue2_{key}": preset[key]
++                for key in ("temperature", "top_p", "top_k", "repetition_penalty", "penalty_window", "min_tokens")
++            },
++        },
++    )
++
++
++def prepare_song(
++    encode,
++    style,
++    lyrics,
++    *,
++    cot="off",
++    abc=None,
++    seed=DEFAULT_SEED,
++    max_frames=200,
++    max_abc_tokens=4096,
++    max_model_len=CONTEXT,
++    cfg_scale=1.0,
++):
++    """Return (token prompt, SamplingParams) for one native YuE2 request.
++
++    Missing ABC with cot=melody/full enables automatic ABC in the same native
++    request. The semantic phase restarts its generator at the same seed, as
++    in the upstream two-call example. External ABC bypasses generation.
++    """
++    if cot not in ("off", "melody", "full"):
++        raise ValueError("cot must be off, melody or full")
++    if not isinstance(style, str) or not style.strip() or not isinstance(lyrics, str) or not lyrics.strip():
++        raise ValueError("YuE2 requires nonempty style and lyrics")
++    if abc is not None and (cot == "off" or not isinstance(abc, str) or not abc.strip()):
++        raise ValueError("A nonempty ABC score requires cot=melody/full")
++    if type(seed) is not int or not 0 <= seed < 2**63:
++        raise ValueError("seed must be an integer in [0, 2**63)")
++    for value, maximum, name in (
++        (max_frames, SEMANTIC_SAMPLING["max_tokens"], "max_frames"),
++        (max_abc_tokens, ABC_SAMPLING["max_tokens"], "max_abc_tokens"),
++        (max_model_len, CONTEXT, "max_model_len"),
++    ):
++        if type(value) is not int or not 1 <= value <= maximum:
++            raise ValueError(f"{name} must be an integer in [1, {maximum}]")
++    if (
++        isinstance(cfg_scale, bool)
++        or not isinstance(cfg_scale, (int, float))
++        or not math.isfinite(cfg_scale)
++        or not 0 <= cfg_scale <= 20
++    ):
++        raise ValueError("cfg_scale must be finite and in [0,20]")
++    automatic = cot != "off" and abc is None
++    prefix = (
++        abc_prefix_ids(encode, style, lyrics, cot)
++        if automatic
++        else semantic_prefix_ids(encode, style, lyrics, cot, None if abc is None else encode(abc))
++    )
++    required = len(prefix) + (max_abc_tokens + 2 if automatic else 0) + max_frames + 2
++    if required > max_model_len:
++        raise ValueError(f"YuE2 song budget needs {required} tokens, exceeding context {max_model_len}")
++    params = phase_params(prefix, "abc" if automatic else "semantic", seed, max_abc_tokens if automatic else max_frames)
++    if automatic:
++        params.extra_args[AUTO_ABC] = True
++        params.extra_args[SEMANTIC_ARGS] = phase_params([], "semantic", seed, max_frames).extra_args
++    if cfg_scale != 1:
++        semantic = params.extra_args[SEMANTIC_ARGS] if automatic else params.extra_args
++        negative = [EOD] + encode(INSTRUCTIONS[cot])
++        negative += [MUSIC_START] if cot == "off" else [ABC_START]
++        if cot != "off" and not automatic:
++            negative += encode(abc) + [ABC_END, MUSIC_START]
++        semantic.update(yue2_cfg_scale=float(cfg_scale), yue2_negative_prefix=negative, yue2_cfg_needs_abc=automatic)
++    return {"prompt_token_ids": prefix}, params
+diff --git a/vllm_omni/model_executor/models/yue2/yue2.py b/vllm_omni/model_executor/models/yue2/yue2.py
+index dbf10bc74..d07dadaeb 100644
+--- a/vllm_omni/model_executor/models/yue2/yue2.py
++++ b/vllm_omni/model_executor/models/yue2/yue2.py
+@@ -33,6 +33,8 @@ from vllm.model_executor.layers.logits_processor import LogitsProcessor
+ from vllm.model_executor.layers.vocab_parallel_embedding import ParallelLMHead
+ from vllm.model_executor.models.qwen3 import Qwen3Model
+ from vllm.model_executor.models.utils import AutoWeightsLoader, maybe_prefix
++from vllm.platforms import current_platform
++from vllm.utils.flashinfer import has_flashinfer
+ from vllm.v1.outputs import SamplerOutput
+ 
+ from vllm_omni.model_executor.models.output_templates import OmniOutput
+@@ -447,11 +449,32 @@ def _nar_pre_attention(x, w_norm, w_qkv, w_q_norm, w_k_norm, cos, sin, eps: floa
+     return q, k, v.reshape(tokens, kv_heads, head_dim)
+ 
+ 
++_USE_FLASHINFER_SILU = current_platform.is_cuda() and has_flashinfer()
++
++
++# FlashInfer's Python/JIT wrapper cannot be traced inside our fullgraph region.
++@torch.library.custom_op("vllm_omni::yue2_silu_and_mul", mutates_args=())
++def _flashinfer_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
++    from flashinfer.activation import silu_and_mul
++
++    return silu_and_mul(x, enable_pdl=False)
++
++
++@_flashinfer_silu_and_mul.register_fake
++def _fake_flashinfer_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
++    return x.new_empty(x.shape[:-1] + (x.shape[-1] // 2,))
++
++
+ def _nar_post_attention(x, attn, w_o, w_norm, w_gate_up, w_down, eps: float):
+     """o_proj + residual -> pre-MLP norm -> fused gate/up SiLU MLP + residual."""
+     x = x + F.linear(attn.flatten(1), w_o)
+-    gate, up = F.linear(_rms(x, w_norm, eps), w_gate_up).chunk(2, dim=-1)
+-    return x + F.linear(F.silu(gate) * up, w_down)
++    gate_up = F.linear(_rms(x, w_norm, eps), w_gate_up)
++    if _USE_FLASHINFER_SILU and gate_up.is_cuda and gate_up.dtype == torch.bfloat16:
++        activated = _flashinfer_silu_and_mul(gate_up)
++    else:
++        gate, up = gate_up.chunk(2, dim=-1)
++        activated = F.silu(gate) * up
++    return x + F.linear(activated, w_down)
+ 
+ 
+ _COMPILED: dict[str, Callable] = {}
+@@ -460,8 +483,8 @@ _COMPILED: dict[str, Callable] = {}
+ def _nar_kernels() -> tuple[Callable, Callable]:
+     """The per-layer NAR halves, compiled once for any token count.
+ 
+-    Compilation fuses the RMSNorm/RoPE/SiLU elementwise chains that dominate
+-    the eager NAR pass after its GEMMs and attention.
++    Compilation fuses RMSNorm/RoPE and the residual chains; a custom op keeps
++    the FlashInfer SiLU kernel inside the compiled graph when available.
+     """
+     if "pre" not in _COMPILED:
+         pre, post = _nar_pre_attention, _nar_post_attention
+@@ -553,7 +576,7 @@ def fuse_nar_projections(layers: nn.ModuleList) -> list[tuple[torch.Tensor, ...]
+ class CachedNAR:
+     """One acoustic chunk: AR prefix K/V prefilled once, ODE walks the NAR path."""
+ 
+-    def __init__(self, model, chunk: Chunk, pool: tuple[int, int] | None = None):
++    def __init__(self, model, chunk: Chunk, pool: tuple[int, int] | None = None, kv=None):
+         self.model = model
+         self.chunk = chunk
+         self.pool = pool
+@@ -576,6 +599,17 @@ class CachedNAR:
+         self.bounds_k = _sequence_bounds(self.ar_length + self.nar_length, self.device)
+         self.graph: torch.cuda.CUDAGraph | None = None
+         self.last_use: torch.cuda.Event | None = None
++        self.keys = self.values = None
++        if kv is not None:
++            shape = (
++                int(model.config.num_hidden_layers),
++                self.ar_length + self.nar_length,
++                int(model.config.num_key_value_heads),
++                int(model.config.head_dim),
++            )
++            if len(kv) != 2 or any(t.shape != shape or t.dtype != self.dtype or t.device != self.device for t in kv):
++                raise ValueError("Condition KV storage does not match the acoustic chunk")
++            self.keys, self.values = kv
+         self._prefill()
+ 
+     def _prefill(self):
+@@ -584,8 +618,9 @@ class CachedNAR:
+         config = model.config
+         total = self.ar_length + self.nar_length
+         shape = (len(backbone.layers), total, int(config.num_key_value_heads), int(config.head_dim))
+-        self.keys = torch.empty(shape, dtype=self.dtype, device=self.device)
+-        self.values = torch.empty(shape, dtype=self.dtype, device=self.device)
++        if self.keys is None:
++            self.keys = torch.empty(shape, dtype=self.dtype, device=self.device)
++            self.values = torch.empty(shape, dtype=self.dtype, device=self.device)
+         ids = torch.tensor(self.chunk.ar_tokens, dtype=torch.long).to(self.device, non_blocking=True)
+         cos, sin = model.rotary(torch.arange(self.ar_length, device=self.device)[None])
+         x = backbone.embed_tokens(ids)  # [T, H]
+@@ -624,9 +659,9 @@ class CachedNAR:
+                 with torch.cuda.graph(self.graph, pool=self.pool, capture_error_mode="thread_local"):
+                     self.velocity_out = self._velocity(self.state_in, self.time_in)
+             else:
+-                # Already on a side stream (the async synthesis path): capture
+-                # in place, without torch.cuda.graph's device-wide sync, which
+-                # would stall the decode loop behind every queued kernel.
++                # Capture cannot reclaim eager cache for the graph's private pool.
++                torch.accelerator.synchronize(self.device)
++                torch.accelerator.empty_cache()
+                 self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
+                 try:
+                     self.velocity_out = self._velocity(self.state_in, self.time_in)
+@@ -1667,6 +1702,7 @@ class _RequestState:
+     finish_ready: bool = False
+     end_drawn: bool = False  # the engine counts a drawn end (or its HOLD) too
+     job: _SynthesisJob | None = None  # async synthesis in flight
++    acoustic_ready_at: float = 0.0  # monotonic time used by the optional batch window
+     hold_steps: int = 0  # HOLD_TOKEN steps emitted while it runs
+     # Engine output count once the emitted end token is accepted, and the
+     # shipped (audio, truncated, error). A preemption can drop the step that
+@@ -2086,13 +2122,20 @@ class Yue2ForCausalLM(nn.Module):
+ 
+     def _vae_model(self, device: torch.device) -> YuE2VAE:
+         if self._vae is None:
+-            vae_path = os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
++            vae_path = self.config.yue2_vae_path or os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
+             logger.info("Loading YuE2 VAE decoder from %s", vae_path)
+             # Keep the VAE out of the module tree (__dict__, not an nn.Module
+             # attribute): the checkpoint has no VAE keys, so a registered
+             # submodule would trip DefaultModelLoader.track_weights_loading,
+             # and a model-wide dtype/device pass would change VAE numerics.
+-            self.__dict__["_vae"] = YuE2VAE.from_pretrained(vae_path, decoder_only=True, device="cpu")
++            self.__dict__["_vae"] = YuE2VAE.from_pretrained(
++                vae_path,
++                revision=self.config.yue2_vae_revision,
++                token=self.vllm_config.model_config.hf_token,
++                cache_dir=self.vllm_config.load_config.download_dir,
++                decoder_only=True,
++                device="cpu",
++            )
+         if self._vae_device != device:
+             self._vae.to(device)
+             self._vae_device = device
+@@ -2475,7 +2518,7 @@ class Yue2ForCausalLM(nn.Module):
+ 
+         if self._pinned is None or self._pinned.shape[1] < count:
+             self._pinned = torch.empty((2, max(count, 64)), dtype=torch.long, pin_memory=True)
+-        host = self._pinned[:, :count]
++        host = self._pinned.view(-1)[: 2 * count].view(2, count)
+         # Async into pinned memory; the next sample() call resolves it.
+         host.copy_(drawn, non_blocking=True)
+         event = torch.Event()
+diff --git a/vllm_omni/tokenizers/yue2_tokenizer.py b/vllm_omni/tokenizers/yue2_tokenizer.py
+index 35c222821..56485b6be 100644
+--- a/vllm_omni/tokenizers/yue2_tokenizer.py
++++ b/vllm_omni/tokenizers/yue2_tokenizer.py
+@@ -40,6 +40,23 @@ class YuE2TextTokenizer:
+             special_tokens={s: i + len(ranks) for i, s in enumerate(specials)},
+         )
+ 
++    @classmethod
++    def from_pretrained(
++        cls,
++        model: str | Path,
++        *,
++        revision: str | None = None,
++        cache_dir: str | Path | None = None,
++        token: str | bool | None = None,
++    ) -> YuE2TextTokenizer:
++        """Resolve checkpoint BPE from a local directory or the standard HF cache."""
++        from transformers.utils.hub import cached_file
++
++        path = cached_file(str(model), "qwen.tiktoken", revision=revision, cache_dir=cache_dir, token=token)
++        if path is None:
++            raise FileNotFoundError(f"Missing qwen.tiktoken in {model}")
++        return cls(path)
++
+     def encode(self, text):
+         return self._enc.encode_ordinary(unicodedata.normalize("NFC", text))
+ 
+diff --git a/vllm_omni/transformers_utils/configs/yue2.py b/vllm_omni/transformers_utils/configs/yue2.py
+index 5063d5b15..97bbe565f 100644
+--- a/vllm_omni/transformers_utils/configs/yue2.py
++++ b/vllm_omni/transformers_utils/configs/yue2.py
+@@ -40,6 +40,8 @@ class Yue2Config(PretrainedConfig):
+         latent_dim: int = 64,
+         max_latent_frames: int = 24576,
+         timestep_shift: float = 1.0,
++        yue2_vae_path: str | None = None,
++        yue2_vae_revision: str = "main",
+         **kwargs: Any,
+     ) -> None:
+         super().__init__(tie_word_embeddings=tie_word_embeddings, **kwargs)
+@@ -56,6 +58,8 @@ class Yue2Config(PretrainedConfig):
+         self.latent_dim = latent_dim
+         self.max_latent_frames = max_latent_frames
+         self.timestep_shift = timestep_shift
++        self.yue2_vae_path = yue2_vae_path
++        self.yue2_vae_revision = yue2_vae_revision
+         # The checkpoint's config.json (like upstream's qwen_config derivative,
+         # fast.py) omits the standard Qwen3 fields the AR backbone expects;
+         # synthesize the same defaults upstream does so vLLM's Qwen3Model and

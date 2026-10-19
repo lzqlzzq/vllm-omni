@@ -1,0 +1,13 @@
+SOURCE_SHA_VERIFIED 4990
+Using Python 3.12.11 environment at: /root/autodl-tmp/yue2-repatch-20261019/venv
+Resolved 1 package in 2.19s
+   Building vllm-omni @ file:///root/autodl-tmp/yue2-repatch-20261019/source
+      Built vllm-omni @ file:///root/autodl-tmp/yue2-repatch-20261019/source
+Prepared 1 package in 789ms
+Installed 1 package in 3ms
+ + vllm-omni==0.0.0+yue2.repatch (from file:///root/autodl-tmp/yue2-repatch-20261019/source)
+Using Python 3.12.11 environment at: /root/autodl-tmp/yue2-repatch-20261019/venv
+Checked 275 packages in 3ms
+All installed packages are compatible
+REGRESS_COMPLETE
+2026-10-19T14:36:06+08:00

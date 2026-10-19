@@ -1,0 +1,62 @@
+{
+  "count": 4,
+  "max_abs_delta": 0.0,
+  "rows": [
+    {
+      "id": "wsb_000_r0_s831001",
+      "deltas": {
+        "Melody": 0.0,
+        "Arrangement": 0.0,
+        "Musicality": 0.0,
+        "Vocal": 0.0,
+        "Instrumental": 0.0,
+        "Mixing": 0.0,
+        "Structure": 0.0,
+        "Global Avg": 0.0
+      },
+      "max_abs": 0.0
+    },
+    {
+      "id": "wsb_000_r1_s831019",
+      "deltas": {
+        "Melody": 0.0,
+        "Arrangement": 0.0,
+        "Musicality": 0.0,
+        "Vocal": 0.0,
+        "Instrumental": 0.0,
+        "Mixing": 0.0,
+        "Structure": 0.0,
+        "Global Avg": 0.0
+      },
+      "max_abs": 0.0
+    },
+    {
+      "id": "wsb_100_r0_s831101",
+      "deltas": {
+        "Melody": 0.0,
+        "Arrangement": 0.0,
+        "Musicality": 0.0,
+        "Vocal": 0.0,
+        "Instrumental": 0.0,
+        "Mixing": 0.0,
+        "Structure": 0.0,
+        "Global Avg": 0.0
+      },
+      "max_abs": 0.0
+    },
+    {
+      "id": "wsb_100_r1_s831119",
+      "deltas": {
+        "Melody": 0.0,
+        "Arrangement": 0.0,
+        "Musicality": 0.0,
+        "Vocal": 0.0,
+        "Instrumental": 0.0,
+        "Mixing": 0.0,
+        "Structure": 0.0,
+        "Global Avg": 0.0
+      },
+      "max_abs": 0.0
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+[0;36m(MainProcess pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[logo.py:52][0m        [97m█     █     █▄   ▄█[0m    [34m   ▄▀▀[38;5;208m▀▀▄ [0m[97m█▄   ▄█ █▄    █ ▀█▀ [0m
+[0;36m(MainProcess pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[logo.py:52][0m  [38;5;208m▄▄[0m [34m▄█[0m [97m█     █     █ ▀▄▀ █[0m[97m  ▄▄▄ [0m[34m █    [38;5;208m█ [0m[97m█ ▀▄▀ █ █ ▀▄  █  █  [0m
+[0;36m(MainProcess pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[logo.py:52][0m   [38;5;208m█[0m[34m▄█▀[0m [97m█     █     █     █[0m[97m      [0m[34m █    [38;5;208m█ [0m[97m█     █ █   ▀▄█  █  [0m
+[0;36m(MainProcess pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[logo.py:52][0m    [34m▀▀[0m  [97m▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀[0m      [35m  ▀▀▀▀  [0m[97m▀     ▀ ▀     ▀ ▀▀▀ [0m
+[0;36m(MainProcess pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[logo.py:52][0m 
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[api_utils.py:347][0m vLLM server version 0.31.0, serving model /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[api_utils.py:286][0m non-default args: {'model_tag': '/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19', 'host': '127.0.0.1', 'port': 19092, 'api_key': '***', 'model': '/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19', 'revision': '1a96eca688d6ae5d7f0feb88573fec89920fcd19', 'served_model_name': ['m-a-p/YuE2-3B']}
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[omni_base.py:210][0m [AsyncOmni] Initializing with model /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[omni_engine_base.py:168][0m [OmniEngine] Initializing with model /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[omni_engine_base.py:318][0m [OmniEngine] Launching Orchestrator thread with 1 stages
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[initialization.py:443][0m Loaded OmniTransferConfig with 0 connector configurations
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:11[0m [90m[utils.py:250][0m Dropping unknown OmniEngineArgs field 'enable_broadcast_weight_load' (not declared on the dataclass)
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[arg_utils.py:911][0m HF_HUB_OFFLINE is True, replace tokenizer_id [gpt2] to tokenizer_path [/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e]
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[model.py:699][0m Resolved architecture: Yue2ForCausalLM
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[model.py:2109][0m Using max model len 4096
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:11[0m [90m[arg_utils.py:2940][0m This model does not officially support disabling chunked prefill. Disabling this manually may cause the engine to crash or produce incorrect outputs.
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:11[0m [90m[vllm.py:1706][0m Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:11[0m [90m[vllm.py:1750][0m Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[kernel.py:408][0m Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native'])
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[vllm.py:1968][0m Cudagraph is disabled under eager mode
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[compilation.py:331][0m Enabled custom fusions: norm_quant, act_quant
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[stage_utils.py:178][0m Stage 0 logical-to-physical device mapping: 0->0
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:11[0m [90m[stage_utils.py:178][0m Stage 0 logical-to-physical device mapping: 0->0
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:23[0m [90m[core.py:129][0m Initializing a V1 LLM engine (v0.31.0) with config: model='/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19', speculative_config=None, tokenizer='/root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e', skip_tokenizer_init=True, tokenizer_mode=auto, revision=1a96eca688d6ae5d7f0feb88573fec89920fcd19, tokenizer_revision=1a96eca688d6ae5d7f0feb88573fec89920fcd19, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, aux_output_config=AuxOutputConfig(enable_return_routed_experts=False, max_bytes=None), kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=m-a-p/YuE2-3B, enable_prefix_caching=False, enable_chunked_prefill=False, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=False, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:23[0m [90m[parallel_state.py:1825][0m world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_505aa4b5a8a0450abf6d1b70b6995d8f backend=nccl
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:23[0m [90m[parallel_state.py:2269][0m rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, ETP rank 0, EP rank N/A, EPLB rank N/A
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[topk_topp_sampler.py:124][0m Using FlashInfer for top-p & top-k sampling.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:25[0m [90m[base.py:282][0m [LLM Worker 0] Sleep Mode DISABLED.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:25[0m [90m[base.py:282][0m [LLM Worker 0] Sleep Mode DISABLED.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[gpu_model_runner.py:5255][0m Starting to load model /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19...
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[cuda.py:526][0m Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[flash_attn.py:1167][0m Using FlashAttention version 2
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[weight_utils.py:1063][0m Filesystem type for checkpoints: XFS. Checkpoint size: 6.76 GiB. Available RAM: 85.84 GiB.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:25[0m [90m[weight_utils.py:1086][0m Auto-prefetch is disabled because the filesystem (XFS) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00, 64.33it/s]
+
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:26[0m [90m[yue2.py:2126][0m Loading YuE2 VAE decoder from /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-Vae-legacy/snapshots/b54118f0fc462f08999d1ec07e88817f4ee3f770
+/root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/torch/nn/utils/weight_norm.py:144: FutureWarning: `torch.nn.utils.weight_norm` is deprecated in favor of `torch.nn.utils.parametrizations.weight_norm`.
+  WeightNorm.apply(module, name, dim)
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:29[0m [90m[yue2.py:2121][0m YuE2 synthesis warm-up took 2.2 s
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:29[0m [90m[default_loader.py:484][0m Loading weights took 4.04 seconds
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:30[0m [90m[gpu_model_runner.py:5354][0m Model loading took 7.31 GiB memory and 4.384102 seconds
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:31[0m [90m[utils.py:343][0m Using LBNHC KV cache layout.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:31[0m [90m[kv_cache_utils.py:2464][0m GPU KV cache size: 28,080 tokens, Maximum concurrency for 4,096 tokens per request: 6.86x
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:31[0m [90m[base.py:282][0m [LLM Worker 0] Sleep Mode DISABLED.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[core.py:380][0m init engine (profile, create kv cache, warmup model) took 1.15 s
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[scheduler.py:245][0m Using custom scheduler class vllm_omni.model_executor.models.yue2.queued.Yue2Scheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[vllm.py:1706][0m Enforce eager set, disabling torch.compile, CUDAGraphs, and JIT kernel warmup. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none and --kernel_config.enable_jit_warmup=False
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[vllm.py:1750][0m Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[stage_engine_core_client.py:169][0m [StageEngineCoreClient] stage-0 [rep-0] initializing EngineCore
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[kernel.py:408][0m Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'], gelu_and_mul_sparse=['triton', 'native'])
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[vllm.py:1968][0m Cudagraph is disabled under eager mode
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[compilation.py:331][0m Enabled custom fusions: norm_quant, act_quant
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[stage_engine_core_client.py:229][0m [StageEngineCoreClient] stage-0 [rep-0] EngineCore running
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[orchestrator.py:481][0m [Orchestrator] Starting event loop
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[orchestrator.py:1256][0m [Orchestrator] Event-driven orchestration loop enabled (VLLM_OMNI_EVENT_DRIVEN_ORCH): 1 LLM replica readers, 0 diffusion pollers
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[omni_engine_base.py:350][0m [OmniEngine] Orchestrator ready with 1 stages
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[omni_base.py:230][0m [AsyncOmni] AsyncOmniEngine initialized in 20.90 seconds
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[omni_base.py:249][0m [AsyncOmni] Initialized with 1 stages for model /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[factories.py:76][0m Scale-out endpoints are disabled. Set --enable-scale-out to enable them.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[api_server.py:983][0m Supported tasks: {'speech', 'generate'}
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[model.py:1850][0m Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 1.0, 'top_k': 100, 'top_p': 0.95, 'max_tokens': 9000}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m Chat template warmup failed
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m Traceback (most recent call last):
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m   File "/root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/vllm/renderers/base.py", line 348, in warmup
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m     self.render_chat([[{"role": "user", "content": "warmup"}]], chat_params)
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m   File "/root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/lib/python3.12/site-packages/vllm/renderers/base.py", line 1240, in render_chat
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m     self.render_messages(conversation, chat_params)
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m   File "/root/autodl-tmp/yue2-rebase-abba-20261014-01/source/vllm_omni/engine/stage_init_utils.py", line 1600, in render_messages
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m     raise ValueError(
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[base.py:355][0m ValueError: Chat messages are unavailable when skip_tokenizer_init=True; submit prompt_token_ids or prompt_embeds
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[serving.py:221][0m The chat template requires system-first ordering, so inline system messages in /v1/messages requests (e.g. Claude Code's per-turn reminders) are merged into the leading system prompt. Each new one changes the prompt prefix, so the rest of the conversation misses the prefix cache. Pass a --chat-template that accepts non-leading system messages to avoid this.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[serving_speech.py:355][0m Speech cache configuration: SpeechCacheConfig(resolve_max_bytes=4294967296, resolve_max_entries=2048, speaker_max_bytes=536870912)
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[speaker_cache.py:245][0m Speaker cache ready (max_bytes=536870912)
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[serving_speech.py:360][0m Speaker storage: dir=/root/.cache/vllm-omni/speakers, max_speakers=1000, restored=0
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[serving_speech.py:512][0m Resolved TTS serving adapter: Yue2Adapter
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:32[0m [90m[capabilities.py:63][0m Failed to load codec frame rate from speech tokenizer config: /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19 does not appear to have a file named speech_tokenizer/config.json. Checkout 'https://huggingface.co//root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19/tree/main' for available files.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[serving_speech.py:519][0m Loaded 0 supported speakers: []
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[serving_video.py:178][0m Video response frame conversion pool configured: workers=8
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[api_server.py:454][0m Starting vLLM API server 0 on http://127.0.0.1:19092
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:60][0m Available routes are:
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /openapi.json, Methods: HEAD, GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /docs, Methods: HEAD, GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /docs/oauth2-redirect, Methods: HEAD, GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /redoc, Methods: HEAD, GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /load, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /version, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /kv_event_sources, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /metrics, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /tokenize, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /detokenize, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /ping, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /ping, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /invocations, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/responses, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/responses/{response_id}, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/responses/{response_id}/cancel, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/completions, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/messages, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/messages/count_tokens, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /generative_scoring, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /scale_elastic_ep, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /is_scaling_elastic_ep, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/chat/completions, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/chat/completions/batch, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/speech, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/speech/batch, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/generate, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/voices, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/voices, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/audio/voices/{name}, Methods: DELETE
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/realtime/sessions, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/realtime/sessions/{session_id}/step, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/realtime/sessions/{session_id}/reset, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/realtime/sessions/{session_id}/close, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/realtime/sessions/{session_id}/status, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /health, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/models, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/images/generations, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/images/edits, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos/sync, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos/{video_id}, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos/{video_id}, Methods: DELETE
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/videos/{video_id}/content, Methods: GET
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/omni/sleep, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:69][0m Route: /v1/omni/wakeup, Methods: POST
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/audio/speech/stream, Endpoint: streaming_speech
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/video/chat/stream, Endpoint: streaming_video_chat
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/realtime/video, Endpoint: streaming_video_output
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/realtime, Endpoint: realtime_websocket
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/duplex, Endpoint: duplex_websocket
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:32[0m [90m[launcher.py:80][0m Route: /v1/realtime/robot/openpi, Endpoint: realtime_robot_openpi
+INFO:     Started server process [36308]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:33914 - "GET /health HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:33[0m [90m[serving_speech.py:2104][0m Applied extra_params: {}
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:33[0m [90m[input_processor.py:375][0m Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:33[0m [90m[base.py:388][0m Using None for EOS token id because tokenizer is not initialized
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:38[0m [90m[stats.py:913][0m [OmniTiming] req=speech-8a52fa632b108909-8b18948a total=4.87s preprocess=0.02s engine=4.85s stages=[0:4.87s]
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:38[0m [90m[serving_speech.py:2104][0m Applied extra_params: {'cfg_scale': 1.5}
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[yue2.py:2796][0m YuE2 request speech-a1c6b7101199503d-a5019a5c-yue2-negative ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:43[0m [90m[stats.py:913][0m [OmniTiming] req=speech-a1c6b7101199503d-a5019a5c total=4.99s preprocess=0.00s engine=4.99s stages=[0:4.99s]
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:43[0m [90m[serving_speech.py:2104][0m Applied extra_params: {'cot': 'melody', 'abc_max_tokens': 32, 'cfg_scale': 1.5}
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:44[0m [90m[yue2.py:2796][0m YuE2 request speech-8bda88d9f5fe267d-b30d6e9a ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:48[0m [90m[yue2.py:2796][0m YuE2 request speech-8bda88d9f5fe267d-b30d6e9a-yue2-negative ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:49[0m [90m[stats.py:913][0m [OmniTiming] req=speech-8bda88d9f5fe267d-b30d6e9a total=5.65s preprocess=0.00s engine=5.65s stages=[0:5.65s]
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:49[0m [90m[serving_speech.py:2104][0m Applied extra_params: {'cot': 'full', 'abc_max_tokens': 32, 'cfg_scale': 1.5}
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:50[0m [90m[yue2.py:2796][0m YuE2 request speech-bd26ff9084ea26fe-b9fff07c ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:54[0m [90m[yue2.py:2796][0m YuE2 request speech-bd26ff9084ea26fe-b9fff07c-yue2-negative ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:55[0m [90m[stats.py:913][0m [OmniTiming] req=speech-bd26ff9084ea26fe-b9fff07c total=5.64s preprocess=0.00s engine=5.64s stages=[0:5.64s]
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:55:55[0m [90m[serving_speech.py:2104][0m Applied extra_params: {'cot': 'full', 'cfg_scale': 1.5, 'abc': 'X:1\nT:Test\nM:4/4\nL:1/8\nK:C\nCDEF GABc|'}
+[0;36m(StageEngineCoreProc_stage0_replica0 pid=36588)[0;0m [33mWARNING[0m [90m10-14 10:55:59[0m [90m[yue2.py:2796][0m YuE2 request speech-8d8023ab5bfd1f53-84fef0de-yue2-negative ended without an end token or its frame budget (aborted or preempted); no audio was produced.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[stats.py:913][0m [OmniTiming] req=speech-8d8023ab5bfd1f53-84fef0de total=4.98s preprocess=0.00s engine=4.98s stages=[0:4.98s]
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m Usage: could not load a text tokenizer (Couldn't instantiate the backend tokenizer from one of: 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (1) a `tokenizers` library serialization file, 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (2) a slow tokenizer instance to convert or 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m (3) an equivalent slow tokenizer class to instantiate and convert. 
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:679][0m You need to have sentencepiece or tiktoken installed to convert a slow tokenizer to a fast one.); text_tokens will be 0
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 200 OK
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:2776][0m [SpeechE2E] request_id=speech-92d3dbd9c74988a2 stream=False status=bad_request total_ms=0.17 error=extra_params.cfg_scale must be finite and in [0,20]
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 400 Bad Request
+[0;36m(APIServer pid=36308)[0;0m [33mWARNING[0m [90m10-14 10:56:00[0m [90m[serving_speech.py:2776][0m [SpeechE2E] request_id=speech-9aa9470264eae487 stream=False status=bad_request total_ms=0.13 error=extra_params.abc_max_tokens must be an integer in [1,4096]
+INFO:     127.0.0.1:33914 - "POST /v1/audio/speech HTTP/1.1" 400 Bad Request
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[launcher.py:128][0m [shutdown] API server: shutdown triggered
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[launcher.py:144][0m [shutdown] API server: stopping engine client mode=abort timeout=0s
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[omni_base.py:776][0m [AsyncOmni] Shutting down
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[omni_engine_base.py:1141][0m [OmniEngine] Shutting down Orchestrator
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[orchestrator.py:577][0m [Orchestrator] Received shutdown signal
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[orchestrator.py:3027][0m [Orchestrator] Shutting down all 1 client(s)
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[core_client.py:762][0m [shutdown] MPClient: start timeout=default
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[core_client.py:764][0m [shutdown] MPClient: stopping engine manager
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:00[0m [90m[utils.py:638][0m [shutdown] Process manager: send sigterm to process StageEngineCoreProc_stage0_replica0
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[core_client.py:766][0m [shutdown] MPClient: engine manager stopped
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[core_client.py:767][0m [shutdown] MPClient: cleaning up background resources
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[core_client.py:769][0m [shutdown] MPClient: complete
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[stage_pool.py:1466][0m [StagePool] Stage 0 replica 0 shut down
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[launcher.py:153][0m [shutdown] API server: engine client stopped
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[launcher.py:156][0m [shutdown] API server: signalling HTTP server shutdown
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[launcher.py:178][0m [shutdown] API server: shutting down FastAPI HTTP server
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[0;36m(APIServer pid=36308)[0;0m [32mINFO[0m [90m10-14 10:56:03[0m [90m[omni_base.py:776][0m [AsyncOmni] Shutting down

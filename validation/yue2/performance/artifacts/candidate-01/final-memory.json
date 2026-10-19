@@ -1,0 +1,13 @@
+{
+  "allocated": 11155330048,
+  "reserved": 18861785088,
+  "peak_allocated": 15815702528,
+  "peak_reserved": 21906849792,
+  "batches": [],
+  "nar_batches": [],
+  "allocator": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0
+  },
+  "model_states": 0
+}

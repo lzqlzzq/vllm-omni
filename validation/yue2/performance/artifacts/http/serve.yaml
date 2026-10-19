@@ -1,0 +1,40 @@
+async_chunk: false
+dtype: bfloat16
+model_runner: v1
+pipeline: yue2
+stages:
+- async_scheduling: false
+  default_sampling_params:
+    detokenize: false
+    extra_args:
+      yue2_max_audio_frames: 200
+      yue2_max_hold_steps: 0
+      yue2_phase: semantic
+      yue2_seed: 831001
+    max_tokens: 202
+    stop_token_ids:
+    - 151848
+    - 151852
+    temperature: 1.0
+  devices: '0'
+  enable_chunked_prefill: false
+  enable_prefix_caching: false
+  enforce_eager: true
+  gpu_memory_utilization: 0.7
+  hf_overrides:
+    architectures:
+    - Yue2ForCausalLM
+    yue2_nar_batch_max_tokens: 0
+    yue2_nar_batch_size: 1
+    yue2_nar_batch_wait_ms: 0
+    yue2_vae_batch_size: 1
+    yue2_vae_path: /root/autodl-tmp/yue2-4090-e2e-20261012-01/hf-cache/hub/models--m-a-p--YuE2-Vae-legacy/snapshots/b54118f0fc462f08999d1ec07e88817f4ee3f770
+    yue2_vae_revision: b54118f0fc462f08999d1ec07e88817f4ee3f770
+  kv_cache_memory_bytes: 3221225472
+  max_model_len: 4096
+  max_num_batched_tokens: 8192
+  max_num_seqs: 2
+  skip_tokenizer_init: true
+  stage_id: 0
+  tokenizer: gpt2
+  worker_cls: vllm_omni.model_executor.models.yue2.queued.Yue2QueueWorker

@@ -1,0 +1,2248 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/chat_template.json",
+      "bytes": 1161,
+      "sha256": "75a8cfca24f00de72d796fbfed6858fc9614ef3dabd8696684cc3bc03a9c58ff",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "chat_template.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/config.json",
+      "bytes": 6194,
+      "sha256": "2e74a751548b8ad7d7526d29365ad8144c345d8b412b1152d25dc6698452712f",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "config.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/generation_config.json",
+      "bytes": 142,
+      "sha256": "1da527824d81e07118facff437e03f2e24a23311e3bdeb2368973fe77e5f275c",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "generation_config.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/merges.txt",
+      "bytes": 1671853,
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "merges.txt",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/model-00001-of-00002.safetensors",
+      "bytes": 4220320824,
+      "sha256": "a4cd1f1a04d90b757dc7f7dd26254e69a013b19e80efe590a83c6a3bde8608d6",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "model-00001-of-00002.safetensors",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/model-00002-of-00002.safetensors",
+      "bytes": 478200688,
+      "sha256": "6e0b9d9e09e2e0238e7ef3cc8a484ab387e91b90f1900bedf88bc92d7929ccfc",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "model-00002-of-00002.safetensors",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/model.safetensors.index.json",
+      "bytes": 64821,
+      "sha256": "f994739fe38e5210b9e3e8ce6c6307315e2ceac3cb630e7b7414d69dce520f60",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "model.safetensors.index.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/preprocessor_config.json",
+      "bytes": 330,
+      "sha256": "45e120a4eda2c20c5d7f2ea9354e63536bf35e27aa573fb7cdf78017b378770d",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "preprocessor_config.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/tokenizer_config.json",
+      "bytes": 12487,
+      "sha256": "4942d005604266809309cabc9f4e9cb89ce855d59b14681fdc0e1cc62ea26c4c",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "tokenizer_config.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/snapshots/7278e1e70fe206f11671096ffdd38061171dd6e5/vocab.json",
+      "bytes": 2776833,
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "repo_id": "Qwen/Qwen3-ASR-1.7B",
+      "revision": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "filename": "vocab.json",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-ASR-1.7B/refs/main",
+      "bytes": 40,
+      "sha256": "4c28840f69d8e9aa88475bdab3487d0fbb21ee4cb855e41a3dae7b8f53b7b928",
+      "content": "7278e1e70fe206f11671096ffdd38061171dd6e5",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/taggers/averaged_perceptron_tagger/averaged_perceptron_tagger.pickle",
+      "bytes": 6138625,
+      "sha256": "25a5a19c7ced7b2bac3831da5bc0afcc2c34e5dd01cd4f361bb799949a696238",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.tagdict.json",
+      "bytes": 25788,
+      "sha256": "4c713731cb06727736962bc8cd94ad919217a040e76691059af99bc0c2c9c246",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.classes.json",
+      "bytes": 285,
+      "sha256": "d152ffa69d45b8357276341a3d592c6c025911d52ec0d9068d4f382560dd48b6",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/taggers/averaged_perceptron_tagger_eng/averaged_perceptron_tagger_eng.weights.json",
+      "bytes": 5677744,
+      "sha256": "789e8e35f6fac656d9b7eccea29ba4e8a137cbb5b525dd31f39e4291a9e80832",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/corpora/cmudict/cmudict",
+      "bytes": 3820830,
+      "sha256": "cad209c39eb87677d64e93d97f8eed10b7e6f9bdd42de8e7ca8efc8e17d62e8a",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/corpora/cmudict/README",
+      "bytes": 3808,
+      "sha256": "b0556be7a2b12bea6a667277b75864f802dd4854480657ce298c62e6897e766b",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/corpora/cmudict.zip",
+      "bytes": 896069,
+      "sha256": "d07cca47fd72ad32ea9d8ad1219f85301eeaf4568f8b6b73747506a71fb5afd6",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/nltk_data/taggers/averaged_perceptron_tagger.zip",
+      "bytes": 2526731,
+      "sha256": "e1f13cf2532daadfd6f3bc481a49859f0b8ea6432ccdcd83e6a49a5f19008de9",
+      "metrics": [
+        "per"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "models/muq/config.json",
+      "bytes": 3133,
+      "sha256": "237335ee27d8fb951ce778701a12a79e06c51ae636dd786f97e45f51ce532543",
+      "repo_id": "OpenMuQ/MuQ-large-msd-iter",
+      "revision": "0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "filename": "config.json",
+      "metrics": [
+        "songbench"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "models/muq/model.safetensors",
+      "bytes": 1333825096,
+      "sha256": "273febab2be02872c37d2c37e48a9d6c52c1c9392f3eeeabd498efa281ccb7a6",
+      "repo_id": "OpenMuQ/MuQ-large-msd-iter",
+      "revision": "0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "filename": "model.safetensors",
+      "metrics": [
+        "songbench"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "models/songbench/songbench.safetensors",
+      "bytes": 100808636,
+      "sha256": "ca27966a6d2b3312587b9e1d53ee3adf6bde8ac68a7d339e6f962206cbfde312",
+      "metrics": [
+        "songbench"
+      ],
+      "delivery": "bundled"
+    },
+    {
+      "path": "bin/ffmpeg",
+      "bytes": 228,
+      "sha256": "9870299bd367133d47bd29b062e9387cb2a55f23cfa4a97bece4dc711926e491",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "bin/ffmpeg.bin",
+      "bytes": 358552,
+      "sha256": "47daa768fd63f8eac754e031eb1d0a3b8ed085d7c056a42e2d85f1035dac9b3c",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/ld-linux-x86-64.so.2",
+      "bytes": 240936,
+      "sha256": "e833bd99168bea158d2f2e5d32462479cacfb624003304a9ea74a1607a144f1f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libFLAC.so.12",
+      "bytes": 408864,
+      "sha256": "edae8e7915506d1b28c550d0a16beade7857d8e186c35120a4ad4ef2c63e0552",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libSDL2-2.0.so.0",
+      "bytes": 617560,
+      "sha256": "baab8c7c7aa4d4fb829b8c33ddd91b2d81d3894d577e795f86567e519ca1b8fd",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libSDL3.so.0",
+      "bytes": 3944856,
+      "sha256": "e4565e9c170ec04edcd577c9beb8fb4c7db36c646828ccda097bdf38734c450d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libSvtAv1Enc.so.3",
+      "bytes": 8038224,
+      "sha256": "3021da8cdbee51a731e22216fb43c317dd170b08e174e6aeb084766c9accbaf3",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libX11-xcb.so.1",
+      "bytes": 14992,
+      "sha256": "4033e486d5a263ff79b25ef8c96077e46e0d9d26b8d677312f2c6724c62a4149",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libX11.so.6",
+      "bytes": 1463928,
+      "sha256": "a3237c13792faa63bae6363834a9c7486e1487d36eac1eb3197befbec4036da0",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libXau.so.6",
+      "bytes": 17144,
+      "sha256": "6d0a23bc84ab23287386958124e78ba22383baccf97df2112742773363862713",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libXdmcp.so.6",
+      "bytes": 30144,
+      "sha256": "980a8a497c13f57effa478187396cd48f23eaff15dca4278fbf93eac7159e7e9",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libXext.so.6",
+      "bytes": 96344,
+      "sha256": "db56b1556b08a29c4ecaa3e6cdadb784d70e23dbe079a5c6ad2f946167384e52",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libXfixes.so.3",
+      "bytes": 34720,
+      "sha256": "e960abf9603641f1e4d94baeb966d815473d88b776992a2d21db0e3e85b5c09d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libaom.so.3",
+      "bytes": 7632336,
+      "sha256": "691b31194c942398cb63df59608a2ebfcf55a8c7bcefab5540f86e4a7bbceb51",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libasound.so.2",
+      "bytes": 1193192,
+      "sha256": "05ed849d2e6ee717525d665addffbec16382170f6ed7f305344401983180add7",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libass.so.9",
+      "bytes": 294928,
+      "sha256": "7bf86b43b828a7b6f5dd8482a3b6b50c4ac18841095ddf32470c5e68b26a4203",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libavcodec.so.61",
+      "bytes": 16685864,
+      "sha256": "375f070048e9d2f17aed91c9513891acdc901057b960ed63f97723e881675dbb",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libavdevice.so.61",
+      "bytes": 112528,
+      "sha256": "0f88b254c86e182ab34427ed92c8f1810167e8f1e3a84ecf7fbc0c6bc7a8df7f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libavfilter.so.10",
+      "bytes": 5273752,
+      "sha256": "6e32582c0156ef0b9a2304ff9d39c4b61b7e2e375ab2e96881afeb400d993c25",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libavformat.so.61",
+      "bytes": 2844560,
+      "sha256": "160c1dd6e6428d2fd08b7fd8ac98317ec95d1372cc9fe2e0725d19c1f2ff7957",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libavutil.so.59",
+      "bytes": 1066936,
+      "sha256": "bebb145f84b4b8c30ff440cf660462f0294c74cea15e4bcaafa79264641802e4",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libbz2.so.1.0",
+      "bytes": 230272,
+      "sha256": "c87aa61a7f773635b2ece980fbc58c55be4ebe376497809de9d43fb8411f7ab8",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libc.so.6",
+      "bytes": 2216304,
+      "sha256": "2e15e345ccba1e1e8bf3bc58938d13eb7ccc17044942f0376cd5bc771f429b79",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libcairo-gobject.so.2",
+      "bytes": 49056,
+      "sha256": "5fe9662c157b431d7096310fa80fec5724fbff3e112ad768c734fb0295a40b26",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libcairo.so.2",
+      "bytes": 1275800,
+      "sha256": "f923cd3041e32b22150f47bc61ffd61f81d0dc38903db43ce68a66468375e91b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libcap.so.2",
+      "bytes": 52496,
+      "sha256": "bad15e6cd844420059d1ebb4242ab9971d823ecfcc1f05b3914181eeeafe6238",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libcrypto.so.3",
+      "bytes": 7065784,
+      "sha256": "1c7e3590ed3f2aae3d12682c8494742a6c5d99968264c0c9f35f73f2f7efaa79",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libdav1d.so.6",
+      "bytes": 2626568,
+      "sha256": "a038bbe046d0b2c1188432d0e3c454f2c665cb247d657a79e2ffb1c0d456f493",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libdbus-1.so.3",
+      "bytes": 418512,
+      "sha256": "e17d6b36f31bedc963a6154089e4a8ee9225645b86b1550be93be1c65f720442",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libdl.so.2",
+      "bytes": 14432,
+      "sha256": "0b81164b45b35a571bf0beafda3e7dd8c8488cb901090f50c082e96116b883e7",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libdrm.so.2",
+      "bytes": 110632,
+      "sha256": "75007e3dce04c1a9c628da41c2142eb2fb2a74b38d905708caee0fccb1c7326f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libexpat.so.1",
+      "bytes": 190928,
+      "sha256": "f26f63af3ee05da286368dc4cc0af0bbc829ec3d7c2943b5d9bb7766cd6a1caf",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libffi.so.8",
+      "bytes": 50528,
+      "sha256": "6523475fdb72c8324e6c26152463674878a4ca6f34c40d77139fd19ea025286c",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libfontconfig.so.1",
+      "bytes": 354536,
+      "sha256": "045c9c51eec2c872966d2437e074abdf4921b5e251db2acf1eab0173353d3d88",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libfreetype.so.6",
+      "bytes": 850160,
+      "sha256": "e3a01f4115b7048a027d9782c16021e7b3a1d6d519cf8b208b1af9bc76175691",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libfribidi.so.0",
+      "bytes": 273368,
+      "sha256": "7a68f2bbdb41dc6a0b6ceb3691eba0f7d2ff33ded511547b7c9eb88a7b0c3caa",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgcc_s.so.1",
+      "bytes": 653728,
+      "sha256": "32cd900c0c9d0137086eeb4e718096351295b19d8b451a65e0e6c72016327c5f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgdk_pixbuf-2.0.so.0",
+      "bytes": 226000,
+      "sha256": "e67f01ca7c48dd7e226cefabf0750880e36e09104441a43d3afe41c78e29f311",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgio-2.0.so.0",
+      "bytes": 2375680,
+      "sha256": "977a2ae6f9b6cc3bd96fb189ec38d19cfa25ced76fc7446cbfe5d0fadf319ac8",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libglib-2.0.so.0",
+      "bytes": 1551704,
+      "sha256": "910a2a5a7639553b357f8dad6f405eb52324c05494fff0759cbbecf430ee570f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgmodule-2.0.so.0",
+      "bytes": 25960,
+      "sha256": "1d73da69cd48395b6d92f43cffef8ba497eaa5165f9ac18b3d5e2ae6020d918a",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgobject-2.0.so.0",
+      "bytes": 479008,
+      "sha256": "bbdb69905ac33c838c296453a9c6157c8a500cca87f8fb06e4bbea68361bca98",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libgraphite2.so.3",
+      "bytes": 175528,
+      "sha256": "05a83b5a7ea847d30d3f3e681822d839ad1009fc81f0fd25b915f1038bd7986b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libharfbuzz.so.0",
+      "bytes": 1517784,
+      "sha256": "df61e91f9688a66f7d7b44a2cf0ddefc95ca4892df7532364c0dc89afed73696",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libiconv.so.2",
+      "bytes": 997224,
+      "sha256": "6e1c64e7a244fb48e5fdddd7a92d36288d3b5f85ffab90fa92335fcc27dac622",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libicudata.so.75",
+      "bytes": 30741448,
+      "sha256": "e065d9cbce8450291e1e8f9125f9a115a07b0181728217b7bf4e3db65c60a322",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libicuuc.so.75",
+      "bytes": 2585632,
+      "sha256": "c9a25b3248c0b20fe3e2bf10042fba72009eed6d72422dca53c8ac169ca65d1b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libjpeg.so.8",
+      "bytes": 876840,
+      "sha256": "c09c12ee187d9b16ea08e054d052c6adf3725d701dace29c2e4ffed11c15ad6c",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/liblzma.so.5",
+      "bytes": 222712,
+      "sha256": "99dbefdd5ce54e28207037149f3a249960149e39a56572d53be4e62234bdf5ad",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libm.so.6",
+      "bytes": 940560,
+      "sha256": "ec93672ba45de8a12ff774c9bcd993fa5c00155f0a64dfe1c4e984282eaf236e",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libmp3lame.so.0",
+      "bytes": 328552,
+      "sha256": "ee71cd2b3a432a27d688117984acc673fe9d397812789daf4ffbbf8622aabd6f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libmpg123.so.0",
+      "bytes": 432000,
+      "sha256": "aec09a7a6d0c93dca94b1f9df38fbd5efb49933caa75042a25f368a71c58f6a8",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libogg.so.0",
+      "bytes": 43296,
+      "sha256": "08b506c497477bd49dbf9866e2ff4d69b71df8fcc6dbd88553b9dcd2ddd21e84",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libopenh264.so.8",
+      "bytes": 1368448,
+      "sha256": "e7394f51b5a1174d5c1a49a5a9a7df45b0081ff252cee82db35a9c11cd4a573a",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libopenvino.so.2520",
+      "bytes": 23723152,
+      "sha256": "6fa56c47e78ac5a09f40410ee4fe8e406ea7c16cbf9987baa005e5d251272d9d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libopenvino_c.so.2520",
+      "bytes": 362912,
+      "sha256": "e80b22c05e8da2d4aa95d9000c35fde15365514e52374b9075ef48c62131c549",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libopus.so.0",
+      "bytes": 494032,
+      "sha256": "1c96eaa1ab4d793235b4ae9cdbbd839d2669f917cb89fdfaa9b99555a765a04b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpango-1.0.so.0",
+      "bytes": 527272,
+      "sha256": "e4431747a30b18efa751074d91b46164b5b606396ceec776fef6d2700ebd3f6d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpangocairo-1.0.so.0",
+      "bytes": 80112,
+      "sha256": "cdaff3138e2972585141cbd342884b5f88552897d6582bc3ef2fae0df3da9815",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpangoft2-1.0.so.0",
+      "bytes": 140296,
+      "sha256": "b0a3fa677471f82add8a790e339e263fa3ea0c04764a27ccb26143ab4e9ed960",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpcre2-8.so.0",
+      "bytes": 759392,
+      "sha256": "2708689529edf1240dacb692303acdc5d0e009ff1a9b3e0800edc5a27203a86d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpixman-1.so.0",
+      "bytes": 872304,
+      "sha256": "4ed019453813c38fc8f970107b873bfeaa9c72c62d442079caf85fbc64d5f788",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpng16.so.16",
+      "bytes": 276096,
+      "sha256": "bd65464ee96dc809b0164fd8e0259066e497615920f507f5cca26c8e798c6416",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpostproc.so.58",
+      "bytes": 83856,
+      "sha256": "3d2b38ae14f35daf4b060c3c95d10d23357fa7d524354151b36cf46c399c613f",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpthread.so.0",
+      "bytes": 21448,
+      "sha256": "fdfd7d83a335ba12bd73e857f95a798dae0355f37935231966fd088647978e23",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpugixml.so.1",
+      "bytes": 302072,
+      "sha256": "d3b9c0e466e3d4953c58681edce0decec37415b6cdb0375cd6fcae7a473963fc",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpulse.so.0",
+      "bytes": 270416,
+      "sha256": "c251b81804bc6f46cb7d8a9f024765c513d63380cbbcf0cc5265e6e8239a4229",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libpulsecommon-17.0.so",
+      "bytes": 447416,
+      "sha256": "3f3445ab49919e90c39cd1d6c4679d3a3db093bdcec770107ccc173a933c4702",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libresolv.so.2",
+      "bytes": 68552,
+      "sha256": "afbcfe61d9078ff462e05865244015fd0ca91bd7ec732c74f24c23f757343829",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/librsvg-2.so.2",
+      "bytes": 12028512,
+      "sha256": "121097861a5dcc80cf1cfc85eccaac14d1343c13d7cfe0e20d44bbca91f98736",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/librt.so.1",
+      "bytes": 14664,
+      "sha256": "782662dd5d8b96dd7ecddbba71c8399024c8e72e0ede115aa7643e6050c27920",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libsndfile.so.1",
+      "bytes": 642464,
+      "sha256": "3bbd5fa0e4aa54f0321aea973c3a844fb5dbc7caf18f23bcca2ccd83ad847b6a",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libssl.so.3",
+      "bytes": 1196800,
+      "sha256": "3f740426fd9e98da66f7e4dcab42462aaa6152881392fc39a67b7cb9766edef9",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libstdc++.so.6",
+      "bytes": 14140344,
+      "sha256": "4627f9fad562753c843d6b1495e2441da895b0d9a7a6377e786a7704c747f40b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libswresample.so.5",
+      "bytes": 124816,
+      "sha256": "c8bf407560a37d7d0fbbb86f1ab0c42c178863aa0b418b991f728f219fde6c3b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libswscale.so.8",
+      "bytes": 640912,
+      "sha256": "99f1deec957eea694ea32474c24f0995e8e61b9adfbcb2205689a62c85d60e4b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libsystemd.so.0",
+      "bytes": 1340144,
+      "sha256": "61bc38df050a5bf665db89f9e925257ed68c276ab8ae02e3beb2659bdfabbe46",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libtbb.so.12",
+      "bytes": 380456,
+      "sha256": "ca48af5cc49eb8c29dbf5da69a334dc83604efbcbb0ed404bc3aef875d0236b4",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libva-drm.so.2",
+      "bytes": 16688,
+      "sha256": "cfcad742e1ca82f1b72a98f5529f2ba42e96bedd0633dfbd7469222589722f6b",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libva-x11.so.2",
+      "bytes": 27944,
+      "sha256": "fa3decd6bb29d08123f620aec259b79037168ff28c375b717daa144f9cfbb710",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libva.so.2",
+      "bytes": 234400,
+      "sha256": "f70df0f97d3babf3ca264802c05e6059202169a9b53e58db95420f0ecbfd3e97",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libvorbis.so.0.4.9",
+      "bytes": 262176,
+      "sha256": "5500057820cc76bc22ad3d77cc82bb6efe61cad0034eb43d92e26313f9762102",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libvorbisenc.so.2.0.12",
+      "bytes": 806984,
+      "sha256": "dfa22b6882c4c0a67cb7c88220c9b8c5e03d452ef9c74cfb7cf322811cc06d7e",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libvpx.so.9",
+      "bytes": 2213864,
+      "sha256": "740ab063b1f07e3c1192f8d432e9cd40b767312acaf3e96905eb5c5ca56a4395",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libx264.so.164",
+      "bytes": 2038224,
+      "sha256": "0c14e0dce14568e03e6d437c2b00e4786ca1cd655b8ad4cb4d8b19debcedbae9",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libx265.so.199",
+      "bytes": 21211384,
+      "sha256": "1b2defb7b4fba130a10e1547343c9921fca434a0a8d4731f19b70d76c3c5fab6",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libxcb-dri3.so.0",
+      "bytes": 27688,
+      "sha256": "2e4664415a9fd9065b8315ffd78c04dbe0b1f59c8290100fe1244f089a37403a",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libxcb-render.so.0",
+      "bytes": 76720,
+      "sha256": "3036ffa6851a17d4c40f62bbb694da43d5c3b547ca3b11a6384ebf78e7f8021e",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libxcb-shm.so.0",
+      "bytes": 17096,
+      "sha256": "2d90c57c336c173eccab4bf10cac8ad3ba3faf93f05f82febb521f0c8590c019",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libxcb.so.1",
+      "bytes": 228624,
+      "sha256": "fadbc18909741294d01b1622a00ca935fa5dc344b3b3e1465d632e01215dce5e",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libxml2.so.2",
+      "bytes": 1577712,
+      "sha256": "f35e602bc954ab3482b856bb2190e398fcd4db1eb2044ee0c97d1ad5fc201f62",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "lib/ffmpeg/libz.so.1",
+      "bytes": 112680,
+      "sha256": "b2e4560f2fc0518922113945050aa0ab6f79a8ccdab18dd1b173f68d0cbe78f9",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "mp3_encoder",
+      "delivery": "bundled"
+    },
+    {
+      "path": "bin/uv",
+      "bytes": 52686688,
+      "sha256": "a261804d9493a96e7eebf13bcffc1b7ecc87dbd7da9a2800af94c20182d1a70d",
+      "metrics": [
+        "songbench",
+        "per",
+        "mulan",
+        "allmusiccaps",
+        "q3o"
+      ],
+      "kind": "installer",
+      "delivery": "bundled"
+    },
+    {
+      "path": "vendor/wheels/flash_attn-2.8.3-cp312-cp312-linux_x86_64.whl",
+      "bytes": 304090260,
+      "sha256": "eda27a8d4f74ed0ffca23f3f456676b94047e8f5d35eed47c3ac20b6adb848a5",
+      "metrics": [
+        "per",
+        "q3o",
+        "mulan",
+        "allmusiccaps"
+      ],
+      "kind": "dependency_wheel",
+      "delivery": "bundled"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/chat_template.json",
+      "bytes": 6772,
+      "sha256": "90c1b81f29e41b7642b0cc02c877a10c8bf6751a8d8fa1d16ac9a718cf1c3d86",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "chat_template.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/config.json",
+      "bytes": 13671,
+      "sha256": "eab5093d47807aaf894119506b238b2b1cee70d08456e894fee9a012d88f2e0d",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "config.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/generation_config.json",
+      "bytes": 146,
+      "sha256": "7fa40989be8e43c078907810c41c25d33747523afce3d5a34d5850f930c886cb",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "generation_config.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/merges.txt",
+      "bytes": 1671839,
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "merges.txt",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00001-of-00015.safetensors",
+      "bytes": 4997899632,
+      "sha256": "f95d142b727fbd0698f0ed9478e222d4f29467df855e21862e46bd1401049065",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00001-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00002-of-00015.safetensors",
+      "bytes": 4997754216,
+      "sha256": "320c1f31f7ddc4efd2501891590eca2c481ce4eca3db33d70ebbb637dae85764",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00002-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00003-of-00015.safetensors",
+      "bytes": 4997754216,
+      "sha256": "306f06b05ef032f1fa51eb62e72c3432324e7a084fa0d15ed17ff856adffcf33",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00003-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00004-of-00015.safetensors",
+      "bytes": 4997755648,
+      "sha256": "4cb551f433bfb4d83a5843e433e74688d71a96eeb1b62217b37d719026d559b5",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00004-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00005-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "8aec5e8cc0e0b179a81f690af31a1149238f4b1d18ac60e3f690020fdf7d915f",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00005-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00006-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "8ff40a3d9e9c59a35a10257c1c5b216f472e6a102a4d6059bd31183eee03cb4c",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00006-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00007-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "f6d84cc1d47178850f9ba1fe9c01f45ee63d9a8b9975f92821ee2b4a0387860b",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00007-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00008-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "9f369ccdc9d2d2a55df794005b23cdbce44494a72e4a0069a150ae471cfea720",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00008-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00009-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "980f754b21c4b20f36e02d184b792f5625f7c9d24b8a5c9da94287cf3cfde11b",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00009-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00010-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "5c5a798376321d74df2eb3f235e1c8c68669f09b0c753b5698a16e681204d808",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00010-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00011-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "6f7c051bd391c89279b43e7342ff4a243ad2ba2144f4aa62233fd2b02d72fce0",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00011-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00012-of-00015.safetensors",
+      "bytes": 4997755792,
+      "sha256": "a8b09a9367cd31ebf928e87b9eaf002492379d9d21d352b480854c2fbe6d9978",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00012-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00013-of-00015.safetensors",
+      "bytes": 4999771808,
+      "sha256": "d9b7441c3a33e066d109cd6338e74ed680de9aa407d4df66eba5cb3c15c6d738",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00013-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00014-of-00015.safetensors",
+      "bytes": 4996618552,
+      "sha256": "73f09f187ff7b469a8937b39b8ac772e539e0d61311526c345558c5e6a6eb09a",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00014-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model-00015-of-00015.safetensors",
+      "bytes": 553698794,
+      "sha256": "68880d566a50643807a4e73f5227c4f468bb31532925ed5fae78a51bdd39492a",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model-00015-of-00015.safetensors",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/model.safetensors.index.json",
+      "bytes": 2727350,
+      "sha256": "03ffe9a54efe9007ceb788c2b036f5c589094918c4582add4e92bc17e1cba838",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "model.safetensors.index.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/preprocessor_config.json",
+      "bytes": 603,
+      "sha256": "b10e27fd4542cf89ec7145942b87f3e65408d4e9f9d031a29acdd293c15fb3fc",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "preprocessor_config.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/tokenizer_config.json",
+      "bytes": 7344,
+      "sha256": "dc3c31c3bdaedd5016382bb3cbe07323026775ad51f5a4fb564505992ae4a670",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "tokenizer_config.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/snapshots/26291f793822fb6be9555850f06dfe95f2d7e695/vocab.json",
+      "bytes": 2776833,
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "repo_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+      "revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "filename": "vocab.json",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--Qwen--Qwen3-Omni-30B-A3B-Instruct/refs/main",
+      "bytes": 40,
+      "sha256": "7a932f5c93735607008e4a742f2098a5b4bd19937d9263e55611383e1c9ac46c",
+      "content": "26291f793822fb6be9555850f06dfe95f2d7e695",
+      "metrics": [
+        "q3o"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-MuLan-large/snapshots/2e01c796b71dca71b45251384c04cd7b237c9020/config.json",
+      "bytes": 847,
+      "sha256": "8fefc545ef87ecd9bcde7417dd03464370c48c321f36dcff20266a752079e468",
+      "repo_id": "OpenMuQ/MuQ-MuLan-large",
+      "revision": "2e01c796b71dca71b45251384c04cd7b237c9020",
+      "filename": "config.json",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-MuLan-large/snapshots/2e01c796b71dca71b45251384c04cd7b237c9020/pytorch_model.bin",
+      "bytes": 2653954401,
+      "sha256": "d42ae3f7cb9b66759ee0089ddc70e2f28b130c2d8ba621457358272d32dd0444",
+      "repo_id": "OpenMuQ/MuQ-MuLan-large",
+      "revision": "2e01c796b71dca71b45251384c04cd7b237c9020",
+      "filename": "pytorch_model.bin",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-MuLan-large/refs/main",
+      "bytes": 40,
+      "sha256": "1f958e202a9df1943e16e95a196d9e95cd663f01da02faf89851f86e8b58f19a",
+      "content": "2e01c796b71dca71b45251384c04cd7b237c9020",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-large-msd-iter/snapshots/0562a57814f6f8bbd9fdea0a25921a2fce1a841a/config.json",
+      "bytes": 3133,
+      "sha256": "237335ee27d8fb951ce778701a12a79e06c51ae636dd786f97e45f51ce532543",
+      "repo_id": "OpenMuQ/MuQ-large-msd-iter",
+      "revision": "0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "filename": "config.json",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-large-msd-iter/snapshots/0562a57814f6f8bbd9fdea0a25921a2fce1a841a/model.safetensors",
+      "bytes": 1333825096,
+      "sha256": "273febab2be02872c37d2c37e48a9d6c52c1c9392f3eeeabd498efa281ccb7a6",
+      "repo_id": "OpenMuQ/MuQ-large-msd-iter",
+      "revision": "0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "filename": "model.safetensors",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--OpenMuQ--MuQ-large-msd-iter/refs/main",
+      "bytes": 40,
+      "sha256": "1e4af6905746166d89e019c6a994ad9b0db9031e0b6b30f1269a44c0685bf3ec",
+      "content": "0562a57814f6f8bbd9fdea0a25921a2fce1a841a",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/snapshots/e73636d4f797dec63c3081bb6ed5c7b0bb3f2089/config.json",
+      "bytes": 615,
+      "sha256": "d66ed8cd4f2a93b358c245e50736fa389ed4f35c0bae7aad0b32abb20c62b579",
+      "repo_id": "xlm-roberta-base",
+      "revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "filename": "config.json",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/snapshots/e73636d4f797dec63c3081bb6ed5c7b0bb3f2089/model.safetensors",
+      "bytes": 1115567652,
+      "sha256": "6fd4797bc397c3b8b55d6bb5740366b57e6a3ce91c04c77f22aafc0c128e6feb",
+      "repo_id": "xlm-roberta-base",
+      "revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "filename": "model.safetensors",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/snapshots/e73636d4f797dec63c3081bb6ed5c7b0bb3f2089/sentencepiece.bpe.model",
+      "bytes": 5069051,
+      "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+      "repo_id": "xlm-roberta-base",
+      "revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "filename": "sentencepiece.bpe.model",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/snapshots/e73636d4f797dec63c3081bb6ed5c7b0bb3f2089/tokenizer.json",
+      "bytes": 9096718,
+      "sha256": "a898ea75433890f6610f4e470b8ebeb0c21dce5c8dd61f892eb09eb5919d2e2c",
+      "repo_id": "xlm-roberta-base",
+      "revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "filename": "tokenizer.json",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/snapshots/e73636d4f797dec63c3081bb6ed5c7b0bb3f2089/tokenizer_config.json",
+      "bytes": 25,
+      "sha256": "994f46754c5bf4014f1aa92d34b1374319c3a6b3f702105cd5b742beaecd18ce",
+      "repo_id": "xlm-roberta-base",
+      "revision": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "filename": "tokenizer_config.json",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--xlm-roberta-base/refs/main",
+      "bytes": 40,
+      "sha256": "f6d3db100e854d442f60a413b9a49a9cae7e92c46d4c04cd047418519e5c8ac9",
+      "content": "e73636d4f797dec63c3081bb6ed5c7b0bb3f2089",
+      "metrics": [
+        "mulan"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--allmusiccaps_te_trained_sigreg/snapshots/5a71a39a603718993181504c76d56d733bc8e8c4/LICENSE",
+      "bytes": 20849,
+      "sha256": "1349a4b6148492b44f629e64eed676612e234fe9a839e4f3b277c1482c8849f1",
+      "repo_id": "mtg-upf/allmusiccaps_te_trained_sigreg",
+      "revision": "5a71a39a603718993181504c76d56d733bc8e8c4",
+      "filename": "LICENSE",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--allmusiccaps_te_trained_sigreg/snapshots/5a71a39a603718993181504c76d56d733bc8e8c4/README.md",
+      "bytes": 1542,
+      "sha256": "d79f3c4c616094a213dfdeef6a7f03fa35087443860b496e465863187728a5c9",
+      "repo_id": "mtg-upf/allmusiccaps_te_trained_sigreg",
+      "revision": "5a71a39a603718993181504c76d56d733bc8e8c4",
+      "filename": "README.md",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--allmusiccaps_te_trained_sigreg/snapshots/5a71a39a603718993181504c76d56d733bc8e8c4/config.gin",
+      "bytes": 8480,
+      "sha256": "3bd3d7382920b9372eb6c018811c48142ae238e6c6edff5d07ed9b99022c2d5e",
+      "repo_id": "mtg-upf/allmusiccaps_te_trained_sigreg",
+      "revision": "5a71a39a603718993181504c76d56d733bc8e8c4",
+      "filename": "config.gin",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--allmusiccaps_te_trained_sigreg/snapshots/5a71a39a603718993181504c76d56d733bc8e8c4/model.ckpt",
+      "bytes": 734251806,
+      "sha256": "5609bc5834d9430c383a5da73158dad2c6ebe483ba1bdf5ad3e731ee8544e68c",
+      "repo_id": "mtg-upf/allmusiccaps_te_trained_sigreg",
+      "revision": "5a71a39a603718993181504c76d56d733bc8e8c4",
+      "filename": "model.ckpt",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--allmusiccaps_te_trained_sigreg/refs/main",
+      "bytes": 40,
+      "sha256": "a0f87ef2246526a1eb61ff8706e9eaf8598b4d88f0933be17eb9e002aa7d5fe4",
+      "content": "5a71a39a603718993181504c76d56d733bc8e8c4",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--clap_omarrq_mp_small_music/snapshots/f01bbe5d4a30f02bc4bdb9145c54e204176f29a6/config.gin",
+      "bytes": 2875,
+      "sha256": "c1fc0baf0f1cd16c1de5ada0f088eb0ab99d99da2055a2f42f23023a431655bc",
+      "repo_id": "mtg-upf/clap_omarrq_mp_small_music",
+      "revision": "f01bbe5d4a30f02bc4bdb9145c54e204176f29a6",
+      "filename": "config.gin",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--clap_omarrq_mp_small_music/snapshots/f01bbe5d4a30f02bc4bdb9145c54e204176f29a6/model.ckpt",
+      "bytes": 296231202,
+      "sha256": "f9f4cfbd1178f17847b3cf1f12fa71e8521762b2eb9a4b9e7089247ff981172a",
+      "repo_id": "mtg-upf/clap_omarrq_mp_small_music",
+      "revision": "f01bbe5d4a30f02bc4bdb9145c54e204176f29a6",
+      "filename": "model.ckpt",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--mtg-upf--clap_omarrq_mp_small_music/refs/main",
+      "bytes": 40,
+      "sha256": "1a288871a2749c090bd1d6a20e86590405e119e9779ac73cee56d8837aa9e0d8",
+      "content": "f01bbe5d4a30f02bc4bdb9145c54e204176f29a6",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/1_Pooling/config.json",
+      "bytes": 190,
+      "sha256": "a37f83ada23e7887be6b88f4998927dbeac0038af301553c7cd5461413bf1a56",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "1_Pooling/config.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/README.md",
+      "bytes": 11612,
+      "sha256": "89a1a9c3290fe58e76c939b578c48a14331dc7bfcaaf5a53102adb183da6f96a",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "README.md",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/config.json",
+      "bytes": 571,
+      "sha256": "d46a3e04ded82bba22528424480697d394eeda6a27484e08c5bb2bdf5906cfa0",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "config.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/config_sentence_transformers.json",
+      "bytes": 116,
+      "sha256": "061ca9d39661d6c6d6de5ba27f79a1cd5770ea247f8d46412a68a498dc5ac9f3",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "config_sentence_transformers.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/data_config.json",
+      "bytes": 39265,
+      "sha256": "32edcb108fc2516b920734a862ae0692bcae1c5d45d5f8d972cb0d53434a4c54",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "data_config.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/model.safetensors",
+      "bytes": 437971872,
+      "sha256": "78c0197b6159d92658e319bc1d72e4c73a9a03dd03815e70e555c5ef05615658",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "model.safetensors",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/modules.json",
+      "bytes": 349,
+      "sha256": "84e40c8e006c9b1d6c122e02cba9b02458120b5fb0c87b746c41e0207cf642cf",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "modules.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/sentence_bert_config.json",
+      "bytes": 53,
+      "sha256": "cabfacded9272091a06ff595a46ef027a76ddf4ac9e77d0fcf11c605748f1667",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "sentence_bert_config.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/special_tokens_map.json",
+      "bytes": 239,
+      "sha256": "9ef40e9c160511bf3f46ceb71f1471dafa1e9473d5120bb816c36b2efa75f8ba",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "special_tokens_map.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/tokenizer.json",
+      "bytes": 466021,
+      "sha256": "b8be2c30ba5dd723a6d5ee26d013da103d5408d92ddcb23747622f9e48f1d842",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "tokenizer.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/tokenizer_config.json",
+      "bytes": 363,
+      "sha256": "67f2ff7e223518e729869bb3a70f0caf8368fe549383fc11cfe2dfb42fffc268",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "tokenizer_config.json",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/train_script.py",
+      "bytes": 13123,
+      "sha256": "dea86a7066caa55d0c84c343890dfd849714b6affd8b424ba12372a091578cc8",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "train_script.py",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/snapshots/e8c3b32edf5434bc2275fc9bab85f82640a19130/vocab.txt",
+      "bytes": 231536,
+      "sha256": "dbd90cb94e2247bd4d4ccaecbf616d2290e66691d7d5e5bb81f063c2d0649ada",
+      "repo_id": "sentence-transformers/all-mpnet-base-v2",
+      "revision": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "filename": "vocab.txt",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "public_pinned_download"
+    },
+    {
+      "path": "evaluation_models/hub/models--sentence-transformers--all-mpnet-base-v2/refs/main",
+      "bytes": 40,
+      "sha256": "a69f7168e87cae5ffb7ae33d9d126f0fb0ada6e1babc738ac3cd779f2d20efc6",
+      "content": "e8c3b32edf5434bc2275fc9bab85f82640a19130",
+      "metrics": [
+        "allmusiccaps"
+      ],
+      "delivery": "generated_from_lock"
+    },
+    {
+      "path": "evaluation_models/madmom/key/2018/key_cnn.pkl",
+      "bytes": 2670279,
+      "sha256": "c58ba553be1048877662a663a2670c0051b3c2c66d109b6042ba722ed0bfc7a6",
+      "metrics": [
+        "q3o"
+      ],
+      "download": "embedded",
+      "license": "CC-BY-NC-SA-4.0",
+      "delivery": "bundled"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+PREFLIGHT_COMPLETE {'upstream': 1875, 'candidate': 1879}
+/root/autodl-tmp/yue2-4090-e2e-20261012-01/venv/bin/python: No module named pip
+Traceback (most recent call last):
+  File "/root/autodl-tmp/yue2-rebase-abba-20261014-01/scripts/preflight.py", line 55, in <module>
+    pip=subprocess.check_output(['python','-m','pip','freeze'],text=True),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/lib/python3.12/subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/miniconda3/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['python', '-m', 'pip', 'freeze']' returned non-zero exit status 1.
+EXIT 1 2026-10-14T10:57:14+08:00
