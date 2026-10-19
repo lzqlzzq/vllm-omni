@@ -1,0 +1,93 @@
+# YuE2 统一分阶段 logits 投影
+
+**状态：已撤回（2026-10-08）。** 按用户要求，本地与SSH16593实验 source 已恢复到前一版
+输出所有权修复B1；1860份生产文件与基线一致，新投影测试移出测试树。
+[本地撤回核查](evidence/rollback-local.json)、[远端撤回核查](evidence/rollback-remote.json)。
+以下是撤回前的实现与验证记录，不描述当前 source 状态。原diff、日志和改动文件
+（`evidence/withdrawn/`）保留；复现实验需要另建副本应用原diff，不能直接拿已恢复source当候选。
+用户提出ABC/semantic分队列作为讨论方向，本轮未实现新调度。
+
+
+2026-10-08。用户选择纯 ABC、纯 semantic、混合批次全部走 `index_select`，保留一条分组流程。
+独立候选：[源码](../../../experiments/yue2-phase-logits-20261008/source)，继承修复后的 queue B1；
+之前的候选、上游、主工作区和外层参考不改。未 commit/push。
+
+## 实现
+
+`yue2.py::compute_logits` 按当前采样行的 phase 分组，所有非空组都先 `index_select(0, indices)`。
+ABC 和未知状态使用原 logits processor；semantic 使用 MUSIC_END 到 codec 末尾的连续权重列。
+结果 `index_copy_` 回原行号，保持 sampler 与 CFG 使用的 `[rows, vocab]` 接口。
+纯阶段没有另设整批直投影分支；空组不发起计算。
+
+新鲜 pinned CPU 行索引一次异步上传，避免 pageable 同步拷贝和提前覆写 staging buffer。
+每步重置 logits 为 -inf，清除上一轮其它阶段残留。未知状态/初始化 profiling 行仍按完整投影处理。
+删除 `_semantic_only_step`；CFG 仅更新注释，算术与行映射不改。没有新增配置、队列策略或开关。
+唯一运行时变更在 YuE 模型投影函数；公共执行、sampler、自动ABC、NAR和VAE源码保持。
+见[完整生产 diff](evidence/production.diff)及[本地源码审计](evidence/source-audit-local.json)。
+
+## 数值与功能验证
+
+CPU 测试覆盖纯/混合阶段、缺失状态、非连续 hidden、prefill span与采样行映射、buffer残留、
+head输出dtype及混合ABC/CFG正负行回填。已有 sampler、ABC、CFG、queue 生命周期回归同时运行。
+真实 GPU 做合成固定输入投影对照、自动ABC完整输出检查和CFG=1.5短生成。
+最终 **84项CPU测试**及统一pre-commit通过；48次计时、6次预热、4次CFG=1.5短生成均完成，
+所有GPU进程结束。四次成功运行前后生产hash不变，本地/远端1860份生产文件一致。
+本轮不宣称全链路数值parity或WSB质量通过。
+
+固定输入 GPU 检查使用 BF16、完整词表、hidden2048、合成权重和hidden，复用旧生产方法作对照。
+纯ABC/semantic的B1/B32有效列逐值相同；混合16+16的最大绝对误差0.0009765625、
+relative-L2 0.00003272；混合4+28分别0.001953125、0.00198492。
+这是GEMM形状变化下的数值差异，未声称自由生成token或音频相同。
+semantic无效列均为-inf，所有有效列通过预设rtol0.015/atol0.002检查。
+
+## 性能：本轮没有证明提速
+
+固定输入微基准交替 AB/BA 四轮，每轮8次预热、80次计时；CUDA event覆盖整个投影方法对应的
+设备时间段，另存主机墙钟。包含gather、回填、fill及H2D，不是单独GEMM时间。
+同一H800、同一合成输入，不包含backbone、采样或NAR/VAE，也不是实际模型权重的完整负载。
+
+| 行组成 | 原投影中位 ms | 统一投影中位 ms | 耗时变化 |
+|---|---:|---:|---:|
+| ABC1 | 0.3992 | 0.4138 | +3.65% |
+| semantic1 | 0.07865 | 0.09256 | +17.68% |
+| ABC32 | 0.4245 | 0.4680 | +10.24% |
+| semantic32 | 0.2175 | 0.2387 | +9.78% |
+| ABC16 + semantic16 | 0.4246 | 0.6853 | +61.43% |
+| ABC4 + semantic28 | 0.4244 | 0.6558 | +54.51% |
+
+减少投影元素没有直接转化为速度：ABC组仍读取完整head，semantic另做一次窄投影，
+并增加gather/回填。这里只确认总投影耗时变长，没有逐kernel分解读带宽和launch等因素的占比。
+因此推翻“更少head运算必然更快”的假设，不把这份改动标成已验证的性能优化。
+
+端到端补充使用新→旧→新三次独立进程，各16并发/16提示、2首预热，AR32/KV32GiB、
+NAR1/VAE1/window0、full CoT/CFG1；固定ABC512、semantic1024预算，每首约40.959秒音频。
+同提示/seed/配置/资源/模型及legacy VAE，正式运行无step/projection hook。
+每次沿用此前温度前置条件，GPU未锁频。这是短预算功能与开销对照，不是64首长歌的稳定性能复测；
+相同阶段预算也不能代表此前长歌的混批分布。
+
+| 指标 | 新1 | 旧 | 新2 |
+|---|---:|---:|---:|
+| 音频秒/秒 | 24.210 | 24.154 | 23.881 |
+| 相对旧吞吐 | +0.23% | — | -1.13% |
+| E2EL P95 秒 | 26.366 | 26.409 | 26.720 |
+| RTF P95 | 0.6437 | 0.6448 | 0.6524 |
+| 设备采样峰值 GiB | 48.241 | 48.241 | 48.241 |
+
+新实现两次吞吐中位相对旧-0.45%；没有一致收益，不据此认定稳定退化或恢复历史6%。
+48次计时及6首预热均得到完整预算输出；48次均ABC/semantic预算截断，符合该测试设置。
+没有保存音频或latent，只验证形状、有限值与meta.error。CFG smoke不纳入性能统计。
+
+## 复现和证据
+
+远端 `/root/autodl-tmp/yue2-phase-logits-20261008-01`（SSH16593），screen运行结束后保留日志。
+source是本候选；baseline链接旧修复B1源。复用已冻结torch2.13.0+cu130/vLLM0.31与模型、legacy VAE。
+
+- [CPU回归](evidence/cpu-tests.log)、[源码远端审计](evidence/source-audit-remote.json)、[回收验证](evidence/collection-verification.json)：51份文件、2734118字节SHA全匹配。
+- [生产改动](evidence/production.diff)、[检查日志](evidence/pre-commit.log)。
+- [GPU固定输入与交错微基准](evidence/projection-probe.json)，脚本 `scripts/projection_probe.py`。
+- [请求身份、源码及吞吐重算](evidence/record-validation.json)，脚本 `scripts/validate_records.py`。
+- `scripts/validate.sh` 是三次短E2E入口；`scripts/final_checks.sh` 是CFG及CPU回归入口。
+- 原始请求、配置、harness、源码hash、NVML记录及summary位于 `artifacts/`。
+
+本轮没有完整WSB评分、长歌64并发稳定性能、自然EOS、进行中取消或shutdown的新验收。
+当时独立候选采用统一路径；现已按上述撤回记录恢复基线。

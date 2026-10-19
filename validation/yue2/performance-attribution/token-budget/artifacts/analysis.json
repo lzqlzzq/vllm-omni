@@ -1,0 +1,143 @@
+{
+  "complete": true,
+  "results": [
+    {
+      "label": "baseline-01",
+      "throughput": 21.916248914301146,
+      "request_throughput": 0.09703201341635709,
+      "e2el": {
+        "p50": 354.51106564700603,
+        "p95": 610.8957529794425
+      },
+      "rtf": {
+        "p50": 1.4632430426566447,
+        "p95": 2.4490128246499463
+      },
+      "peak_gib": 71.797607421875,
+      "allocated_gib": 38.73897886276245,
+      "reserved_gib": 70.609375,
+      "jobs": {
+        "1": 36,
+        "2": 14
+      },
+      "packed_chunks": {
+        "2": 14
+      },
+      "batched_requests": 28,
+      "b3plus_requests": 0,
+      "total_audio_s": 14455.434666666666,
+      "abc_truncated": 1,
+      "semantic_truncated": 0,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "model_states": 0,
+      "temperature": [
+        48,
+        64
+      ],
+      "sm_median": 1230.0,
+      "thermal_fraction": 0.0,
+      "semantic_equal_to_first": 64,
+      "abc_equal_to_first": 64
+    },
+    {
+      "label": "budget32-01",
+      "throughput": 21.965520237394042,
+      "request_throughput": 0.09761887610911756,
+      "e2el": {
+        "p50": 346.6455225292593,
+        "p95": 597.3916313815862
+      },
+      "rtf": {
+        "p50": 1.450533606794667,
+        "p95": 2.4332461402288197
+      },
+      "peak_gib": 58.516357421875,
+      "allocated_gib": 37.62721872329712,
+      "reserved_gib": 57.330078125,
+      "jobs": {
+        "1": 46,
+        "2": 9
+      },
+      "packed_chunks": {
+        "2": 9
+      },
+      "batched_requests": 18,
+      "b3plus_requests": 0,
+      "total_audio_s": 14400.834666666668,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "model_states": 0,
+      "temperature": [
+        49,
+        64
+      ],
+      "sm_median": 1230.0,
+      "thermal_fraction": 0.0,
+      "semantic_equal_to_first": 0,
+      "abc_equal_to_first": 31
+    },
+    {
+      "label": "budget48-01",
+      "throughput": 21.679661366953095,
+      "request_throughput": 0.09511573176236751,
+      "e2el": {
+        "p50": 369.0012548137456,
+        "p95": 613.9790773045271
+      },
+      "rtf": {
+        "p50": 1.4398918802380507,
+        "p95": 2.474103749259243
+      },
+      "peak_gib": 57.061279296875,
+      "allocated_gib": 40.01851034164429,
+      "reserved_gib": 55.87109375,
+      "jobs": {
+        "1": 38,
+        "2": 10,
+        "3": 2
+      },
+      "packed_chunks": {
+        "2": 10,
+        "3": 2
+      },
+      "batched_requests": 26,
+      "b3plus_requests": 6,
+      "total_audio_s": 14587.474666666667,
+      "abc_truncated": 2,
+      "semantic_truncated": 2,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "model_states": 0,
+      "temperature": [
+        49,
+        64
+      ],
+      "sm_median": 1230.0,
+      "thermal_fraction": 0.0,
+      "semantic_equal_to_first": 0,
+      "abc_equal_to_first": 30
+    }
+  ],
+  "scope": "Full E2E with the same low-frequency job/packed-constructor observer in both arms; no Nsight/step hook."
+}

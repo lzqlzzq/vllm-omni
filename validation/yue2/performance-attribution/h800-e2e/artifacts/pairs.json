@@ -1,0 +1,106 @@
+{
+  "complete": true,
+  "pairs": [
+    {
+      "upstream": "upstream-01",
+      "candidate": "candidate-01",
+      "change_pct": {
+        "audio_throughput": 0.738886030690189,
+        "request_throughput": 1.3846967891374407,
+        "content_tps": 0.6872569006360241,
+        "semantic_tps": 0.7388898330963123,
+        "abc_tps": 0.5443359306418483,
+        "e2el_p50": -4.239794314263001,
+        "e2el_p95": -3.018949077680333,
+        "rtf_p50": -10.406710153194187,
+        "rtf_p95": -1.9775359173455076,
+        "device_peak_gib": 6.943704248378135,
+        "allocated_peak_gib": 1.9029912527439574,
+        "reserved_peak_gib": 7.089694326167484,
+        "total_audio_s": -0.6369903732023952
+      },
+      "difference": {
+        "audio_throughput": 0.1647594280216218,
+        "request_throughput": 0.0013634667512188586,
+        "content_tps": 5.2152902807060855,
+        "semantic_tps": 4.119031149432203,
+        "abc_tps": 1.0962591312738539,
+        "e2el_p50": -15.054167525842786,
+        "e2el_p95": -18.172715730033815,
+        "rtf_p50": -0.16504713697612017,
+        "rtf_p95": -0.04804004728628675,
+        "device_peak_gib": 4.0,
+        "allocated_peak_gib": 0.6926188468933105,
+        "reserved_peak_gib": 4.0,
+        "total_audio_s": -92.31999999999971
+      }
+    },
+    {
+      "upstream": "upstream-02",
+      "candidate": "candidate-02",
+      "change_pct": {
+        "audio_throughput": -0.8859236498209633,
+        "request_throughput": -1.4082221535267614,
+        "content_tps": -0.9068250689049595,
+        "semantic_tps": -0.88592675652156,
+        "abc_tps": -0.9650184316858601,
+        "e2el_p50": -1.6409307065414214,
+        "e2el_p95": -1.735137104122264,
+        "rtf_p50": -10.022894630784728,
+        "rtf_p95": 3.845780848414271,
+        "device_peak_gib": 23.247487121927634,
+        "allocated_peak_gib": 3.8643969049936278,
+        "reserved_peak_gib": 23.77468363880697,
+        "total_audio_s": 0.5297586828377554
+      },
+      "difference": {
+        "audio_throughput": -0.2007610825005841,
+        "request_throughput": -0.001423635702319126,
+        "content_tps": -6.9824311594704795,
+        "semantic_tps": -5.019074517038007,
+        "abc_tps": -1.9633566424324442,
+        "e2el_p50": -5.815355179831386,
+        "e2el_p95": -10.375143096409715,
+        "rtf_p50": -0.15846634888232036,
+        "rtf_p95": 0.09314793915403241,
+        "device_peak_gib": 12.43939208984375,
+        "allocated_peak_gib": 1.3926620483398438,
+        "reserved_peak_gib": 12.439453125,
+        "total_audio_s": 76.0
+      }
+    }
+  ],
+  "per_arm_median_of_run_metrics": {
+    "upstream": {
+      "audio_throughput": 22.47978595405824,
+      "request_throughput": 0.09978067459975479,
+      "content_tps": 764.42128432938,
+      "semantic_tps": 561.9979748739427,
+      "abc_tps": 202.42330945543733,
+      "e2el_p50": 354.73102686647326,
+      "e2el_p95": 599.9493661715649,
+      "rtf_p50": 1.5835060856211816,
+      "rtf_p95": 2.4256847700687674,
+      "device_peak_gib": 55.557342529296875,
+      "allocated_peak_gib": 36.217299938201904,
+      "reserved_peak_gib": 54.37109375,
+      "total_audio_s": 14419.654666666667
+    },
+    "candidate": {
+      "audio_throughput": 22.46178512681876,
+      "request_throughput": 0.09975059012420465,
+      "content_tps": 763.5377138899978,
+      "semantic_tps": 561.5479531901398,
+      "abc_tps": 201.98976069985804,
+      "e2el_p50": 344.2962655136362,
+      "e2el_p95": 585.675436758343,
+      "rtf_p50": 1.4217493426919612,
+      "rtf_p95": 2.44823871600264,
+      "device_peak_gib": 63.77703857421875,
+      "allocated_peak_gib": 37.25994038581848,
+      "reserved_peak_gib": 62.5908203125,
+      "total_audio_s": 14411.494666666667
+    }
+  },
+  "scope": "Two ordered pairs in one ABBA; P50/P95 here are medians of each run statistic, not pooled request quantiles; free-generated workloads can differ."
+}

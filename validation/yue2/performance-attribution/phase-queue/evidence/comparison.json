@@ -1,0 +1,9 @@
+{
+  "throughput_pct": -5.087550822573606,
+  "e2el_p50_pct": 12.733484010592843,
+  "e2el_p95_pct": 7.2654098918572885,
+  "rtf_p95_pct": 8.03638223552916,
+  "audio_length_pct": -0.12647208701871415,
+  "candidate_mixed_projection_calls": 0,
+  "peak_memory_delta_gib": -6.40625
+}

@@ -1,0 +1,117 @@
+# YuE2：借用 Cosmos3 同进程缓存与完整生成循环（2026-10-04）
+
+已完成同进程执行结构实验。直接生成版单请求单轮略快，但三种并发负载吞吐均下降；不替换默认路径。
+用户选择完整仿照 Cosmos3 的同进程执行方向，实际迁移边界如下。
+生产源码与默认配置未修改；本目录保留独立源码副本、补丁、实验脚本和证据。
+
+## 实际迁移边界
+
+Cosmos3 当前上游部署是一个 diffusion stage、同一进程内的 UND/GEN 两塔；
+UND 条件表示只计算一次，KV 缓存供完整去噪循环复用。
+
+- [上游部署配置](https://github.com/vllm-project/vllm-omni/blob/main/vllm_omni/deploy/cosmos3_omni.yaml)
+- [技术报告 §5.3.1](https://arxiv.org/html/2606.02800v1#S5.SS3.SSS1)
+- 本地参考：`vllm_omni/diffusion/models/cosmos3/transformer_cosmos3.py` 的 `need_kv` 与 `_run_gen_layers`，
+  `pipeline_cosmos3.py` 的 `diffuse`。
+
+YuE2 原单阶段已经同进程保存两部分权重，已经在 CachedNAR 中一次条件 prefill、重复使用 KV。
+本轮借用的是 Cosmos3 的同进程完整生成执行结构，不复制其权重、attention、RoPE、CFG 或 scheduler 数学。
+Cosmos3 Generator 的固定条件 UND 前向不能代替 YuE2 必需的 semantic 自回归生成；
+因此 YuE2 原生 vLLM AR 调度仍保留，没有新增嵌套 engine，也没有把整套 Cosmos DiffusionEngine 移植过来。
+
+执行对照：
+
+- **baseline**：原单阶段。声学侧高优先级 stream，每两工作单元限制 in-flight，
+  AR decode 通过 HOLD 步推进声学；允许其它请求继续 AR。
+- **direct**：AR、条件 prefill、KV、NAR、VAE 全部同一 worker。semantic 完成后直接
+  drain 原 `_song_iter`，完整运行原 midpoint solver 与 VAE；不进入 `_SynthesisJob`，不发 HOLD，
+  不加每两工作单元的事件等待；末尾同步、检查 finite、返回相同 FP32 CPU 音频。
+  高优先级声学 stream、原 NAR velocity graph、融合/compile、噪声和采样保持。
+
+只改 `Yue2ForCausalLM._hold_allowed` 和 `_finish_request`；其余129个函数/方法AST相同。
+这条 direct 路径在声学执行期间阻塞同 worker 的其它 AR 请求，这是被测方案的行为。
+它也会把当前歌曲的 KV/graph 引用保留到 VAE 完成，显存释放时点与 baseline 有区别。
+不是新的跨进程 KV transfer、不是两卡拆分、没有去掉条件 prefill。
+
+## 测量方法
+
+同一GPU0 RTX3090、driver595.71.05，GPU1空闲，关闭MPS。
+复用固定上游源码与 venv/HF 缓存，AR `max_num_seqs=4`、KV 4GiB，其余配置与前轮single0一致。
+固定四种长度512/768/1024/1280帧；模型和VAE revision固定在脚本。
+
+两组各完整形状预热4条，再顺序4条（完整音频保存用于逐值验证）、1024帧单请求1条；
+并发4、并发8、连续16且最多8在途，各测3轮。输出按预算结束，不是自然EOS。
+先baseline后direct，同卡顺序运行；无worker hook/Nsight。GPU遥测每200ms采样。
+
+- E2EL：调用generate至完整结果返回，含框架排队，排除负载生成器semaphore外等待和本条结果后校验。
+- Throughput：一轮音频总秒数/整轮墙钟；三轮中位。批次墙钟包含共同的客户端finite/长度检查。
+- RTF：每条E2EL/其音频秒数，报告三轮合并样本的P50/P95；不将吞吐倒数当逐请求RTF。
+- 音频hash和顺序音频落盘位于batch计时之后。分位数线性插值；有限样本不是生产SLO。
+
+远端 `/root/autodl-tmp/yue2-cosmos-colocated-20261004-01`，SSH27279。
+运行 `venv/bin/python scripts/run.py --arm baseline` / `--arm direct`。
+重复运行需换 `--label`，现有结果不得覆盖。主工作区生成实验副本：
+`python3 docs/validation/2026-10-04-yue2-cosmos-colocated/scripts/make_variant.py`。
+
+## 验证范围
+
+生产12项hash保持不变；远端1690个生产Python对比仅实验模型文件不同。
+本轮不新增ABC/CFG，不改共享执行层，不迁入Cosmos的近似缓存、量化、其它solver或并行策略。
+未验证direct路径声学进行中取消、ACK（同进程无此协议）或进行中shutdown。
+直接生成期间取消可能要等本次forward结束；不能继承原异步声学的取消响应结论。
+未commit/push。
+
+## 结果
+
+| 负载 | 执行方式 | E2EL P50 / P95（秒） | Throughput（音频秒/秒） | RTF P50 / P95 |
+|---|---|---:|---:|---:|
+| 并发4 | 原同进程/HOLD | 13.864 / 23.185 | 6.185 | 0.385 / 0.453 |
+| 并发4 | 同进程直接生成 | 14.289 / 24.799 | 5.780 | 0.395 / 0.484 |
+| 并发8 | 原同进程/HOLD | 22.049 / 45.032 | 6.365 | 0.685 / 1.011 |
+| 并发8 | 同进程直接生成 | 23.428 / 48.033 | 5.965 | 0.735 / 1.065 |
+| 连续16、并发上限8 | 原同进程/HOLD | 36.986 / 48.078 | 6.695 | 0.958 / 1.563 |
+| 连续16、并发上限8 | 同进程直接生成 | 37.188 / 56.563 | 6.171 | 1.063 / 1.709 |
+
+直接生成相对基线的吞吐变化：并发4 **-6.55%**、并发8 **-6.29%**、连续负载 **-7.84%**。
+连续负载E2EL P95高17.65%、RTF P95高9.36%。RTF包含排队，不能当作纯NAR计算RTF。
+
+| 负载 | baseline三轮makespan（秒） | direct三轮makespan（秒） |
+|---|---|---|
+| c4 | 23.060828 / 23.178765 / 23.207243 | 24.802954 / 24.815872 / 24.604784 |
+| c8 | 45.042305 / 45.028100 / 45.052604 | 47.922963 / 48.063872 / 48.127103 |
+| s16 | 85.644148 / 85.689413 / 85.561241 | 92.893152 / 93.056865 / 92.924853 |
+
+1024帧单请求E2EL：11.220622 → 10.744295s，约降低4.25%；
+RTF 0.273950 → 0.262320。仅一轮，不宣称稳定单请求优势。
+
+顺序四条完整FLOAT音频逐值精确：max-abs、RMSE、relative-L2均0。并发84对音频hash仅4对一致，
+并发调度改变后的分叉继续单列；固定长度只是对齐主要工作量，不等于固定semantic/KV输入的逐算子对照。
+
+含预热共186次完整输出通过长度、finite和error=0检查；全部固定预算结束。两组engine退出码0、
+退出后GPU进程均清空。完整顺序波形保存在远端artifacts，不混入主计时。
+
+测量区间GPU0显存峰值：baseline19278MiB，direct19284MiB；差异约6MiB。
+连续负载GPU0利用率采样均值95.63% → 93.42%，GPU1利用率0；这是NVML采样，不是SM占用率。
+
+## 解释与结论边界
+
+本轮证实，原上游同进程+条件KV复用已经具备Cosmos3的核心缓存结构。直接循环去掉了HOLD及
+每两工作单元的事件推进开销，同时禁止在一条声学计算期间推进其它请求AR。单请求略快、并发更慢
+与这项取舍一致，但本轮没有trace，不能给各项成本精确拆账；也没有证明NAR算子已最优。
+
+Cosmos3 Generator的UND在固定条件生成中只需一次前向，而YuE2还需要长semantic自回归生成。
+因此复制同进程结构不等于复制相同的负载组成。本轮也没有引入Cosmos的DiffusionEngine、
+跨请求NAR batching、CFG并行或sequence parallel，不能把结果称为对这些方案的否定。
+
+两组按baseline→direct顺序测量，未做交错ABAB或纯NAR事件计时。现有默认单阶段、可选KV两阶段
+及MPS配置均未改变。这里只保留可复现实验，不建议将该直接生成变体替换为默认执行路径。
+
+## 证据文件
+
+- `summary.json`：逐负载E2EL/RTF/吞吐/辅助遥测统计。
+- `artifacts/*/*.json`：逐请求时间、输出长度及hash。
+- `evidence/audio-verification.json`：完整顺序波形三项误差及并发hash对照。
+- `evidence/*/lifecycle.json`、`gpu-after.txt`：两次正常退出及GPU清空。
+- `experiment-source/execution.patch`：两方法变更；`yue2.py`为完整可跑实验副本。
+- `evidence/source-check.json`、`remote-source-check.json`：129方法不变、12项生产hash不变、1690文件对比。
+- `scripts/make_variant.py`、`bench.py`、`run.py`、`summarize.py`、`verify.py`：完整复现脚本。

@@ -1,0 +1,381 @@
+--- a/vllm_omni/config/pipeline_registry.py
++++ b/vllm_omni/config/pipeline_registry.py
+@@ -125,7 +125,7 @@
+ from vllm_omni.model_executor.models.voxcpm2.pipeline import VOXCPM2_PIPELINE
+ from vllm_omni.model_executor.models.voxtral_tts.pipeline import VOXTRAL_TTS_PIPELINE
+ from vllm_omni.model_executor.models.wan2_2.pipeline import WAN2_2_TI2V_PIPELINE
+-from vllm_omni.model_executor.models.yue2.pipeline import YUE2_PIPELINE
++from vllm_omni.model_executor.models.yue2.pipeline import YUE2_PIPELINE, YUE2_QUEUE_PIPELINE
+ 
+ logger = init_logger(__name__)
+ 
+@@ -211,6 +211,7 @@
+     "voxtral_tts": VOXTRAL_TTS_PIPELINE,
+     "wan2_2_ti2v": WAN2_2_TI2V_PIPELINE,
+     "yue2": YUE2_PIPELINE,
++    "yue2_queue": YUE2_QUEUE_PIPELINE,
+ }
+ 
+ 
+--- a/vllm_omni/model_executor/models/registry.py
++++ b/vllm_omni/model_executor/models/registry.py
+@@ -484,6 +484,7 @@
+         "MiniMaxMusic3AcousticForConditionalGeneration",
+     ),
+     ## YuE2-3B (text-to-music; single-stage native-AR with terminal NAR/VAE)
++    "Yue2QueuedModel": ("yue2", "queued", "Yue2QueuedModel"),
+     "Yue2ForCausalLM": (
+         "yue2",
+         "yue2",
+--- a/vllm_omni/model_executor/models/yue2/pipeline.py
++++ b/vllm_omni/model_executor/models/yue2/pipeline.py
+@@ -16,6 +16,8 @@
+ ``default_sampling_params`` so ``has_sampling_extra_args`` turns on and the
+ per-request args reach the model's forward.
+ """
++
++from dataclasses import replace
+ 
+ from vllm_omni.config.stage_config import (
+     PipelineConfig,
+@@ -51,3 +53,18 @@
+ )
+ 
+ __all__ = ["YUE2_PIPELINE"]
++
++
++YUE2_QUEUE_PIPELINE = replace(
++    YUE2_PIPELINE,
++    model_type="yue2_queue",
++    model_arch="Yue2QueuedModel",
++    default_deploy_config_name="yue2_queue.yaml",
++    stages=(
++        replace(
++            YUE2_PIPELINE.stages[0],
++            model_arch="Yue2QueuedModel",
++            scheduler_cls="vllm_omni.model_executor.models.yue2.queued.Yue2QueueScheduler",
++        ),
++    ),
++)
+--- /dev/null
++++ b/vllm_omni/model_executor/models/yue2/queued.py
+@@ -0,0 +1,173 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Opt-in same-worker B=1 synthesis after releasing native AR slots."""
++
++import time
++from dataclasses import dataclass, field, replace
++
++import torch
++from vllm.v1.engine import EngineCoreOutputs, FinishReason
++from vllm.v1.outputs import AsyncModelRunnerOutput
++from vllm.v1.request import RequestStatus
++
++from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
++from vllm_omni.core.sched.output import OmniSchedulerOutput
++from vllm_omni.engine import OmniEngineCoreOutput
++from vllm_omni.outputs import OmniModelRunnerOutput
++from vllm_omni.worker.gpu_ar_model_runner import GPUARModelRunner
++from vllm_omni.worker.gpu_ar_worker import GPUARWorker
++
++from .yue2 import MUSIC_END, SAMPLE_RATE, Yue2ForCausalLM
++
++
++@dataclass
++class Yue2QueueSchedule(OmniSchedulerOutput):
++    # Remove runner AR state without cancelling the model's acoustic job.
++    acoustic_req_ids: set[str] = field(default_factory=set)
++
++
++@dataclass
++class Yue2QueueOutput(OmniModelRunnerOutput):
++    acoustic_started: list[str] = field(default_factory=list)
++    acoustic_ready: dict[str, dict[str, torch.Tensor]] = field(default_factory=dict)
++
++
++class Yue2QueuedModel(Yue2ForCausalLM):
++    def __init__(self, *, vllm_config, prefix=""):
++        parallel = vllm_config.parallel_config
++        if parallel.tensor_parallel_size != 1 or parallel.pipeline_parallel_size != 1:
++            raise ValueError("YuE2 queued synthesis requires TP=PP=1")
++        if vllm_config.scheduler_config.async_scheduling:
++            raise ValueError("YuE2 queued synthesis requires synchronous scheduling")
++        if vllm_config.model_config.use_v2_model_runner or vllm_config.speculative_config is not None:
++            raise ValueError("YuE2 queued synthesis requires model runner v1 without speculative decoding")
++        if vllm_config.cache_config.enable_prefix_caching or vllm_config.kv_transfer_config is not None:
++            raise ValueError("YuE2 queued synthesis requires APC and external KV connectors disabled")
++        super().__init__(vllm_config=vllm_config, prefix=prefix)
++        self.acoustic_started: list[str] = []
++
++    def _hold_allowed(self, state):
++        return False
++
++    def _finish_request_safely(self, state, *, hit_end):
++        if state.constants.skip_synthesis:
++            return super()._finish_request_safely(state, hit_end=hit_end)
++        self._queue_synthesis(state)
++        self.acoustic_started.append(state.request_id)
++
++    def poll_audio(self):
++        self._synthesis.pump()
++        ready = {}
++        # ponytail: scan native model states; index jobs only if this becomes measurable.
++        for rid, state in self._states.items():
++            job = state.job
++            if job is None or not job.done():
++                continue
++            audio, failed = job.finish()
++            state.job = None
++            self._decode_t0.pop(rid, None)
++            ready[rid] = {
++                "audio": audio,
++                "sr": torch.tensor(SAMPLE_RATE, dtype=torch.int32),
++                "meta.truncated": torch.tensor(int(state.truncated)),
++                "meta.error": torch.tensor(int(failed)),
++            }
++        return ready
++
++
++class Yue2QueueRunner(GPUARModelRunner):
++    def _update_states(self, scheduler_output):
++        # Only runner bookkeeping sees these IDs as finished. The model callback
++        # still receives the genuine terminal/abort IDs from execute_model.
++        detached = getattr(scheduler_output, "acoustic_req_ids", set())
++        return super()._update_states(
++            replace(scheduler_output, finished_req_ids=scheduler_output.finished_req_ids | detached)
++        )
++
++    def _with_audio(self, output):
++        if isinstance(output, AsyncModelRunnerOutput):
++            output = output.get_output()
++        ready = self.model.poll_audio()
++        # The runner may hold a CUDAGraphWrapper: assignment would shadow the
++        # underlying model's list on that wrapper instead of consuming it.
++        started = list(self.model.acoustic_started)
++        self.model.acoustic_started.clear()
++        return Yue2QueueOutput(**vars(output), acoustic_started=started, acoustic_ready=ready)
++
++    @torch.inference_mode()
++    def execute_model(self, scheduler_output, *args, **kwargs):
++        output = super().execute_model(scheduler_output, *args, **kwargs)
++        if output is not None:
++            output = self._with_audio(output)
++            if not scheduler_output.total_num_scheduled_tokens and not output.acoustic_ready:
++                # ponytail: 1ms polling while AR is idle; use event wakeups if needed.
++                time.sleep(0.001)
++        return output
++
++    @torch.inference_mode()
++    def sample_tokens(self, grammar_output):
++        return self._with_audio(super().sample_tokens(grammar_output))
++
++
++class Yue2QueueWorker(GPUARWorker):
++    model_runner_cls = Yue2QueueRunner
++
++
++class Yue2QueueScheduler(OmniARScheduler):
++    def _update_request_with_output(self, request, new_token_ids, is_stale=False):
++        if getattr(request, "yue2_acoustic", False) and not is_stale:
++            assert new_token_ids == [MUSIC_END]
++            # Keep the end token for the final audio output, not this AR handoff.
++            return [], False
++        return super()._update_request_with_output(request, new_token_ids, is_stale=is_stale)
++
++    def get_num_unfinished_requests(self):
++        return super().get_num_unfinished_requests() + sum(
++            bool(getattr(r, "yue2_acoustic", False)) and not r.is_finished() for r in self.requests.values()
++        )
++
++    def schedule(self, throttle_prefills=False):
++        output = super().schedule(throttle_prefills)
++        acoustic = {rid for rid, r in self.requests.items() if getattr(r, "yue2_acoustic", False)}
++        return Yue2QueueSchedule(**vars(output), acoustic_req_ids=acoustic)
++
++    def update_from_output(self, scheduler_output, model_runner_output):
++        started = getattr(model_runner_output, "acoustic_started", ())
++        for rid in started:
++            request = self.requests.get(rid)
++            if request is not None and not request.is_finished():
++                request.yue2_acoustic = True
++        outputs = super().update_from_output(scheduler_output, model_runner_output)
++        for rid in started:
++            request = self.requests.get(rid)
++            if request is None or request.is_finished():
++                continue
++            self.running.remove(request)
++            self._inflight_prefills.discard(request)
++            self._free_request_blocks(request)
++            self.encoder_cache_manager.free(request)
++        for rid, payload in getattr(model_runner_output, "acoustic_ready", {}).items():
++            request = self.requests.get(rid)
++            if request is None or request.is_finished():
++                continue  # Abort won the race; normal finished-ID cleanup cancels the job.
++            failed = bool(payload["meta.error"])
++            request.append_output_token_ids(MUSIC_END)
++            request.status = RequestStatus.FINISHED_ERROR if failed else RequestStatus.FINISHED_STOPPED
++            self._free_request(request)
++            batch = outputs.setdefault(request.client_index, EngineCoreOutputs())
++            batch.outputs.append(
++                OmniEngineCoreOutput(
++                    request_id=rid,
++                    new_token_ids=[MUSIC_END],
++                    finish_reason=FinishReason.ERROR if failed else FinishReason.STOP,
++                    stop_reason="YuE2 synthesis failed" if failed else MUSIC_END,
++                    multimodal_output=payload,
++                )
++            )
++        # Merge, since the base scheduler may already have emitted abort IDs.
++        for client, finished in (self.finished_req_ids_dict or {}).items():
++            batch = outputs.setdefault(client, EngineCoreOutputs())
++            batch.finished_requests = (batch.finished_requests or set()) | finished
++        if self.finished_req_ids_dict is not None:
++            self.finished_req_ids_dict.clear()
++        return outputs
+--- /dev/null
++++ b/vllm_omni/deploy/yue2_queue.yaml
+@@ -0,0 +1,46 @@
++# Experimental same-process queue. Acoustic B=1; max_num_seqs limits AR only.
++# Keep the upstream sampler, condition prefill, NAR/velocity graphs and VAE.
++# This 4GiB AR cache budget is the tested 3090 setting, not a memory guarantee.
++pipeline: yue2_queue
++model_runner: v1
++async_chunk: false
++dtype: bfloat16
++stages:
++- stage_id: 0
++  max_num_seqs: 4
++  gpu_memory_utilization: 0.7
++  enforce_eager: false
++  enable_prefix_caching: false
++  max_num_batched_tokens: 24576
++  max_model_len: 24576
++  devices: '0'
++  skip_tokenizer_init: true
++  tokenizer: gpt2
++  hf_overrides:
++    architectures:
++    - Yue2QueuedModel
++    yue2_vae_path: null
++    yue2_vae_revision: main
++  default_sampling_params:
++    extra_args:
++      yue2_phase: semantic
++      yue2_seed: 831001
++      yue2_max_audio_frames: 200
++      yue2_max_hold_steps: 4096
++    detokenize: false
++    stop_token_ids:
++    - 151848
++    - 151852
++    max_tokens: 4297
++    temperature: 1.0
++  async_scheduling: false
++  enable_chunked_prefill: false
++  compilation_config:
++    mode: 3
++    cudagraph_mode: FULL_AND_PIECEWISE
++    cudagraph_capture_sizes:
++    - 1
++    - 2
++    - 4
++  kv_cache_memory_bytes: 4294967296
++  worker_cls: vllm_omni.model_executor.models.yue2.queued.Yue2QueueWorker
+--- /dev/null
++++ b/tests/worker/test_yue2_queue.py
+@@ -0,0 +1,94 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""AR detachment keeps the native request alive until audio or cancellation."""
++
++from types import SimpleNamespace
++
++import pytest
++import torch
++from vllm.v1.engine import FinishReason
++from vllm.v1.request import RequestStatus
++
++from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
++from vllm_omni.model_executor.models.yue2.queued import Yue2QueueOutput, Yue2QueueRunner, Yue2QueueScheduler
++from vllm_omni.model_executor.models.yue2.yue2 import MUSIC_END
++from vllm_omni.outputs import OmniModelRunnerOutput
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def test_detach_zero_token_completion_and_abort_race(monkeypatch):
++    model = SimpleNamespace(acoustic_started=[], poll_audio=lambda: {})
++
++    class Wrapper:
++        def __getattr__(self, name):
++            return getattr(model, name)
++
++    runner = object.__new__(Yue2QueueRunner)
++    runner.model = Wrapper()
++    for rid in ("first", "second"):
++        model.acoustic_started.append(rid)
++        result = runner._with_audio(OmniModelRunnerOutput(req_ids=[], req_id_to_index={}))
++        assert result.acoustic_started == [rid] and not model.acoustic_started
++
++    def update(self, schedule, output):
++        for rid in schedule.num_scheduled_tokens:
++            tokens, stopped = self._update_request_with_output(self.requests[rid], [MUSIC_END])
++            assert tokens == [] and not stopped
++        return {}
++
++    monkeypatch.setattr(OmniARScheduler, "update_from_output", update)
++    monkeypatch.setattr(OmniARScheduler, "get_num_unfinished_requests", lambda self: len(self.running))
++
++    class Request:
++        request_id = "song"
++        client_index = 0
++        status = RequestStatus.RUNNING
++
++        def __init__(self):
++            self.tokens = []
++
++        def is_finished(self):
++            return RequestStatus.is_finished(self.status)
++
++        def append_output_token_ids(self, token):
++            self.tokens.append(token)
++
++    for outcome in ("success", "error", "abort"):
++        scheduler = object.__new__(Yue2QueueScheduler)
++        request = Request()
++        scheduler.requests = {"song": request}
++        scheduler.running = [request]
++        scheduler._inflight_prefills = {request}
++        scheduler.finished_req_ids_dict = {}
++        freed = []
++        scheduler._free_request_blocks = lambda r: freed.append(r.request_id)
++        scheduler.encoder_cache_manager = SimpleNamespace(free=lambda r: None)
++
++        def finish(r):
++            scheduler.requests.pop(r.request_id)
++            scheduler.finished_req_ids_dict.setdefault(r.client_index, set()).add(r.request_id)
++
++        scheduler._free_request = finish
++        output = Yue2QueueOutput(req_ids=["song"], req_id_to_index={"song": 0}, acoustic_started=["song"])
++        assert scheduler.update_from_output(SimpleNamespace(num_scheduled_tokens={"song": 1}), output) == {}
++        assert freed == ["song"] and not scheduler.running and not scheduler._inflight_prefills
++        assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
++        assert not request.tokens
++        if outcome == "abort":
++            request.status = RequestStatus.FINISHED_ABORTED
++            scheduler.requests.clear()
++        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(outcome == "error")}
++        result = scheduler.update_from_output(
++            SimpleNamespace(num_scheduled_tokens={}),
++            Yue2QueueOutput(req_ids=[], req_id_to_index={}, acoustic_ready={"song": payload}),
++        )
++        assert not scheduler.requests and scheduler.get_num_unfinished_requests() == 0
++        if outcome == "abort":
++            assert not result
++        else:
++            assert request.tokens == [MUSIC_END]
++            assert result[0].finished_requests == {"song"}
++            final = result[0].outputs[0]
++            assert final.finish_reason == (FinishReason.ERROR if outcome == "error" else FinishReason.STOP)
++            assert final.multimodal_output is payload

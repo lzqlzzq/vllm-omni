@@ -1,0 +1,51 @@
+# 新 H800：同候选 MPS 开关交错验证
+
+四轮完成。当前同进程分阶段队列候选开启 MPS **没有观察到收益**：两组配对吞吐分别 −0.69% / −1.51%，E2EL P95 分别 +1.29% / +0.54%。RTF P95 一升一降。新卡全程没有采到温控降频标志，因此本轮不能再用旧卡热限制解释结果。
+
+这支持降低“可由 MPS 缓解的跨进程 CUDA context switching 是当前主要瓶颈”的优先级。不能由此证明所有 GPU 调度、资源竞争、stream 优先级、同步或 CPU 线程切换成本为零；本轮没有阶段探针，也没有隔离这些机制。当前候选本来就在同 worker/context 内执行，MPS 开关是诊断证据，不是所有切换成本的直接测量。
+
+## 完整结果
+
+按关→开→开→关顺序，每轮独立进程、相同 64 提示/种子、另 2 首完整预热。下表吞吐单位为音频秒/墙钟秒，E2EL 单位秒；RTF 为单请求 E2EL/该请求实际音频时长。设备峰值为100ms采样值，包含初始化及预热，不是瞬时峰值保证。
+
+| 轮次 | 吞吐 | E2EL P50 / P95 | RTF P50 / P95 | 设备峰值 GiB | 总音频秒 |
+|---|---:|---:|---:|---:|---:|
+| mps-off-01 | 20.909 | 405.532 / 639.043 | 1.889 / 2.688 | 59.132 | 14300.275 |
+| mps-on-01 | 20.764 | 412.075 / 647.264 | 1.946 / 2.812 | 59.358 | 14371.915 |
+| mps-on-02 | 20.694 | 409.770 / 645.305 | 1.908 / 2.714 | 59.214 | 14300.275 |
+| mps-off-02 | 21.011 | 407.732 / 641.849 | 1.916 / 2.782 | 59.395 | 14403.915 |
+
+开相对关的两个相反顺序配对：
+
+| 配对 | 吞吐变化 | E2EL P50 | E2EL P95 | RTF P95 | 峰值差 GiB | 总音频时长差 |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | -0.69% | +1.61% | +1.29% | +4.59% | +0.227 | +0.501% |
+| 2 | -1.51% | +0.50% | +0.54% | -2.46% | -0.182 | -0.720% |
+
+两配对吞吐变化中位数约 −1.10%，E2EL P95 变化中位数约 +0.91%。样本仅两个顺序配对，不把约1%的差异宣称为普遍或统计显著退化。各轮1次ABC/1次semantic预算截断均保留。生成轨迹不同，即使个别轮总时长相同也不是逐值parity；RTF尾部变化需结合这些长度差异看。
+
+## 条件与边界
+
+- 新远端 SSH36665，`/root/autodl-tmp/yue2-context-validation-20261009-01`，screen `yue2-context-abba` 已结束。H800 PCIe80GB，UUID `GPU-000672e1-65c0-a297-14cc-123d8ce26c50`，驱动580.82.07，350W；未修改计算模式、功率或时钟。
+- 同一冻结 phase-queue 候选，AR32/KV32GiB/client64/NAR1/VAE1/window0/full CoT/CFG1，ABC4096/semantic9000。保留自动ABC、同worker阶段调度和原采样/NAR/VAE；未新改生产代码。候选1861生产文件逐字节等于上轮实际远端快照。
+- 两首完整预热，不强制补热到旧卡83°C。四轮计时温度49–65/49–64/49–64/49–65°C，中位SM均1230MHz，温控标志采样占比均0；不是锁频实验，不代表没有功率/资源竞争影响。
+- MPS开启均100% active threads、私有server；计时前后核验worker归属6054→6041、6586→6573。关闭轮worker5344/7108直接出现在GPU进程表，环境无MPS pipe；每轮边界GPU/MPS清空。
+- 无逐步、batch或profiling钩子；E2EL从ABC开始到完整音频。没有保存或回收音频/latent。上游源码仅备妥，本轮未运行上游，不将本轮跨卡差异当作候选相对上游收益。
+- 256正式＋8预热均通过完整音频形状、有限值和错误标记检查。未新验WSB、听感、精确数值parity、多卡或进行中shutdown。
+
+## 环境恢复与失败记录
+
+旧SSH16593不可连接；新盘为空，重建原冻结环境。Python3.12.3、torch2.13.0+cu130、vLLM0.31；274固定版本与模型/VAE固定revision和SHA在运行后复核通过。源文件运行前后不变。共享盘既有评分缓存和其它数据未改。
+
+安装下载曾慢速/超时，保留日志后分段续传并按PyPI SHA校验wheel。首次基础GEMM通过没有覆盖FlashInfer JIT。三个完整初始化失败均未进入预热或计时：未带revision的上游预下载找不到缓存、GPT-2占位tokenizer缓存缺失、venv nvcc13.4.92与CUDA13.0头文件不匹配。分别通过外置harness使用已校验本地模型/VAE快照、补占位缓存、独立编译工具链修复；生产源码未改。
+
+最终CUDA_HOME为任务内`cuda130-toolchain/nvidia/cu13`：nvcc/CRT/NVVM13.0.88、runtime13.0.96，链接现有venv的curand等组件并补lib64/libcudart链接。原venv固定包不变。单独JIT探针先暴露缺curand和lib64布局，补齐后四行GPU采样均输出预期42；随后四轮完整引擎通过。所有初始化及JIT失败日志保留。原[preflight.json](evidence/preflight.json)保留修复前快照，最终工具链以[toolchain.json](evidence/toolchain.json)为准。
+
+运行后版本复查脚本首次误把requirements注释当包名，修正为跳过注释后274版本/权重/工具链哈希全部通过；这是离线审计器解析问题，不是生成失败。未commit/push。
+
+## 可复核证据
+
+- [冻结计划](evidence/plan.json)、[部署配置](configs/candidate.yaml)、[E2E harness](scripts/bench_e2e.py)、[四轮启动器](scripts/run_abba.py)。
+- [指标复算与配对](evidence/analysis.json)、[复算脚本](scripts/analyze.py)、[逐请求和设备记录](artifacts/)。
+- [源码前](evidence/source-before.json)/[后](evidence/source-after.json)、[运行后环境](evidence/environment-after.json)、[模型身份](evidence/assets.json)、[清空状态](evidence/cleanup.json)。
+- [回收SHA清单](evidence/collection-sha256.json)：133份文本记录，7,039,225字节，本地全部SHA一致；提示/种子/协议/配置/源码/MPS状态/指标与设备峰值复算通过。

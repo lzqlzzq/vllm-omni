@@ -1,0 +1,195 @@
+{
+  "complete": true,
+  "production_files": 1860,
+  "micro_rows": 20,
+  "nar_timed_solves": 40,
+  "nar_warm_solves": 20,
+  "summary": [
+    {
+      "case": "b1-short",
+      "medians": {
+        "current": {
+          "wall_s": 0.8511013649404049,
+          "gpu_span_ms": 851.0670471191406,
+          "frames_s": 1203.1660429736664
+        },
+        "flashinfer_silu": {
+          "wall_s": 0.826963746920228,
+          "gpu_span_ms": 826.9229125976562,
+          "frames_s": 1238.2647959057779
+        }
+      },
+      "throughput_gain_pct": 2.918824206027182,
+      "pair_gain_pct": [
+        2.320659089519994,
+        3.4731312908913736
+      ],
+      "checks": {
+        "velocity": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        },
+        "latent": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        }
+      }
+    },
+    {
+      "case": "b1-long",
+      "medians": {
+        "current": {
+          "wall_s": 6.461326336488128,
+          "gpu_span_ms": 6461.345947265625,
+          "frames_s": 950.8883898296342
+        },
+        "flashinfer_silu": {
+          "wall_s": 6.31119592487812,
+          "gpu_span_ms": 6311.221435546875,
+          "frames_s": 973.5113123975461
+        }
+      },
+      "throughput_gain_pct": 2.3787949763721894,
+      "pair_gain_pct": [
+        1.9954445743652682,
+        2.6565859436677774
+      ],
+      "checks": {
+        "velocity": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        },
+        "latent": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        }
+      }
+    },
+    {
+      "case": "b2-equal",
+      "medians": {
+        "current": {
+          "wall_s": 7.63814021460712,
+          "gpu_span_ms": 7638.10986328125,
+          "frames_s": 1072.5123980301582
+        },
+        "flashinfer_silu": {
+          "wall_s": 7.4525911174714565,
+          "gpu_span_ms": 7452.569580078125,
+          "frames_s": 1099.2150078966995
+        }
+      },
+      "throughput_gain_pct": 2.4897259786689663,
+      "pair_gain_pct": [
+        2.460332530750664,
+        2.5558242412131893
+      ],
+      "checks": {
+        "velocity": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        },
+        "latent": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        }
+      }
+    },
+    {
+      "case": "b2-mixed",
+      "medians": {
+        "current": {
+          "wall_s": 7.246668886393309,
+          "gpu_span_ms": 7246.625,
+          "frames_s": 989.1441603842911
+        },
+        "flashinfer_silu": {
+          "wall_s": 7.074620582163334,
+          "gpu_span_ms": 7074.582763671875,
+          "frames_s": 1013.1993219269889
+        }
+      },
+      "throughput_gain_pct": 2.431908569962693,
+      "pair_gain_pct": [
+        2.503565199232294,
+        2.3281436899578623
+      ],
+      "checks": {
+        "velocity": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        },
+        "latent": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        }
+      }
+    },
+    {
+      "case": "b4-short",
+      "medians": {
+        "current": {
+          "wall_s": 2.9976217094808817,
+          "gpu_span_ms": 2997.586669921875,
+          "frames_s": 1366.4165957671148
+        },
+        "flashinfer_silu": {
+          "wall_s": 2.894144408404827,
+          "gpu_span_ms": 2894.1162109375,
+          "frames_s": 1415.2714661211276
+        }
+      },
+      "throughput_gain_pct": 3.5754021387304658,
+      "pair_gain_pct": [
+        3.5382793169605575,
+        3.595811308782171
+      ],
+      "checks": {
+        "velocity": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        },
+        "latent": {
+          "exact": true,
+          "max_abs": 0.0,
+          "relative_l2": 0.0
+        }
+      }
+    }
+  ],
+  "thermal": {
+    "artifacts/device.json": {
+      "samples": 128,
+      "temperature_range": [
+        35,
+        48
+      ],
+      "sm_range": [
+        1050,
+        1755
+      ],
+      "thermal_samples": 0
+    },
+    "artifacts/formal/device.json": {
+      "samples": 3368,
+      "temperature_range": [
+        36,
+        67
+      ],
+      "sm_range": [
+        345,
+        1755
+      ],
+      "thermal_samples": 0
+    }
+  }
+}

@@ -1,0 +1,483 @@
+{
+  "memory": [
+    {
+      "pid": 71381,
+      "weight_storage_bytes": {
+        "ar": 4096,
+        "nar": 2818816000,
+        "projection": 9973888,
+        "vae": 265497864
+      },
+      "memory": {
+        "allocated": 3571684352,
+        "reserved": 11425284096,
+        "peak_allocated": 6426564096,
+        "peak_reserved": 11425284096
+      },
+      "segments": {
+        "ordinary": {
+          "total": 11288969216,
+          "allocated": 3571683840,
+          "active": 3571683840
+        },
+        "graph_private": {
+          "total": 136314880,
+          "allocated": 512,
+          "active": 512
+        }
+      }
+    },
+    {
+      "pid": 70356,
+      "weight_storage_bytes": {
+        "ar": 4331915264
+      },
+      "memory": {
+        "allocated": 8777764352,
+        "reserved": 9147777024,
+        "peak_allocated": 8847351808,
+        "peak_reserved": 9147777024
+      },
+      "segments": {
+        "ordinary": {
+          "total": 8992587776,
+          "allocated": 8777758208,
+          "active": 8777758208
+        },
+        "graph_private": {
+          "total": 155189248,
+          "allocated": 6144,
+          "active": 6144
+        }
+      }
+    }
+  ],
+  "cpu_scopes_ms": {
+    "KV.capacity": {
+      "count": 4,
+      "sum_ms": 0.239641,
+      "max_ms": 0.069355,
+      "mean_ms": 0.05991025
+    },
+    "KV.import": {
+      "count": 112,
+      "sum_ms": 14.047591,
+      "max_ms": 1.237564,
+      "mean_ms": 0.12542491964285715
+    },
+    "KV.gather": {
+      "count": 4,
+      "sum_ms": 62.162465999999995,
+      "max_ms": 19.11951,
+      "mean_ms": 15.540616499999999
+    },
+    "KV.take": {
+      "count": 4,
+      "sum_ms": 3.641693,
+      "max_ms": 1.097043,
+      "mean_ms": 0.91042325
+    },
+    "NAR.init": {
+      "count": 4,
+      "sum_ms": 6.215417,
+      "max_ms": 2.100977,
+      "mean_ms": 1.55385425
+    },
+    "NAR.velocity.eager": {
+      "count": 4,
+      "sum_ms": 84.42398,
+      "max_ms": 23.28626,
+      "mean_ms": 21.105995
+    },
+    "NAR.solve.unit": {
+      "count": 260,
+      "sum_ms": 740.80228,
+      "max_ms": 99.80603,
+      "mean_ms": 2.8492395384615383
+    },
+    "NAR.velocity.capture": {
+      "count": 4,
+      "sum_ms": 91.48563,
+      "max_ms": 27.690762,
+      "mean_ms": 22.8714075
+    },
+    "acoustic.start": {
+      "count": 4,
+      "sum_ms": 190.962556,
+      "max_ms": 51.834188,
+      "mean_ms": 47.740639
+    },
+    "NAR.velocity.replay": {
+      "count": 248,
+      "sum_ms": 180.487166,
+      "max_ms": 2.614914,
+      "mean_ms": 0.7277708306451613
+    },
+    "NAR.solve": {
+      "count": 4,
+      "sum_ms": 19762.530249,
+      "max_ms": 6105.894895,
+      "mean_ms": 4940.63256225
+    },
+    "VAE.decode.unit": {
+      "count": 9,
+      "sum_ms": 600.182792,
+      "max_ms": 205.086379,
+      "mean_ms": 66.68697688888888
+    },
+    "VAE.decode": {
+      "count": 4,
+      "sum_ms": 730.766674,
+      "max_ms": 221.255541,
+      "mean_ms": 182.6916685
+    },
+    "acoustic.finish": {
+      "count": 4,
+      "sum_ms": 20322.935456,
+      "max_ms": 6291.25162,
+      "mean_ms": 5080.733864
+    },
+    "KV.release": {
+      "count": 4,
+      "sum_ms": 3.848259,
+      "max_ms": 1.166962,
+      "mean_ms": 0.96206475
+    },
+    "AR.execute": {
+      "count": 1285,
+      "sum_ms": 2775.116517,
+      "max_ms": 128.675078,
+      "mean_ms": 2.1596237486381322
+    },
+    "AR.sample": {
+      "count": 1284,
+      "sum_ms": 12963.979542,
+      "max_ms": 151.52469,
+      "mean_ms": 10.096557275700935
+    },
+    "KV.prepare_wait": {
+      "count": 4,
+      "sum_ms": 1.470599,
+      "max_ms": 0.499557,
+      "mean_ms": 0.36764975
+    },
+    "KV.export": {
+      "count": 112,
+      "sum_ms": 2.6889790000000002,
+      "max_ms": 0.137748,
+      "mean_ms": 0.024008741071428575
+    },
+    "KV.gather_ack_wait": {
+      "count": 4,
+      "sum_ms": 251.769,
+      "max_ms": 123.574036,
+      "mean_ms": 62.94225
+    },
+    "KV.publish": {
+      "count": 4,
+      "sum_ms": 264.709812,
+      "max_ms": 126.72823,
+      "mean_ms": 66.177453
+    }
+  },
+  "gpu_stream_inclusive_ms": {
+    "KV.gather": {
+      "count": 4,
+      "sum_ms": 45.559454917907715,
+      "max_ms": 14.244832038879395,
+      "mean_ms": 11.389863729476929
+    },
+    "NAR.init": {
+      "count": 4,
+      "sum_ms": 2.0956160128116608,
+      "max_ms": 0.6918399930000305,
+      "mean_ms": 0.5239040032029152
+    },
+    "NAR.velocity.eager": {
+      "count": 4,
+      "sum_ms": 342.7242546081543,
+      "max_ms": 109.77340698242188,
+      "mean_ms": 85.68106365203857
+    },
+    "NAR.velocity.capture": {
+      "count": 4,
+      "sum_ms": 347.372802734375,
+      "max_ms": 112.72025299072266,
+      "mean_ms": 86.84320068359375
+    },
+    "NAR.velocity.replay": {
+      "count": 248,
+      "sum_ms": 19003.204334259033,
+      "max_ms": 123.7165756225586,
+      "mean_ms": 76.62582392846384
+    },
+    "NAR.solve": {
+      "count": 4,
+      "sum_ms": 19758.078369140625,
+      "max_ms": 6104.443359375,
+      "mean_ms": 4939.519592285156
+    },
+    "VAE.decode": {
+      "count": 4,
+      "sum_ms": 726.4548492431641,
+      "max_ms": 219.84947204589844,
+      "mean_ms": 181.61371231079102
+    }
+  },
+  "semantic": [
+    {
+      "name": "semantic.end",
+      "start": 33874207555909533,
+      "pid": 70356,
+      "tid": 70356,
+      "request": null,
+      "id": "profile-0-98cb5b06",
+      "frames": 512,
+      "prefix_length": 120,
+      "tokens_sha256": "c24daf1b030041653e79047a09399b7153d02454df05478a69e4a87a94625e09",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33874211518318090,
+      "pid": 70356,
+      "tid": 70356,
+      "request": null,
+      "id": "profile-1-b5f0afd2",
+      "frames": 768,
+      "prefix_length": 121,
+      "tokens_sha256": "0405438bde73df82738ed04780c454d96a49cac2e6d73631188695168f18b493",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33874215467118062,
+      "pid": 70356,
+      "tid": 70356,
+      "request": null,
+      "id": "profile-2-bdc84c88",
+      "frames": 1024,
+      "prefix_length": 125,
+      "tokens_sha256": "3f3c5a130ccb9b1842d7184c5cc8da15b438664a1d179987b87a916c9377966c",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33874219450502502,
+      "pid": 70356,
+      "tid": 70356,
+      "request": null,
+      "id": "profile-3-b305b6c6",
+      "frames": 1280,
+      "prefix_length": 122,
+      "tokens_sha256": "a9fe2ff8aa0f0fad175fbd9639b70314ce27c1a10a86e74b90562f505beb1537",
+      "truncated": true
+    }
+  ],
+  "holds": [],
+  "ar_rows": {
+    "semantic_rows": 3588,
+    "semantic_tokens": 4072,
+    "condition_prefill_rows": 8,
+    "condition_prefill_tokens": 4080
+  },
+  "batch_steps": {
+    "1": 257,
+    "4": 514,
+    "3": 257,
+    "2": 256
+  },
+  "transfers": [
+    {
+      "id": "profile-0-98cb5b06",
+      "ticket": "8abae1aeea3d26ee3dcb44a873d7081e",
+      "attempts": 1,
+      "publish_ms": 24.274181,
+      "ack_to_take_ms": 14.789444
+    },
+    {
+      "id": "profile-1-b5f0afd2",
+      "ticket": "fa4973684ef29eea06ad64c96714eeda",
+      "attempts": 1,
+      "publish_ms": 21.985253,
+      "ack_to_take_ms": 11.59886
+    },
+    {
+      "id": "profile-2-bdc84c88",
+      "ticket": "eac2bf0a85e9ad770d940d425268a464",
+      "attempts": 1,
+      "publish_ms": 126.72823,
+      "ack_to_take_ms": 2205.635618
+    },
+    {
+      "id": "profile-3-b305b6c6",
+      "ticket": "679276b4e6d7f6e93504ae13c93bd63b",
+      "attempts": 1,
+      "publish_ms": 91.722148,
+      "ack_to_take_ms": 3276.393723
+    }
+  ],
+  "nsys": {
+    "kernel_count": 650320,
+    "invalid_intervals": 0,
+    "clock_offsets_ns": [
+      33874203614168140,
+      33874203614047851
+    ],
+    "kernel_sum_s": {
+      "AR_backbone": 10.17345432800236,
+      "AR_head_sampler": 0.319382612999998,
+      "KV_gather": 0.003048538000000001,
+      "unattributed": 4.4731e-05,
+      "NAR": 19.42957602899986,
+      "VAE": 0.7030043570000004,
+      "acoustic_other": 0.0005255459999999999
+    },
+    "kernel_union_s": {
+      "AR_backbone": 10.156045787,
+      "AR_head_sampler": 0.319382613,
+      "KV_gather": 0.003048538,
+      "unattributed": 4.4731e-05,
+      "NAR": 19.424769467,
+      "VAE": 0.703004357,
+      "acoustic_other": 0.000525546,
+      "dense_condition": 0.0
+    },
+    "kernel_counts": {
+      "AR_backbone": 469281,
+      "AR_head_sampler": 91098,
+      "KV_gather": 224,
+      "unattributed": 24,
+      "NAR": 87892,
+      "VAE": 1777,
+      "acoustic_other": 24
+    },
+    "device_kernel_union_s": 23.581421936,
+    "gpu_span_s": 24.976352602,
+    "ar_acoustic_overlap_s": 7.023379937,
+    "runtime_api_ms": {
+      "cudaEventSynchronize_v3020": 20534.405695999998,
+      "cudaMemcpyAsync_v3020": 10331.339358999903,
+      "cudaGraphLaunch_v10000": 1012.9624230000015,
+      "cudaStreamSynchronize_v3020": 778.0566289999999,
+      "cudaLaunchKernel_v7000": 285.34086000000013,
+      "cudaIpcCloseMemHandle_v4010": 171.64589999999998,
+      "cuLibraryLoadData": 28.401144000000002,
+      "cuLaunchKernel": 22.64443299999993,
+      "cudaGraphInstantiateWithFlags_v11040": 16.36399,
+      "cudaStreamIsCapturing_v10000": 11.552354000000108,
+      "cuLaunchKernelEx": 9.646432999999986,
+      "cudaEventRecord_v3020": 6.5342910000000005,
+      "cudaLaunchKernelExC_v11060": 6.231969000000003,
+      "cudaEventQuery_v3020": 6.0320669999999845,
+      "cudaEventCreateWithFlags_v3020": 5.115860999999989,
+      "cuKernelGetName": 4.6421689999999804,
+      "cudaEventRecordWithFlags_v11010": 4.619056999999996,
+      "cudaStreamGetCaptureInfo_v12030": 4.304052999999992,
+      "cudaMemsetAsync_v3020": 3.1099399999999977,
+      "cudaIpcOpenMemHandle_v4010": 2.7830980000000003
+    },
+    "top_kernels": [
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_256x128_32x3_tn_align8>(T1::Params)",
+        "seconds": 8.33000894299981
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x1_tn_align8>(T1::Params)",
+        "seconds": 3.4991191379999127
+      },
+      {
+        "category": "NAR",
+        "name": "void pytorch_flash::flash_fwd_kernel<Flash_fwd_kernel_traits<(int)128, (int)128, (int)32, (int)4, (bool)0, (bool)0, cutlass::bfloat16_t, Flash_kernel_traits<(int)128, (int)128, (int)32, (int)4, cutlass::bfloat16_t>>, (bool)0, (bool)0, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)0>(pytorch_flash::Flash_fwd_params)",
+        "seconds": 3.106317051000001
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_32x3_tn",
+        "seconds": 2.1068547189999913
+      },
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_128x256_32x3_tn_align8>(T1::Params)",
+        "seconds": 1.8385399330000003
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x3_tn",
+        "seconds": 1.4936707040000226
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s1688gemm_bf16_128x128_ldg8_f2f_stages_32x1_tn",
+        "seconds": 1.2276541699999999
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_64x64_ldg8_f2f_stages_64x5_tn",
+        "seconds": 1.0554076049999963
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s1688gemm_bf16_128x128_ldg8_f2f_tn",
+        "seconds": 0.9275416160000002
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (int)4, (bool)0, (bool)0, cutlass::bfloat16_t, Flash_kernel_traits<(int)128, (int)64, (int)128, (int)4, cutlass::bfloat16_t>>, (bool)0, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)1, (bool)0>(flash::Flash_fwd_params)",
+        "seconds": 0.8625240919999979
+      },
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_256x64_32x4_tn_align8>(T1::Params)",
+        "seconds": 0.7359535429999995
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_32x32_128x2_tn_align8>(T1::Params)",
+        "seconds": 0.6956612500000077
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn",
+        "seconds": 0.5740793499999985
+      },
+      {
+        "category": "NAR",
+        "name": "triton_poi_fused_mul_silu_split_1",
+        "seconds": 0.3551250780000012
+      },
+      {
+        "category": "AR_backbone",
+        "name": "triton_red_fused_3",
+        "seconds": 0.26324972099998406
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_256x128_32x3_tn_align8>(T1::Params)",
+        "seconds": 0.247546248
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s16816gemm_bf16_128x128_ldg8_f2f_stages_32x5_tn",
+        "seconds": 0.2441380580000002
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_75_tensorop_bf16_s1688gemm_bf16_128x64_tn_align1>(T1::Params)",
+        "seconds": 0.19849389900000036
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void at::native::elementwise_kernel<(int)128, (int)4, void at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase &)::[lambda() (instance 3)]::operator ()() const::[lambda() (instance 12)]::operator ()() const::[lambda(c10::BFloat16) (instance 1)]>(at::TensorIteratorBase &, const T1 &)::[lambda(int) (instance 1)]>(int, T3)",
+        "seconds": 0.17505704800001579
+      },
+      {
+        "category": "NAR",
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_pow_rsqrt_slice_split_with_sizes_sub_unsqueeze_view_1",
+        "seconds": 0.15052062899999907
+      }
+    ]
+  }
+}

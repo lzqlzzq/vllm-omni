@@ -1,0 +1,334 @@
+{
+  "runs": [
+    {
+      "label": "formal-candidate-01",
+      "arm": "candidate",
+      "count": 64,
+      "audio_s": 14455.434666666666,
+      "abc_tokens": 130385,
+      "throughput": 17.40914542875862,
+      "request_throughput": 0.07707726077651568,
+      "e2el": {
+        "p50": 436.35580719151767,
+        "p95": 769.7962477614171
+      },
+      "rtf": {
+        "p50": 1.8171101601466235,
+        "p95": 3.0519260775517614
+      },
+      "peak_device_gib": 76.4559326171875,
+      "peak_measure_gib": 76.4559326171875,
+      "peak_allocated_gib": 46.73893976211548,
+      "peak_reserved_gib": 75.2734375,
+      "observed": false,
+      "jobs": {},
+      "packed_songs": null,
+      "abc_truncated": 1,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          78,
+          88
+        ],
+        "median_sm_mhz": 795,
+        "sw_thermal_fraction": 0.9150247794028769
+      }
+    },
+    {
+      "label": "formal-candidate-02",
+      "arm": "candidate",
+      "count": 64,
+      "audio_s": 14455.434666666666,
+      "abc_tokens": 130385,
+      "throughput": 17.269002585187334,
+      "request_throughput": 0.07645679226793153,
+      "e2el": {
+        "p50": 442.5896154260263,
+        "p95": 776.3913858220388
+      },
+      "rtf": {
+        "p50": 1.8403725018932042,
+        "p95": 3.087153388539034
+      },
+      "peak_device_gib": 76.45587158203125,
+      "peak_measure_gib": 76.45587158203125,
+      "peak_allocated_gib": 46.73893976211548,
+      "peak_reserved_gib": 75.2734375,
+      "observed": false,
+      "jobs": {},
+      "packed_songs": null,
+      "abc_truncated": 1,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          77,
+          88
+        ],
+        "median_sm_mhz": 780.0,
+        "sw_thermal_fraction": 0.917065581617999
+      }
+    },
+    {
+      "label": "formal-upstream-01",
+      "arm": "upstream",
+      "count": 64,
+      "audio_s": 14443.874666666667,
+      "abc_tokens": 130623,
+      "throughput": 17.140040198988256,
+      "request_throughput": 0.07594655852745665,
+      "e2el": {
+        "p50": 460.55569086543983,
+        "p95": 766.3067850792605
+      },
+      "rtf": {
+        "p50": 2.0829862167193447,
+        "p95": 3.1871622249647795
+      },
+      "peak_device_gib": 64.2078857421875,
+      "peak_measure_gib": 64.2078857421875,
+      "peak_allocated_gib": 44.33642911911011,
+      "peak_reserved_gib": 63.02734375,
+      "observed": false,
+      "jobs": {},
+      "packed_songs": null,
+      "abc_truncated": 2,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          80,
+          88
+        ],
+        "median_sm_mhz": 780,
+        "sw_thermal_fraction": 0.9224824634407324
+      }
+    },
+    {
+      "label": "formal-upstream-02",
+      "arm": "upstream",
+      "count": 64,
+      "audio_s": 14585.074666666667,
+      "abc_tokens": 131259,
+      "throughput": 17.130957043550165,
+      "request_throughput": 0.07517145272440227,
+      "e2el": {
+        "p50": 451.8818882575142,
+        "p95": 777.9015161603455
+      },
+      "rtf": {
+        "p50": 2.075754378886725,
+        "p95": 3.051313287226655
+      },
+      "peak_device_gib": 64.24102783203125,
+      "peak_measure_gib": 64.24102783203125,
+      "peak_allocated_gib": 44.394564628601074,
+      "peak_reserved_gib": 63.060546875,
+      "observed": false,
+      "jobs": {},
+      "packed_songs": null,
+      "abc_truncated": 2,
+      "semantic_truncated": 3,
+      "thermal": {
+        "temperature_range_c": [
+          81,
+          88
+        ],
+        "median_sm_mhz": 780.0,
+        "sw_thermal_fraction": 0.931497175141243
+      }
+    },
+    {
+      "label": "tune-ar16-kv16-w200-01",
+      "arm": "candidate",
+      "count": 32,
+      "audio_s": 7044.477333333333,
+      "abc_tokens": 62561,
+      "throughput": 15.73938510892959,
+      "request_throughput": 0.07149718845747537,
+      "e2el": {
+        "p50": 234.8048788474989,
+        "p95": 427.00123160185177
+      },
+      "rtf": {
+        "p50": 1.0189823018087005,
+        "p95": 1.906610229617399
+      },
+      "peak_device_gib": 45.9129638671875,
+      "peak_measure_gib": 45.9129638671875,
+      "peak_allocated_gib": 31.560648441314697,
+      "peak_reserved_gib": 44.73828125,
+      "observed": true,
+      "jobs": {
+        "1": 26,
+        "2": 3
+      },
+      "packed_songs": 6,
+      "abc_truncated": 0,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          77,
+          88
+        ],
+        "median_sm_mhz": 810.0,
+        "sw_thermal_fraction": 0.7836990595611285
+      }
+    },
+    {
+      "label": "tune-ar16-kv32-w0-01",
+      "arm": "candidate",
+      "count": 32,
+      "audio_s": 6941.437333333333,
+      "abc_tokens": 62160,
+      "throughput": 16.07511049257896,
+      "request_throughput": 0.07410619891248174,
+      "e2el": {
+        "p50": 228.1243393595214,
+        "p95": 414.39786884167114
+      },
+      "rtf": {
+        "p50": 1.030225448459227,
+        "p95": 1.9041171538402495
+      },
+      "peak_device_gib": 60.5614013671875,
+      "peak_measure_gib": 60.5614013671875,
+      "peak_allocated_gib": 46.19710111618042,
+      "peak_reserved_gib": 59.38671875,
+      "observed": true,
+      "jobs": {
+        "1": 26,
+        "2": 3
+      },
+      "packed_songs": 6,
+      "abc_truncated": 0,
+      "semantic_truncated": 0
+    },
+    {
+      "label": "tune-ar16-kv32-w1000-01",
+      "arm": "candidate",
+      "count": 32,
+      "audio_s": 6941.437333333333,
+      "abc_tokens": 62160,
+      "throughput": 16.066660542734006,
+      "request_throughput": 0.07406724467547665,
+      "e2el": {
+        "p50": 229.5230994639569,
+        "p95": 419.6086935056257
+      },
+      "rtf": {
+        "p50": 1.0362056958898,
+        "p95": 1.9445307312826803
+      },
+      "peak_device_gib": 67.0614013671875,
+      "peak_measure_gib": 67.0614013671875,
+      "peak_allocated_gib": 46.76597023010254,
+      "peak_reserved_gib": 65.88671875,
+      "observed": true,
+      "jobs": {
+        "1": 22,
+        "2": 5
+      },
+      "packed_songs": 10,
+      "abc_truncated": 0,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          76,
+          87
+        ],
+        "median_sm_mhz": 810.0,
+        "sw_thermal_fraction": 0.8293135435992579
+      }
+    },
+    {
+      "label": "tune-ar16-kv32-w200-01",
+      "arm": "candidate",
+      "count": 32,
+      "audio_s": 6941.437333333333,
+      "abc_tokens": 62160,
+      "throughput": 16.060400639550814,
+      "request_throughput": 0.07403838654534556,
+      "e2el": {
+        "p50": 228.34453471453162,
+        "p95": 414.67489906696716
+      },
+      "rtf": {
+        "p50": 1.0314598801361692,
+        "p95": 1.90632208605339
+      },
+      "peak_device_gib": 60.5614013671875,
+      "peak_measure_gib": 60.5614013671875,
+      "peak_allocated_gib": 46.19710111618042,
+      "peak_reserved_gib": 59.38671875,
+      "observed": true,
+      "jobs": {
+        "1": 26,
+        "2": 3
+      },
+      "packed_songs": 6,
+      "abc_truncated": 0,
+      "semantic_truncated": 0
+    },
+    {
+      "label": "tune-ar32-kv32-w200-01",
+      "arm": "candidate",
+      "count": 32,
+      "audio_s": 6951.997333333334,
+      "abc_tokens": 62301,
+      "throughput": 17.794220474653795,
+      "request_throughput": 0.08190668492617202,
+      "e2el": {
+        "p50": 225.0828454560251,
+        "p95": 372.0771774370281
+      },
+      "rtf": {
+        "p50": 1.050402231988175,
+        "p95": 1.4077689349176428
+      },
+      "peak_device_gib": 73.5828857421875,
+      "peak_measure_gib": 73.5828857421875,
+      "peak_allocated_gib": 46.83430576324463,
+      "peak_reserved_gib": 72.400390625,
+      "observed": true,
+      "jobs": {
+        "1": 14,
+        "2": 9
+      },
+      "packed_songs": 18,
+      "abc_truncated": 0,
+      "semantic_truncated": 0,
+      "thermal": {
+        "temperature_range_c": [
+          79,
+          88
+        ],
+        "median_sm_mhz": 795.0,
+        "sw_thermal_fraction": 0.9066187788609543
+      }
+    }
+  ],
+  "paired": [
+    {
+      "pair": 1,
+      "throughput_pct": 1.5700384984292493,
+      "e2el_p95_pct": 0.4553610577512579,
+      "rtf_p95_pct": -4.2431523050105335,
+      "audio_duration_pct": 0.08003392626132477,
+      "device_peak_delta_gib": 12.248046875
+    },
+    {
+      "pair": 2,
+      "throughput_pct": 0.805825041100916,
+      "e2el_p95_pct": -0.19412873055711932,
+      "rtf_p95_pct": 1.1745795314565877,
+      "audio_duration_pct": -0.888853865769268,
+      "device_peak_delta_gib": 12.21484375
+    }
+  ],
+  "paired_medians": {
+    "throughput_pct": 1.1879317697650826,
+    "e2el_p95_pct": 0.1306161635970693,
+    "rtf_p95_pct": -1.534286386776973,
+    "audio_duration_pct": -0.4044099697539716,
+    "device_peak_delta_gib": 12.2314453125
+  }
+}

@@ -1,0 +1,87 @@
+# 声学 stream 优先级单项实验：小幅描述性变化，主要等待仍在
+
+结论：声学优先级从设备最高 −3 改为 0 后，单轮带探针对照吞吐 +1.12%，没有消除声学活跃时的 AR 等待，也没有一致改善尾部与排队表现。本轮不支持替换默认优先级，不追加以此候选为目标的正式提速验收。
+
+实验检验声学最高优先级是否显著拖慢 AR 并形成供给空档。基于当前回退混合 AR＋独立声学队列，保留 MAX_INFLIGHT=2。
+
+独立 SSH36665 根 `/root/autodl-tmp/yue2-stream-priority-20261009-01`，screen `yue2-stream-priority`。highest 与 equal 两组仅 `_SynthesisQueue.stream` 的 CUDA priority 不同：设备最高 vs 0；原候选不改。
+
+已完成 equal 4 请求短验收，以及 equal→highest 各64首完整 profiling、各2完整预热。AR32/KV32GiB/client64/NAR1/VAE1/window0/full CoT/CFG1，ABC4096/semantic9000，与前轮相同提示/种子。MPSoff，无温度补热，不调功率/频率，不保存音频/latent。
+
+1860份基线生产文件与冻结目标一致，仅候选一行运行代码不同；实际 priority 与提交深度在 worker 中测量前后断言。外置探针/分析脚本复用上一轮，Nsight CUDA/NVTX Graph模式。带探针数据只用于机制诊断；本轮未启动无探针性能对照。
+
+启动前 SSH 默认 PATH 无 python3，改为已固定的 venv Python 后准备成功，未进入 GPU 初始化或计时。两组已正常完成，未 commit/push。
+
+优先级解释边界：CUDA stream priority 是调度提示，不保证执行顺序，也不会抢占已经运行的工作。因此实验没有预设同优先级就能公平分配GPU资源。参见 [NVIDIA CUDA Stream Management](https://docs.nvidia.com/cuda/cuda-driver-api/cuda_driver_api/group__CUDA__STREAM.html)。
+
+## 完整带探针对照
+
+| 指标 | 最高优先级 | 同优先级0 | 相对变化 |
+|---|---:|---:|---:|
+| 音频吞吐（音频秒/秒） | 21.7689 | 22.0137 | +1.12% |
+| 请求吞吐（请求/秒） | 0.09551 | 0.09729 | +1.86% |
+| 完整墙钟 | 670.107s | 657.859s | −1.83% |
+| E2EL P50 / P95 | 367.231 / 610.138s | 348.828 / 600.848s | −5.01% / −1.52% |
+| RTF P50 / P95 | 1.4351 / 2.4643 | 1.4741 / 2.4570 | +2.71% / −0.30% |
+| 设备采样峰值 | 66.204GiB | 68.089GiB | +1.885GiB |
+| 音频总长 | 14587.475s | 14481.915s | −0.724% |
+| ABC / semantic预算截断 | 2 / 2 | 1 / 1 | 保留所有请求 |
+
+这是一组顺序带探针对照，没有无探针ABBA，也没有统计显著性结论。两组生成轨迹不同，不把12.25秒墙钟减少全部归因于GPU调度效率。显存峰值差尚未分解，不能认定是priority本身增加固定显存需求。当前不据此替换默认优先级。
+
+## 瓶颈有没有移动
+
+| 观察 | 最高优先级−3 | 同优先级0 |
+|---|---:|---:|
+| 首声学job前 | 77.779s | 77.392s |
+| 声学job墙钟合计 | 483.241s | 481.796s |
+| job间空档合计 | 108.934s | 98.519s |
+| 已有ready而未启动 | 1.882ms | 1.787ms |
+| 最长声学空档 | 26.026s | 45.723s |
+| 声学排队P50 / P95 | 7.827 / 39.085s | 10.047 / 36.544s |
+| native token回传CPU累计 | 518.090s | 507.056s |
+| 其中cudaEventSynchronize | 516.075s | 505.023s |
+| native回传中位：声学idle / active | 7.852 / 51.142ms | 7.760 / 48.877ms |
+| NAR velocity GPU活动区间 | 447.032s | 445.547s |
+| VAE GPU活动区间 | 24.120s | 24.002s |
+| GPU活动包络未覆盖 | 41.763s | 39.792s |
+| 其中声学job活跃时未覆盖 | 1.571s | 1.579s |
+
+两组job间空档都几乎全部没有ready。equal最长45.723秒空档位于322.637–368.360秒，已经交付32个job，AR始终32槽、ABC1–10、waiting0，发生9次ABC转换；GPU活动包络仍覆盖36.686秒。highest最长26.026秒空档位于316.105–342.130秒，AR也是32槽。累计空档少了10.42秒，同时最长一次更长，因此不能称为解决bubble。
+
+保持上一轮关注的同一组成 **32行=6ABC+26semantic**：声学active步间隔中位 **54.697→54.935ms**（132/136样本）；idle为15.383→16.082ms。其它32行组成存在变快和变慢两种方向，原始匹配组全部保存在comparison.json。未匹配逐请求上下文长度、声学形状和瞬时频率，不把其中一个组当严格等工作量微基准；但没有看到优先级归零后普遍消除数倍步时差异的现象。
+
+两组计时温度均47–64°C；声学idle/active中位SM均为1755/1215MHz，功率均约287/346W；active采样均有SwPowerCap，温控标志均0。相近的汇总频率不等于锁频或每个kernel配对。原生event同步依然是逐步推进的重要等待边界，CPU累计等待不是token带宽成本，也不是可以直接删除的开销。
+
+CPU范围、GPU活动区间和job墙钟会重叠，不能相加得到优化空间。Nsight是Graph活动包络粒度，Graph内部空隙未展开，未覆盖时长是空闲下界，包络busy不是SM利用率。前后两组均无功率/频率干预。
+
+## 判断与保留范围
+
+当前最高优先级不是足以解释主要AR等待的单一因素，调低它没有带来足够一致的收益。当前默认、原回退候选和公共执行层保持不变；实验equal副本保留一行priority差异。源码中原最高优先级策略说明属于冻结基线注释，本实验仅替换运行参数，不作为待合并的产品实现。
+
+若继续做机制实验，下一项是 **保持最高优先级，仅把MAX_INFLIGHT从2改1**，检验提交深度是否改变AR等待与声学利用率的平衡。这项尚未实施，不能预设有收益；不同时修改阶段准入、stream优先级或公共同步路径。
+
+## 验收与证据
+
+128正式＋4完整预热＋4短smoke输出形状/有限值/错误标记通过；预算截断按表保留。worker在计时前后断言实际priority和MAX_INFLIGHT；Nsight也记录highest声学stream16的priority−3、equal声学stream69的priority0，均有对应GPU活动。默认AR stream7未列在TARGET_INFO_CUDA_STREAM元数据中，不伪造该表的AR priority记录。
+
+1860份生产文件各组运行前后完全一致，highest与原冻结回退候选一致，equal仅yue2.py的stream构造参数不同。外置测量脚本和配置冻结哈希通过；提示身份/种子、吞吐、E2EL/RTF分位数、截断和设备峰值独立复算通过。正常退出，GPU清空。78份记录共352,537,366字节已回收，SHA256全部一致，不含音频/latent；SQLite两份留远端，哈希已记录，详见[本地回收核验](evidence/local-recovery.json)。未新验听感、WSB、CFG≠1、取消/HTTP、多卡或并发逐值parity。
+
+- [对照汇总](artifacts/comparison.json)、[验收](evidence/validation.json)、[冻结计划](evidence/plan.json)、[唯一运行差异](evidence/priority.patch)。
+- [最高优先级分析](artifacts/highest-profile-01/analysis.json)、[同优先级分析](artifacts/equal-profile-01/analysis.json)，对应refinement.json含频率和空档细分。
+- [最高优先级trace](artifacts/highest-profile-01.nsys-rep)、[同优先级trace](artifacts/equal-profile-01.nsys-rep)。SQLite留远端，可从原始trace重新导出；[SHA清单](evidence/collection-sha256.json)同时记录远端SQLite哈希。
+- [启动器](scripts/run.sh)、[探针](scripts/pipeline_probe.py)、[分析](scripts/analyze.py)、[核验](scripts/validate.py)。
+
+### 同优先级时间线
+
+![同优先级0完整链路](artifacts/equal-profile-01/timeline.png)
+
+### 最高优先级时间线
+
+![最高优先级完整链路](artifacts/highest-profile-01/timeline.png)
+
+## 补充：中间大空档的请求身份核对
+
+按原始job记录核对，equal组前32个完成的声学job恰好来自请求0–31，后32个来自请求32–63。322.637–368.360秒的45.723秒空档正处于两批声学交付之间。此时AR始终32槽，开始约10ABC+22semantic，结束约1ABC+31semantic；后32请求尚无新的semantic完成，声学ready队列为空。
+
+后32请求已有ABC在此空档之前完成，说明没有“等前32首音频全部完成才开始后32首”的全局barrier。现有机制是ABC转semantic重新排到waiting前部，semantic结束并进入声学队列后才释放AR槽位，后续请求渐进补入；它容易保留首批请求的阶段领先。声学活跃期间AR又显著变慢，前批声学消费完时后批仍在ABC/semantic，形成供给断层。请求批次和状态是直接证据；各机制对45.723秒的具体贡献仍未做独立消融。详见[请求身份核查](evidence/bubble-cohorts.json)。

@@ -4,6 +4,8 @@ Companion evidence for [`feat/yue2-feature-enhancements`](https://github.com/lzq
 
 ## Results and scope
 
+[Per-change comparisons and unsuccessful experiments](performance-attribution/README.md) answer the performance-review questions with archived controls, measurements and explicitly qualified explanations. No new benchmark was run.
+
 | Evidence | Source revision | Result |
 | --- | --- | --- |
 | [CPU regressions](test-consolidation) | `15d1c014` (tests-only follow-up) | 247 YuE2 tests passed; earlier 277 shared passes/2 CUDA-only skips at `d413a223` |

@@ -1,0 +1,39 @@
+{
+  "remote": "root@connect.westc.seetacloud.com:36665",
+  "root": "/root/autodl-tmp/yue2-context-validation-20261009-01",
+  "question": "MPS on/off effect on frozen same-process phase-queue candidate",
+  "order": [
+    "mps-off-01",
+    "mps-on-01",
+    "mps-on-02",
+    "mps-off-02"
+  ],
+  "count_each": 64,
+  "client_concurrency": 64,
+  "ar_slots": 32,
+  "kv_gib": 32,
+  "nar": 1,
+  "vae": 1,
+  "window_ms": 0,
+  "cfg": 1,
+  "cot": "full",
+  "max_abc": 4096,
+  "max_frames": 9000,
+  "warmup_each": 2,
+  "offset": 1,
+  "thermal_topup_s": 0,
+  "production_changes": false,
+  "step_hooks": false,
+  "save_audio_latents": false,
+  "files": {
+    "scripts/bench_e2e.py": "a02225cf74bacbb3adac508ecc28cfa9ec7d4909527025c8eba8a8a7259f9e34",
+    "scripts/bootstrap.sh": "6ea7c3e9e5a6c3386e09361b8f6afc5fcdf5a272fff9e0ee11d1bfa50aa7b1d7",
+    "scripts/run_abba.py": "73139149f4c8c9277375cdb9d8edc4f94d8f1f27de7adbcb37b7ddc5dde85f15",
+    "scripts/env.sh": "5875a78c50e9cae24765fce60606dc9e3228fa6e78095d1787f25e1cb45ee548",
+    "scripts/prepare.py": "708be5b3dada13740c114b534a06c9e60d4da09bff7850408e3ef18b3eb22b54",
+    "configs/candidate.yaml": "ae9a2b4605dcaa9a0477234f0bdfe2925c4075e9a1d6071df44bf13a0a13acac",
+    "configs/upstream.yaml": "0299155bb29e394f77afb0b7ef4ade1ac8d36c1ae630319951414a8bb15333f9"
+  },
+  "cuda_home": "cuda130-toolchain/nvidia/cu13",
+  "model_loading": "checked local snapshot paths, avoiding unversioned upstream predownload"
+}

@@ -1,0 +1,29 @@
+{
+  "sequence": [
+    "baseline-01",
+    "zero-copy-01",
+    "depth1-01",
+    "baseline-02"
+  ],
+  "scope": "Independent changes at fixed AR32/KV24/client64, maxB4/token32768/window200/VAE1. No upstream retuning or cost-based scheduling claim.",
+  "runtime_files": {
+    "scripts/probe.sh": "7a1bd5dff1bedcf2464be5c2007cc0a76114230abd3780b8f407500618f4dbf3",
+    "scripts/tps.py": "1a04943911b20c08da11a8194f3ef11a010ac0320d6d03940124fae0b9072eca",
+    "scripts/bench_e2e.py": "72fb919d07671fb9b339ccee129ebd51c6b4b5ff03ebea128d0d5055a38d7b34",
+    "scripts/probe.py": "7e35f2396f42fd65fb6b3fa368af1d34919ed00569b78ae464c46de0e0d2e5b0",
+    "scripts/env.sh": "bd678d202a523e4d6687f01c806683436e2f1dc93da9481693ef55b69ec883db",
+    "scripts/formal.sh": "ff042d38354177fa10c3645bf567fabb04f2be9c4ea2c83a5d6f263238b049b1",
+    "scripts/analyze.py": "c9a72ab0fcd255b7f9f3bdf0530e78de56301df41d756c5586ffd271cbd359ec",
+    "configs/candidate.yaml": "1d2efda28aa38bafbc3e3d8ba1e6d472673aabac31d130fa7fb8f57497865464",
+    "evidence/fixture.json": "6884ad4e89f1dcb9ba23a35ca350770256dffca081ab27114600f484d3d51e82",
+    "evidence/source.patch": "0554554025949e4f2f61c4eafa0cab9e230ae020d9c5e73e5f4f0888d3f58063",
+    "evidence/source-source.json": "34621fb9bf9021821973e6ba4ca605af5afd6191d2cc992b43d7bb89811965fe",
+    "evidence/depth1-source.json": "ad74b1ac42ef1841cef000e91fcff9858a221d38b26b92130e66ae0cf79c79cb",
+    "evidence/baseline-source.json": "faaec3b093e97b8f7b34e73b284c72b4669463e9f28a138556193d36b097f0c8",
+    "evidence/baseline_batched_synthesis.py": "19ccb73e7fea58c5c8765ea199ebf3b28f1b6ea7dbe9945f35865f0a0f243c56",
+    "evidence/assets.json": "4e007427f39fd12ea5fc9e9e6806538246fc326a335ab11102e7b19c3a102698",
+    "evidence/reproduction_manifest.jsonl": "859e5225d319912efb64d587d1d5eb6cf0abc9fb162cc3d5f02d1688cff2edc0",
+    "evidence/baseline_batched_nar.py": "ea013ee8e819612b8b2be3e19f855f1331c7a6bcd9b51d041343a50abc24794e",
+    "evidence/depth1.patch": "62adf4979ca8cf644d024ccdad7b52e785411e360989f221a517536c67c83e16"
+  }
+}

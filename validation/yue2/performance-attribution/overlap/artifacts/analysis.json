@@ -1,0 +1,1665 @@
+{
+  "complete": true,
+  "source_files": 1860,
+  "cases": {
+    "mixed32": {
+      "metadata": {
+        "case": {
+          "name": "mixed32",
+          "abc": 6,
+          "semantic_prefix_frames": 4096
+        },
+        "rows": [
+          {
+            "id": "mixed32-0-9e9fa4c9",
+            "context": 1668,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-1-afab4015",
+            "context": 1667,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-2-bbaf41be",
+            "context": 1667,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-3-b6d91550",
+            "context": 1666,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-4-ba2c157d",
+            "context": 1666,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-5-a64954ae",
+            "context": 1666,
+            "phase": "abc",
+            "prefix_sha256": "994b54b1fe8aee55535a6542f574b33dab61fb445a22684b4fa5d993307ed2e9"
+          },
+          {
+            "id": "mixed32-6-a3770678",
+            "context": 6635,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-7-9eef5414",
+            "context": 6635,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-8-893474b2",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-9-927897b3",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-10-8ba18676",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-11-8f4f457a",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-12-9197a752",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-13-8f8bd0cd",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-14-9fe6a3a2",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-15-85798e19",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-16-aa4d217c",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-17-b6b91ad9",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-18-9fe00b00",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-19-a08d9a89",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-20-938f5a4f",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-21-923ef296",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-22-85f9d3e9",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-23-ad42863b",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-24-99f3755e",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-25-908058e3",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-26-966417c7",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-27-a502afb5",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-28-afa19592",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-29-b57e1f00",
+            "context": 6627,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-30-b560bac3",
+            "context": 6627,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "mixed32-31-9afa6eed",
+            "context": 6627,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          }
+        ],
+        "ar_graph": "BatchDescriptor(num_tokens=32, num_reqs=32, uniform=True, has_lora=False, num_active_loras=0)",
+        "ar_priority": 0,
+        "nar_priority": -3,
+        "ar_input_sha256": "c999992dea1df1a21e9267df2536b9b39c54e1dc863d0ff1bc14c26b21629628",
+        "nar_prefix_sha256": "9a86a203661750305f70c993a9fb787d90cb6854ba4c465117b675a43b49dfdf",
+        "noise_sha256": "fff697986f28b539f46f2da5bab5c4ededead8f9d9d2879c3dabe1e9de9ccc9c",
+        "nar_ar_length": 8674,
+        "nar_length": 6146,
+        "nar_frames": 6144,
+        "ode_steps": 32,
+        "fixture_sha256": "7ea72a3af24a6e4029a26fa8ae21949d5e392d04d13c67eb8758ecd980621223",
+        "ar_steps": 448,
+        "ar_pilot_s_per_step": 0.014161862374749035,
+        "nar_pilot_s": 6.5294566713273525
+      },
+      "mode_median_s": {
+        "ar": 6.371946224942803,
+        "nar": 6.586227934807539,
+        "serial": 12.978550720959902,
+        "overlap": 12.549038669094443
+      },
+      "pairs": [
+        {
+          "repeat": 0,
+          "ar_s": 6.356445211917162,
+          "nar_s": 6.563218787312508,
+          "serial_s": 12.954369649291039,
+          "overlap_s": 12.504154708236456,
+          "solo_sum_s": 12.91966399922967,
+          "saving_s": 0.4502149410545826,
+          "wall_reduction_pct": 3.4753905689206666,
+          "work_throughput_gain_pct": 3.600522798698469,
+          "ar_slowdown": 1.9671472194652144,
+          "nar_slowdown": 1.335600385738163
+        },
+        {
+          "repeat": 1,
+          "ar_s": 6.371220748871565,
+          "nar_s": 6.606705822050571,
+          "serial_s": 13.002731792628765,
+          "overlap_s": 12.543882936239243,
+          "solo_sum_s": 12.977926570922136,
+          "saving_s": 0.45884885638952255,
+          "wall_reduction_pct": 3.5288650393422993,
+          "work_throughput_gain_pct": 3.6579491272507703,
+          "ar_slowdown": 1.968797792306325,
+          "nar_slowdown": 1.331024975584346
+        },
+        {
+          "repeat": 2,
+          "ar_s": 6.373549286276102,
+          "nar_s": 6.630081247538328,
+          "serial_s": 13.027778021991253,
+          "overlap_s": 12.554194401949644,
+          "solo_sum_s": 13.00363053381443,
+          "saving_s": 0.4735836200416088,
+          "wall_reduction_pct": 3.6351833692759183,
+          "work_throughput_gain_pct": 3.7723138966850867,
+          "ar_slowdown": 1.9697011586113828,
+          "nar_slowdown": 1.3276727038580398
+        },
+        {
+          "repeat": 3,
+          "ar_s": 6.372671701014042,
+          "nar_s": 6.5657500475645065,
+          "serial_s": 12.949733167886734,
+          "overlap_s": 12.565434824675322,
+          "solo_sum_s": 12.938421748578548,
+          "saving_s": 0.38429834321141243,
+          "wall_reduction_pct": 2.9676159209551245,
+          "work_throughput_gain_pct": 3.058376797727269,
+          "ar_slowdown": 1.9717540444897075,
+          "nar_slowdown": 1.3417748179513904
+        }
+      ],
+      "median_wall_reduction_pct": 3.502127804131483,
+      "all_outputs_exact": true,
+      "runs": [
+        {
+          "mode": "ar",
+          "ar_steps": 448,
+          "nar_evaluations": 0,
+          "start": 26631696.722059593,
+          "end": 26631703.078504805,
+          "wall_s": 6.356445211917162,
+          "ar_completion_s": 6.356214366853237,
+          "ar_gpu_span_ms": 6356.1904296875,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44306001920,
+          "reserved": 49111105536,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              53,
+              54
+            ],
+            "sm_median": 1665,
+            "power_median_w": 345.965,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631703.564634435,
+          "end": 26631710.127853222,
+          "wall_s": 6.563218787312508,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6563.1064453125,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              50,
+              58
+            ],
+            "sm_median": 1215.0,
+            "power_median_w": 345.829,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631710.16332924,
+          "end": 26631723.11769889,
+          "wall_s": 12.954369649291039,
+          "ar_completion_s": 6.361193589866161,
+          "ar_gpu_span_ms": 6361.16064453125,
+          "nar_gpu_span_ms": 6592.90478515625,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              55,
+              60
+            ],
+            "sm_median": 1230,
+            "power_median_w": 346.159,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631723.655192513,
+          "end": 26631736.15934722,
+          "wall_s": 12.504154708236456,
+          "ar_completion_s": 12.50406352430582,
+          "ar_gpu_span_ms": 12504.01171875,
+          "nar_gpu_span_ms": 8765.6875,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              54,
+              60
+            ],
+            "sm_median": 1230,
+            "power_median_w": 346.097,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631736.654191777,
+          "end": 26631743.2608976,
+          "wall_s": 6.606705822050571,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6606.5693359375,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              55,
+              61
+            ],
+            "sm_median": 1200.0,
+            "power_median_w": 346.1855,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631743.283470355,
+          "end": 26631756.286202148,
+          "wall_s": 13.002731792628765,
+          "ar_completion_s": 6.369210511445999,
+          "ar_gpu_span_ms": 6369.17822265625,
+          "nar_gpu_span_ms": 6633.28271484375,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              59,
+              62
+            ],
+            "sm_median": 1215.0,
+            "power_median_w": 346.265,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631756.798062272,
+          "end": 26631769.34194521,
+          "wall_s": 12.543882936239243,
+          "ar_completion_s": 12.543645344674587,
+          "ar_gpu_span_ms": 12543.5849609375,
+          "nar_gpu_span_ms": 8793.5087890625,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              56,
+              62
+            ],
+            "sm_median": 1215,
+            "power_median_w": 346.279,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 448,
+          "nar_evaluations": 0,
+          "start": 26631769.89117353,
+          "end": 26631776.26239428,
+          "wall_s": 6.371220748871565,
+          "ar_completion_s": 6.371093489229679,
+          "ar_gpu_span_ms": 6371.0537109375,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44306001920,
+          "reserved": 49111105536,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              56,
+              61
+            ],
+            "sm_median": 1605,
+            "power_median_w": 346.213,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631776.752130665,
+          "end": 26631789.779908687,
+          "wall_s": 13.027778021991253,
+          "ar_completion_s": 6.370780557394028,
+          "ar_gpu_span_ms": 6370.7353515625,
+          "nar_gpu_span_ms": 6656.861328125,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              56,
+              63
+            ],
+            "sm_median": 1350.0,
+            "power_median_w": 346.4045,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631790.302446082,
+          "end": 26631802.856640484,
+          "wall_s": 12.554194401949644,
+          "ar_completion_s": 12.55398741364479,
+          "ar_gpu_span_ms": 12553.927734375,
+          "nar_gpu_span_ms": 8802.3876953125,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              57,
+              63
+            ],
+            "sm_median": 1215,
+            "power_median_w": 346.273,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 448,
+          "nar_evaluations": 0,
+          "start": 26631803.38393498,
+          "end": 26631809.757484265,
+          "wall_s": 6.373549286276102,
+          "ar_completion_s": 6.373283501714468,
+          "ar_gpu_span_ms": 6373.24072265625,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44306001920,
+          "reserved": 49111105536,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              57,
+              61
+            ],
+            "sm_median": 1590,
+            "power_median_w": 346.188,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631810.280365176,
+          "end": 26631816.910446424,
+          "wall_s": 6.630081247538328,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6629.93798828125,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              57,
+              63
+            ],
+            "sm_median": 1200,
+            "power_median_w": 345.992,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631816.945509642,
+          "end": 26631829.510944467,
+          "wall_s": 12.565434824675322,
+          "ar_completion_s": 12.56534120067954,
+          "ar_gpu_span_ms": 12565.279296875,
+          "nar_gpu_span_ms": 8809.416015625,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              60,
+              63
+            ],
+            "sm_median": 1215,
+            "power_median_w": 346.241,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 448,
+          "nar_evaluations": 0,
+          "start": 26631830.044349752,
+          "end": 26631836.417021453,
+          "wall_s": 6.372671701014042,
+          "ar_completion_s": 6.372558891773224,
+          "ar_gpu_span_ms": 6372.51611328125,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44306001920,
+          "reserved": 49111105536,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              57,
+              61
+            ],
+            "sm_median": 1605.0,
+            "power_median_w": 346.2815,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631836.8941332,
+          "end": 26631843.459883247,
+          "wall_s": 6.5657500475645065,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6565.4951171875,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              57,
+              64
+            ],
+            "sm_median": 1200.0,
+            "power_median_w": 345.8995,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 448,
+          "nar_evaluations": 64,
+          "start": 26631843.483152296,
+          "end": 26631856.432885464,
+          "wall_s": 12.949733167886734,
+          "ar_completion_s": 6.367774251848459,
+          "ar_gpu_span_ms": 6367.7353515625,
+          "nar_gpu_span_ms": 6581.703125,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44307575296,
+          "reserved": 49111105536,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              61,
+              64
+            ],
+            "sm_median": 1230,
+            "power_median_w": 346.346,
+            "thermal_fraction": 0.0,
+            "peak_gib": 46.912841796875
+          }
+        }
+      ]
+    },
+    "semantic32": {
+      "metadata": {
+        "case": {
+          "name": "semantic32",
+          "abc": 0,
+          "semantic_prefix_frames": 4096
+        },
+        "rows": [
+          {
+            "id": "semantic32-0-8a388e23",
+            "context": 6638,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-1-ba0bac80",
+            "context": 6637,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-2-94c652f1",
+            "context": 6637,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-3-a3ff1d6d",
+            "context": 6637,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-4-85672a81",
+            "context": 6636,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-5-a77069f8",
+            "context": 6636,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-6-a153fd49",
+            "context": 6636,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-7-be7677fd",
+            "context": 6635,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-8-96ef5cef",
+            "context": 6635,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-9-88247b11",
+            "context": 6635,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-10-9d38e98e",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-11-a6aba107",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-12-a7948a17",
+            "context": 6634,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-13-8062e4b7",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-14-a4efcee0",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-15-9c5e8f94",
+            "context": 6633,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-16-864310e4",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-17-a288445a",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-18-819cae0f",
+            "context": 6632,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-19-a9471313",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-20-b133b40f",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-21-b2f547e5",
+            "context": 6631,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-22-8923eea0",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-23-9b326cb2",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-24-a9217719",
+            "context": 6630,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-25-9632eb56",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-26-b3f5bb7d",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-27-bfefc279",
+            "context": 6629,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-28-a2b6891e",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-29-ac72cfd8",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-30-a9713401",
+            "context": 6628,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          },
+          {
+            "id": "semantic32-31-98923e22",
+            "context": 6627,
+            "phase": "semantic",
+            "prefix_sha256": "16bb15ffce2e1995841e9468a5d1efefc803d4753e63085a839c853f391522fc"
+          }
+        ],
+        "ar_graph": "BatchDescriptor(num_tokens=32, num_reqs=32, uniform=True, has_lora=False, num_active_loras=0)",
+        "ar_priority": 0,
+        "nar_priority": -3,
+        "ar_input_sha256": "75e73a604acd0401b0faa050dff047d92d480ea9a52d3930d547ba9670bee935",
+        "nar_prefix_sha256": "9a86a203661750305f70c993a9fb787d90cb6854ba4c465117b675a43b49dfdf",
+        "noise_sha256": "fff697986f28b539f46f2da5bab5c4ededead8f9d9d2879c3dabe1e9de9ccc9c",
+        "nar_ar_length": 8674,
+        "nar_length": 6146,
+        "nar_frames": 6144,
+        "ode_steps": 32,
+        "fixture_sha256": "7ea72a3af24a6e4029a26fa8ae21949d5e392d04d13c67eb8758ecd980621223",
+        "ar_steps": 416,
+        "ar_pilot_s_per_step": 0.015915258263703436,
+        "nar_pilot_s": 6.566238600760698
+      },
+      "mode_median_s": {
+        "ar": 6.621988074854016,
+        "nar": 6.571038173511624,
+        "serial": 13.214312149211764,
+        "overlap": 12.734984761103988
+      },
+      "pairs": [
+        {
+          "repeat": 0,
+          "ar_s": 6.621947024017572,
+          "nar_s": 6.567303195595741,
+          "serial_s": 13.21162448450923,
+          "overlap_s": 12.731465481221676,
+          "solo_sum_s": 13.189250219613314,
+          "saving_s": 0.4801590032875538,
+          "wall_reduction_pct": 3.634367627164592,
+          "work_throughput_gain_pct": 3.7714354564740926,
+          "ar_slowdown": 1.922579376601255,
+          "nar_slowdown": 1.3132374742714192
+        },
+        {
+          "repeat": 1,
+          "ar_s": 6.621934663504362,
+          "nar_s": 6.573373835533857,
+          "serial_s": 13.214378535747528,
+          "overlap_s": 12.732376139611006,
+          "solo_sum_s": 13.19530849903822,
+          "saving_s": 0.4820023961365223,
+          "wall_reduction_pct": 3.647560078838441,
+          "work_throughput_gain_pct": 3.7856437074380134,
+          "ar_slowdown": 1.9227269838919396,
+          "nar_slowdown": 1.3071126859203066
+        },
+        {
+          "repeat": 2,
+          "ar_s": 6.62202912569046,
+          "nar_s": 6.570228207856417,
+          "serial_s": 13.214245762676,
+          "overlap_s": 12.73759338259697,
+          "solo_sum_s": 13.192257333546877,
+          "saving_s": 0.476652380079031,
+          "wall_reduction_pct": 3.6071099981002996,
+          "work_throughput_gain_pct": 3.742091349298904,
+          "ar_slowdown": 1.9235030444140049,
+          "nar_slowdown": 1.3099218977194633
+        },
+        {
+          "repeat": 3,
+          "ar_s": 6.622082747519016,
+          "nar_s": 6.571848139166832,
+          "serial_s": 13.219324819743633,
+          "overlap_s": 12.751666713505983,
+          "solo_sum_s": 13.193930886685848,
+          "saving_s": 0.4676581062376499,
+          "wall_reduction_pct": 3.5376852646754164,
+          "work_throughput_gain_pct": 3.667427299855075,
+          "ar_slowdown": 1.9255910570909738,
+          "nar_slowdown": 1.3076442981683154
+        }
+      ],
+      "median_wall_reduction_pct": 3.620738812632446,
+      "all_outputs_exact": true,
+      "runs": [
+        {
+          "mode": "ar",
+          "ar_steps": 416,
+          "nar_evaluations": 0,
+          "start": 26631875.443179473,
+          "end": 26631882.065126497,
+          "wall_s": 6.621947024017572,
+          "ar_completion_s": 6.621777221560478,
+          "ar_gpu_span_ms": 6621.73583984375,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44302954496,
+          "reserved": 52244250624,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              61,
+              62
+            ],
+            "sm_median": 1620.0,
+            "power_median_w": 346.4695,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631882.26657456,
+          "end": 26631888.833877757,
+          "wall_s": 6.567303195595741,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6567.15673828125,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              58,
+              64
+            ],
+            "sm_median": 1200,
+            "power_median_w": 345.658,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631888.86258512,
+          "end": 26631902.074209604,
+          "wall_s": 13.21162448450923,
+          "ar_completion_s": 6.621599834412336,
+          "ar_gpu_span_ms": 6621.5615234375,
+          "nar_gpu_span_ms": 6589.77880859375,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              61,
+              64
+            ],
+            "sm_median": 1500.0,
+            "power_median_w": 346.252,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631902.301345527,
+          "end": 26631915.03281101,
+          "wall_s": 12.731465481221676,
+          "ar_completion_s": 12.73121878132224,
+          "ar_gpu_span_ms": 12728.84375,
+          "nar_gpu_span_ms": 8624.236328125,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 0,
+          "device_summary": {
+            "temperature": [
+              59,
+              63
+            ],
+            "sm_median": 1237.5,
+            "power_median_w": 346.2605,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631915.291704416,
+          "end": 26631921.86507825,
+          "wall_s": 6.573373835533857,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6571.14990234375,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              58,
+              64
+            ],
+            "sm_median": 1200.0,
+            "power_median_w": 345.802,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631921.893995464,
+          "end": 26631935.108374,
+          "wall_s": 13.214378535747528,
+          "ar_completion_s": 6.622507344931364,
+          "ar_gpu_span_ms": 6622.462890625,
+          "nar_gpu_span_ms": 6591.73193359375,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              61,
+              64
+            ],
+            "sm_median": 1410.0,
+            "power_median_w": 346.531,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631935.338767383,
+          "end": 26631948.071143523,
+          "wall_s": 12.732376139611006,
+          "ar_completion_s": 12.732172463089228,
+          "ar_gpu_span_ms": 12732.10546875,
+          "nar_gpu_span_ms": 8589.2333984375,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              59,
+              64
+            ],
+            "sm_median": 1245,
+            "power_median_w": 346.451,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 416,
+          "nar_evaluations": 0,
+          "start": 26631948.32318811,
+          "end": 26631954.945122775,
+          "wall_s": 6.621934663504362,
+          "ar_completion_s": 6.621676567941904,
+          "ar_gpu_span_ms": 6621.63134765625,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44302954496,
+          "reserved": 52244250624,
+          "repeat": 1,
+          "device_summary": {
+            "temperature": [
+              58,
+              62
+            ],
+            "sm_median": 1635.0,
+            "power_median_w": 346.5505,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631955.17840784,
+          "end": 26631968.392653603,
+          "wall_s": 13.214245762676,
+          "ar_completion_s": 6.6217162273824215,
+          "ar_gpu_span_ms": 6621.6689453125,
+          "nar_gpu_span_ms": 6592.39892578125,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              58,
+              64
+            ],
+            "sm_median": 1500.0,
+            "power_median_w": 346.32,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631968.68148841,
+          "end": 26631981.419081792,
+          "wall_s": 12.73759338259697,
+          "ar_completion_s": 12.737493183463812,
+          "ar_gpu_span_ms": 12737.421875,
+          "nar_gpu_span_ms": 8606.3154296875,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              58,
+              63
+            ],
+            "sm_median": 1230,
+            "power_median_w": 346.361,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 416,
+          "nar_evaluations": 0,
+          "start": 26631981.658800475,
+          "end": 26631988.2808296,
+          "wall_s": 6.62202912569046,
+          "ar_completion_s": 6.621804136782885,
+          "ar_gpu_span_ms": 6621.73193359375,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44302954496,
+          "reserved": 52244250624,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              58,
+              62
+            ],
+            "sm_median": 1635.0,
+            "power_median_w": 346.503,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26631988.49280839,
+          "end": 26631995.0630366,
+          "wall_s": 6.570228207856417,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6570.09814453125,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 2,
+          "device_summary": {
+            "temperature": [
+              59,
+              64
+            ],
+            "sm_median": 1200.0,
+            "power_median_w": 345.768,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "overlap",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26631995.085547827,
+          "end": 26632007.83721454,
+          "wall_s": 12.751666713505983,
+          "ar_completion_s": 12.751423317939043,
+          "ar_gpu_span_ms": 12751.359375,
+          "nar_gpu_span_ms": 8593.462890625,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              62,
+              64
+            ],
+            "sm_median": 1230,
+            "power_median_w": 346.084,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "ar",
+          "ar_steps": 416,
+          "nar_evaluations": 0,
+          "start": 26632008.08645934,
+          "end": 26632014.708542086,
+          "wall_s": 6.622082747519016,
+          "ar_completion_s": 6.621954962611198,
+          "ar_gpu_span_ms": 6621.90869140625,
+          "nar_gpu_span_ms": null,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44302954496,
+          "reserved": 52244250624,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              59,
+              62
+            ],
+            "sm_median": 1635.0,
+            "power_median_w": 346.397,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "nar",
+          "ar_steps": 0,
+          "nar_evaluations": 64,
+          "start": 26632014.91189318,
+          "end": 26632021.48374132,
+          "wall_s": 6.571848139166832,
+          "ar_completion_s": null,
+          "ar_gpu_span_ms": null,
+          "nar_gpu_span_ms": 6571.712890625,
+          "checks": {
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              59,
+              64
+            ],
+            "sm_median": 1200.0,
+            "power_median_w": 346.2355,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        },
+        {
+          "mode": "serial",
+          "ar_steps": 416,
+          "nar_evaluations": 64,
+          "start": 26632021.51234544,
+          "end": 26632034.73167026,
+          "wall_s": 13.219324819743633,
+          "ar_completion_s": 6.62307758256793,
+          "ar_gpu_span_ms": 6623.03466796875,
+          "nar_gpu_span_ms": 6595.99072265625,
+          "checks": {
+            "ar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            },
+            "nar": {
+              "exact": true,
+              "max_abs": 0.0,
+              "relative_l2": 0.0
+            }
+          },
+          "allocated": 44304527872,
+          "reserved": 52244250624,
+          "repeat": 3,
+          "device_summary": {
+            "temperature": [
+              61,
+              64
+            ],
+            "sm_median": 1515.0,
+            "power_median_w": 346.366,
+            "thermal_fraction": 0.0,
+            "peak_gib": 49.830810546875
+          }
+        }
+      ]
+    }
+  },
+  "trace": [
+    {
+      "label": "fixed:mixed32:serial",
+      "wall_s": 12.940413017,
+      "stream_envelope_s": {
+        "7": 6.345839095,
+        "16": 6.565837805
+      },
+      "union_s": 12.9116769,
+      "intersection_s": 0.0,
+      "idle_lower_bound_s": 0.028736117
+    },
+    {
+      "label": "fixed:mixed32:overlap",
+      "wall_s": 12.497585862,
+      "stream_envelope_s": {
+        "16": 8.724632804,
+        "7": 12.350119265
+      },
+      "union_s": 12.475571781,
+      "intersection_s": 8.599180288,
+      "idle_lower_bound_s": 0.022014081
+    }
+  ],
+  "scope": "Fixed-position AR graph+head and prefilled/warmed NAR ODE; not E2E, not a hardware overlap upper bound."
+}

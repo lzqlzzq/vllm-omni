@@ -1,0 +1,42 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "label": "smoke",
+      "count": 8,
+      "warmup": 1,
+      "complete": true,
+      "abc_truncated": 8,
+      "semantic_truncated": 8
+    },
+    {
+      "label": "memory-canary",
+      "count": 4,
+      "warmup": 1,
+      "complete": true,
+      "abc_truncated": 4,
+      "semantic_truncated": 4
+    },
+    {
+      "label": "memory-candidate",
+      "count": 64,
+      "warmup": 2,
+      "complete": true,
+      "abc_truncated": 2,
+      "semantic_truncated": 2
+    },
+    {
+      "label": "memory-upstream",
+      "count": 64,
+      "warmup": 2,
+      "complete": true,
+      "abc_truncated": 2,
+      "semantic_truncated": 3
+    }
+  ],
+  "exact_fixed_audio_pairs": 15,
+  "source_unchanged": true,
+  "runtime_unchanged": true,
+  "independent_metrics_match": true,
+  "scope": "Memory-instrumented runs are diagnostic, not performance comparisons."
+}

@@ -1,0 +1,30 @@
+{
+  "files": {
+    "sources/recipes/cosmos3/Cosmos3-Nano.md": "037f35a74551e42443e4717fb196ba4dd665c12b7c66c65cb55178c4ae6432ae",
+    "sources/recipes/cosmos3/Cosmos3-Super.md": "1bcfc6eaa06cf5e567f564093b9edea4eaecc9d2f0432463c4375b2d2d3982a9",
+    "sources/tests/diffusion/models/cosmos3/test_cosmos3_framework_compat.py": "56d967dc8d6188091cdb63fca0375b32a7ef8051ddb3fdcfe175cb47c69a8b83",
+    "sources/vllm_omni/deploy/cosmos3_omni.yaml": "3a3e965577e7e3a94d8e7519e858429c0df8f80c13f9504bfeda998565a8f9a0",
+    "sources/vllm_omni/diffusion/diffusion_engine.py": "9d5fbcc29c1166c1c45443e490c9764c5aa303dc456b467f6c28ded9c6a6037f",
+    "sources/vllm_omni/diffusion/executor/uniproc_executor.py": "e33e56558968cc50e893515c057a7e7b4e7c72717bce7cbd816a05d83fa7654e",
+    "sources/vllm_omni/diffusion/models/cosmos3/mixed_precision/runtime.py": "e7aba04afe49ebdb61b0ffca03ed1683e6871777c7b5523eb624b8988715487c",
+    "sources/vllm_omni/diffusion/models/cosmos3/mixed_precision/strategy.py": "0fb561f82e5fdc810e43861598c11e625c2cc2817257ea6c6eddaeb14753808b",
+    "sources/vllm_omni/diffusion/models/cosmos3/pipeline_cosmos3.py": "12343ba3ac14695d042c5ce8cd61a42b27ad7d39fa1c63352a179f9cdc2ac2ad",
+    "sources/vllm_omni/diffusion/models/cosmos3/transformer_cosmos3.py": "d084e89cbedf15f3bc075f594fc393cb8200656e1f10dc142af34984f5ba099f",
+    "sources/vllm_omni/diffusion/sched/base_scheduler.py": "12e45ff732b4fdb003ccbccbb5a97a7b12faf23d7914a428dadc196c56b4f052",
+    "sources/vllm_omni/diffusion/sched/request_scheduler.py": "9a5284d5d32aeae596db8ff24bf82e7dd877ee88891b09cd473a7a98609c5510",
+    "sources/vllm_omni/diffusion/sched/step_scheduler.py": "90b75855fdca7238cf6425104dd7f882fd1b49cec74cb8d18f6b32cb60bc96d1",
+    "sources/vllm_omni/diffusion/worker/diffusion_model_runner.py": "24262037374028debd6a89b5173b0b868f1a4e4b3b72f01a231c8cb5a8dd9288",
+    "sources/vllm_omni/model_executor/models/cosmos3/pipeline.py": "c6f36358c8bd0557163fa6faa02adf5dd628e0c8f2bffb1b3d4dd494cc5c943c",
+    "nvidia-sources/cosmos_framework/data/generator/dataflow/batchers.py": "4825d613be5f37b6cad220b01de6616c37e174a50ea2f3d89b190efaff00846f",
+    "nvidia-sources/cosmos_framework/inference/inference.py": "9350288c4b2eb85ee311db60371053ae17c461c293c91d86c23059c24d340f27",
+    "nvidia-sources/cosmos_framework/inference/model.py": "575ed07b7007d1388c1c4488b47f4c0b5614a7771e45c9fd2386ec9f31147874",
+    "nvidia-sources/cosmos_framework/inference/prompt_upsampling.py": "9e120a0436403ae3f82f22b5158d4409987e9453c2eb69654ca382e179c74942",
+    "nvidia-sources/cosmos_framework/inference/ray/serve.py": "d279727d4562218746558d19aa2997962e41caa0e98324204b544a8388a8755c",
+    "nvidia-sources/cosmos_framework/model/generator/mot/inference_text_kv_memory.py": "6e690faaf07af2d0b2379bdfc24f16f2e8d0f673b11ab74f5d1f6036de69e38d",
+    "nvidia-sources/cosmos_framework/model/generator/omni_mot_model.py": "c154af7b916f9d159d0d7e6c7477ec2c6beccccf5ca35d95d6d33d2d9985d188",
+    "nvidia-sources/docs/inference.md": "be95bdd6752ece5c892517c609b3557992c69bf3a389f043f3a5a583ea389e86"
+  },
+  "cosmos3_step_contract_methods_absent": true,
+  "production_changed": false,
+  "gpu_runs": 0
+}

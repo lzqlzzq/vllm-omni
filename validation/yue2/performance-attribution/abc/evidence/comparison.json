@@ -1,0 +1,11 @@
+{
+  "queue_two_call_vs_upstream_pct": 3.0241056469416883,
+  "queue_auto_vs_upstream_pct": 1.6000541592690265,
+  "auto_vs_two_call_pct": -1.3822507642559212,
+  "two_call_vs_auto_pct": 1.4016247328375586,
+  "auto_projection_elements_extra_pct": 37.93935484987134,
+  "hold_fraction_semantic": 0.07136871221157405,
+  "historical_short_hold_fraction": 0.1628558096126925,
+  "projection_rows_saved_pct": 4.829582080189654,
+  "automatic_cpu_direct_pct": 0.4149686578463741
+}

@@ -1,0 +1,401 @@
+diff --git a/examples/offline_inference/yue2/end2end.py b/examples/offline_inference/yue2/end2end.py
+index 4d04a563..22917b6d 100644
+--- a/examples/offline_inference/yue2/end2end.py
++++ b/examples/offline_inference/yue2/end2end.py
+@@ -90,7 +90,10 @@ def sampling_params(engine, *, phase, seed, max_frames, prompt_ids):
+ def main() -> None:
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("--model", required=True, help="m-a-p/YuE2-3B checkpoint dir or repo id")
+-    parser.add_argument("--vae", default=None, help="m-a-p/YuE2-Vae dir or repo id (or $YUE2_VAE)")
++    parser.add_argument("--revision", default=None, help="main model and tokenizer revision")
++    parser.add_argument("--vae", default=None, help="m-a-p/YuE2-Vae directory or repo id")
++    parser.add_argument("--vae-revision", default=None, help="independent VAE revision")
++    parser.add_argument("--deploy-config", default=None, help="deployment YAML")
+     parser.add_argument("--style", required=True)
+     parser.add_argument("--lyrics", required=True)
+     parser.add_argument("--cot", choices=["off", "melody", "full"], default="full")
+@@ -114,16 +117,28 @@ def main() -> None:
+     )
+     args = parser.parse_args()
+ 
++    vae_overrides = {}
++    if args.vae_revision:
++        vae_overrides["yue2_vae_revision"] = args.vae_revision
+     if args.vae:
+-        import os
+-
+-        os.environ["YUE2_VAE"] = args.vae
+-
+-    tokenizer = YuE2TextTokenizer(Path(args.model) / "qwen.tiktoken")
+-    engine_kwargs: dict = {}
++        vae_overrides["yue2_vae_path"] = args.vae
++    engine_kwargs: dict = {
++        "revision": args.revision,
++        "stage_overrides": {"0": {"hf_overrides": vae_overrides}},
++    }
++    if args.deploy_config:
++        engine_kwargs["deploy_config"] = args.deploy_config
+     if args.gpu_memory_utilization is not None:
+         engine_kwargs["gpu_memory_utilization"] = args.gpu_memory_utilization
+     engine = Omni(model=args.model, **engine_kwargs)
++    vllm_config = engine.engine.stage_vllm_configs[0]
++    config = vllm_config.model_config
++    tokenizer = YuE2TextTokenizer.from_pretrained(
++        config.model,
++        revision=config.revision,
++        token=config.hf_token,
++        cache_dir=vllm_config.load_config.download_dir,
++    )
+ 
+     abc_ids = None
+     if args.abc_file is not None:
+diff --git a/recipes/m-a-p/YuE2-3B.md b/recipes/m-a-p/YuE2-3B.md
+index 197156e6..064665d0 100644
+--- a/recipes/m-a-p/YuE2-3B.md
++++ b/recipes/m-a-p/YuE2-3B.md
+@@ -44,12 +44,32 @@ the score, the semantic phase generates codec frames, then queues the ODE and VA
+ high-priority CUDA stream. Other requests keep decoding while the finishing
+ request emits HOLD tokens (up to 4096 steps, within its token/context budget).
+ The scheduler is unchanged. Weights load once; the VAE loads at startup from
+-`$YUE2_VAE` or the hub id.
++`hf_overrides.yue2_vae_path` in the deployment YAML.
++
++## Checkpoints and revisions
++
++Both checkpoints accept a local directory or HF repository ID. The deployment
++YAML selects the VAE independently of the main model:
++
++```yaml
++hf_overrides:
++  architectures: [Yue2ForCausalLM]
++  yue2_vae_path: m-a-p/YuE2-Vae
++  yue2_vae_revision: main
++```
++
++Use a commit SHA for each revision to pin the weights. `vllm serve --revision`
++selects the main checkpoint and its `qwen.tiktoken`; the VAE uses
++`yue2_vae_revision`. The offline example accepts `--revision`, `--vae`,
++`--vae-revision`, and `--deploy-config` for the same settings. HF cache and
++authentication follow the engine configuration. An explicit `yue2_vae_path`
++takes precedence over the existing `YUE2_VAE` environment variable. With the
++default YAML value `null`, that variable remains supported; if unset, the VAE
++loads from `m-a-p/YuE2-Vae`.
+ 
+ ## Running
+ 
+ ```bash
+-export YUE2_VAE=/models/YuE2-Vae   # or omit and let it resolve from the hub
+ python examples/offline_inference/yue2/end2end.py \
+     --model /models/YuE2-3B \
+     --style "A melancholic lo-fi hip-hop track at 85 BPM in F minor" \
+@@ -77,7 +97,6 @@ and cached YuE2-3B and YuE2-Vae weights:
+ 
+ ```bash
+ export YUE2_MODEL_DIR=/path/to/YuE2-3B
+-export YUE2_VAE=/path/to/YuE2-Vae
+ CUDA_VISIBLE_DEVICES=0 python -m pytest tests/e2e/online_serving/test_yue2.py \
+     -k preemption_and_synthesis_abort -m 'slow and tts' --run-level full_model -q -s
+ ```
+diff --git a/tests/e2e/offline_inference/test_yue2.py b/tests/e2e/offline_inference/test_yue2.py
+index 996f42e9..d0e57b2e 100644
+--- a/tests/e2e/offline_inference/test_yue2.py
++++ b/tests/e2e/offline_inference/test_yue2.py
+@@ -26,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
+ 
+ @pytest.fixture(scope="module")
+ def vae_path() -> Path:
+-    path = Path(os.environ.get("YUE2_VAE", get_model_prefix() + "m-a-p/YuE2-Vae"))
++    path = Path(get_model_prefix() + "m-a-p/YuE2-Vae")
+     if not path.is_dir():
+         path = Path(hf_api().snapshot_download(str(path), allow_patterns=["*.json", "*.safetensors"]))
+     return path
+diff --git a/tests/worker/test_yue2_loading.py b/tests/worker/test_yue2_loading.py
+new file mode 100644
+index 00000000..b99b36d1
+--- /dev/null
++++ b/tests/worker/test_yue2_loading.py
+@@ -0,0 +1,116 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Checkpoint locations and independent revisions for YuE2."""
++
++import pytest
++import torch
++from safetensors.torch import save_file
++from vllm.config import LoadConfig, ModelConfig, VllmConfig
++
++from vllm_omni.entrypoints.async_omni import AsyncOmni
++from vllm_omni.entrypoints.openai.tts_adapters.base import SpeechServingContext
++from vllm_omni.entrypoints.openai.tts_adapters.yue2 import Yue2Adapter
++from vllm_omni.model_executor.models.yue2 import yue2 as y
++from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
++from vllm_omni.transformers_utils.configs.yue2 import Yue2Config
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++def test_tokenizer_local_directory(tmp_path, mocker):
++    merge = tmp_path / "qwen.tiktoken"
++    merge.write_text("test")
++    init = mocker.patch.object(YuE2TextTokenizer, "__init__", return_value=None)
++    YuE2TextTokenizer.from_pretrained(tmp_path)
++    init.assert_called_once_with(str(merge))
++
++
++def test_tokenizer_hf_revision(mocker):
++    cached = mocker.patch("transformers.utils.hub.cached_file", return_value="/cache/qwen.tiktoken")
++    mocker.patch.object(YuE2TextTokenizer, "__init__", return_value=None)
++    YuE2TextTokenizer.from_pretrained("m-a-p/YuE2-3B", revision="model-sha", cache_dir="/cache", token=True)
++    cached.assert_called_once_with(
++        "m-a-p/YuE2-3B", "qwen.tiktoken", revision="model-sha", cache_dir="/cache", token=True
++    )
++
++
++def test_missing_local_tokenizer(tmp_path):
++    with pytest.raises(OSError, match="qwen.tiktoken"):
++        YuE2TextTokenizer.from_pretrained(tmp_path)
++
++
++def test_adapter_uses_model_revision_not_placeholder_tokenizer(mocker):
++    config = mocker.Mock(spec=ModelConfig, model="m-a-p/YuE2-3B", revision="model-sha", hf_token=True)
++    engine = mocker.Mock(
++        spec=AsyncOmni,
++        vllm_config=mocker.Mock(spec=VllmConfig, model_config=config, load_config=LoadConfig(download_dir="/cache")),
++    )
++    adapter = Yue2Adapter(SpeechServingContext(server=None, engine_client=engine))
++    load = mocker.patch.object(YuE2TextTokenizer, "from_pretrained")
++    assert adapter._tokenizer() is adapter._tokenizer()
++    load.assert_called_once_with("m-a-p/YuE2-3B", revision="model-sha", token=True, cache_dir="/cache")
++
++
++@pytest.mark.parametrize(
++    "path,legacy,expected",
++    [
++        ("m-a-p/YuE2-Vae", "/legacy", "m-a-p/YuE2-Vae"),
++        ("/models/vae", "/legacy", "/models/vae"),
++        (None, "/legacy", "/legacy"),
++        (None, None, "m-a-p/YuE2-Vae"),
++    ],
++)
++def test_model_vae_revision_and_credentials(path, legacy, expected, monkeypatch, mocker):
++    if legacy is None:
++        monkeypatch.delenv("YUE2_VAE", raising=False)
++    else:
++        monkeypatch.setenv("YUE2_VAE", legacy)
++    model = object.__new__(y.Yue2ForCausalLM)
++    torch.nn.Module.__init__(model)
++    model.config = Yue2Config(yue2_vae_path=path, yue2_vae_revision="vae-sha")
++    model.vllm_config = mocker.Mock(
++        spec=VllmConfig,
++        model_config=mocker.Mock(spec=ModelConfig, revision="different-model-sha", hf_token=True),
++        load_config=LoadConfig(download_dir="/cache"),
++    )
++    model._vae = None
++    model._vae_device = None
++    vae = mocker.Mock(spec=y.YuE2VAE)
++    load = mocker.patch.object(y.YuE2VAE, "from_pretrained", return_value=vae)
++    assert model._vae_model(torch.device("cpu")) is vae
++    load.assert_called_once_with(
++        expected, revision="vae-sha", token=True, cache_dir="/cache", decoder_only=True, device="cpu"
++    )
++    assert model._vae_model(torch.device("cpu")) is vae
++    assert load.call_count == 1
++
++
++@pytest.mark.parametrize("from_hub", [False, True], ids=["local", "hf"])
++def test_vae_checkpoint_loading(tmp_path, mocker, from_hub):
++    config = y.YuE2VAEConfig(
++        latent_dim=2,
++        downsampling_ratio=2,
++        decoder_config=dict(out_channels=2, channels=4, c_mults=[1], strides=[2], latent_dim=2),
++    )
++    original = y.YuE2VAE(config, decoder_only=True).float()
++    config.save_pretrained(tmp_path)
++    save_file(original.state_dict(), tmp_path / "model.safetensors")
++    api = mocker.patch("vllm_omni.transformers_utils.repo_utils.hf_api")
++    api.return_value.snapshot_download.return_value = str(tmp_path)
++    loaded = y.YuE2VAE.from_pretrained(
++        "m-a-p/YuE2-Vae" if from_hub else tmp_path, revision="vae-sha", decoder_only=True
++    )
++    assert loaded.state_dict().keys() == original.state_dict().keys()
++    for name, value in original.state_dict().items():
++        assert torch.equal(value, loaded.state_dict()[name])
++    if from_hub:
++        assert api.return_value.snapshot_download.call_args.kwargs["revision"] == "vae-sha"
++    else:
++        api.assert_not_called()
++
++
++def test_vae_config_round_trip():
++    config = Yue2Config(yue2_vae_path="m-a-p/YuE2-Vae", yue2_vae_revision="vae-sha")
++    restored = Yue2Config.from_dict(config.to_dict())
++    assert restored.yue2_vae_path == "m-a-p/YuE2-Vae"
++    assert restored.yue2_vae_revision == "vae-sha"
+diff --git a/vllm_omni/deploy/yue2.yaml b/vllm_omni/deploy/yue2.yaml
+index 10921282..0baad68d 100644
+--- a/vllm_omni/deploy/yue2.yaml
++++ b/vllm_omni/deploy/yue2.yaml
+@@ -42,6 +42,10 @@ stages:
+     tokenizer: gpt2
+     hf_overrides:
+       architectures: ["Yue2ForCausalLM"]
++      # An explicit path wins over the legacy YUE2_VAE environment variable.
++      # null keeps that fallback, then defaults to m-a-p/YuE2-Vae.
++      yue2_vae_path: null
++      yue2_vae_revision: main
+     default_sampling_params:
+       # Defaults for callers that omit model-owned sampling options. The
+       # opt-in prepare_runner_inputs hook reads each request's extra_args;
+diff --git a/vllm_omni/entrypoints/openai/tts_adapters/yue2.py b/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
+index 1d343afb..db3591da 100644
+--- a/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
++++ b/vllm_omni/entrypoints/openai/tts_adapters/yue2.py
+@@ -19,9 +19,9 @@ Unsupported parameters are rejected rather than silently ignored, following
+ the MiniMax Music 3 precedent.
+ """
+ 
++import asyncio
+ import secrets
+ from collections.abc import Mapping
+-from pathlib import Path
+ from typing import TYPE_CHECKING, Any
+ 
+ import torch
+@@ -30,7 +30,6 @@ from vllm_omni.entrypoints.openai.tts_adapters import register_tts_adapter
+ from vllm_omni.entrypoints.openai.tts_adapters.base import (
+     ARTTSAdapter,
+     PreparedRequest,
+-    resolve_stage_model_path,
+ )
+ from vllm_omni.model_executor.models.yue2.yue2 import (
+     CONTEXT,
+@@ -145,7 +144,7 @@ class Yue2Adapter(ARTTSAdapter):
+         # Resolve (and possibly download) qwen.tiktoken at startup: build()
+         # runs on the request path and must not block on a hub download, and a
+         # bad path should surface before the first request.
+-        self._tokenizer()
++        await asyncio.to_thread(self._tokenizer)
+ 
+     async def build(
+         self,
+@@ -259,17 +258,17 @@ class Yue2Adapter(ARTTSAdapter):
+         if self._cached_tokenizer is None:
+             from vllm_omni.tokenizers.yue2_tokenizer import YuE2TextTokenizer
+ 
+-            model_path = resolve_stage_model_path(self.ctx.engine_client)
+-            if model_path is None:
+-                raise RuntimeError("YuE2 tokenizer needs a resolvable stage model path")
+-            merge_file = Path(model_path).expanduser() / "qwen.tiktoken"
+-            if not merge_file.is_file():
+-                # model_path is an HF repo id: pull just the merge file into
+-                # the hub cache (vae.py does the same for the VAE snapshot).
+-                from vllm_omni.transformers_utils.repo_utils import hf_api
+-
+-                merge_file = Path(hf_api().hf_hub_download(model_path, "qwen.tiktoken"))
+-            self._cached_tokenizer = YuE2TextTokenizer(merge_file)
++            engine = self.ctx.engine_client
++            assert engine is not None
++            vllm_config = engine.vllm_config
++            assert vllm_config is not None
++            config = vllm_config.model_config
++            self._cached_tokenizer = YuE2TextTokenizer.from_pretrained(
++                config.model,
++                revision=config.revision,
++                token=config.hf_token,
++                cache_dir=vllm_config.load_config.download_dir,
++            )
+         return self._cached_tokenizer
+ 
+ 
+diff --git a/vllm_omni/model_executor/models/yue2/pipeline.py b/vllm_omni/model_executor/models/yue2/pipeline.py
+index 0a1fa51b..353083be 100644
+--- a/vllm_omni/model_executor/models/yue2/pipeline.py
++++ b/vllm_omni/model_executor/models/yue2/pipeline.py
+@@ -7,8 +7,8 @@ Mixture-of-Transformers checkpoint — AR path, NAR path, projection heads —
+ lives in one ``model.safetensors``, so both the autoregressive sampling and
+ the terminal flow-matching + VAE pass run inside one stage and no weights are
+ duplicated across stages. The VAE decoder is a separate repository
+-(``m-a-p/YuE2-Vae``), loaded in ``load_weights`` from ``$YUE2_VAE`` or the
+-default hub id.
++(``m-a-p/YuE2-Vae``), selected with ``hf_overrides.yue2_vae_path`` and
++``hf_overrides.yue2_vae_revision`` in the deployment config.
+ 
+ Sampling is model-owned. ``sampling_constraints`` pins ``detokenize`` and the
+ union of both phase end tokens; ``extra_args`` carry the phase and the
+diff --git a/vllm_omni/model_executor/models/yue2/yue2.py b/vllm_omni/model_executor/models/yue2/yue2.py
+index bd1dd8b9..491c24f7 100644
+--- a/vllm_omni/model_executor/models/yue2/yue2.py
++++ b/vllm_omni/model_executor/models/yue2/yue2.py
+@@ -2082,13 +2082,20 @@ class Yue2ForCausalLM(nn.Module):
+ 
+     def _vae_model(self, device: torch.device) -> YuE2VAE:
+         if self._vae is None:
+-            vae_path = os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
++            vae_path = self.config.yue2_vae_path or os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
+             logger.info("Loading YuE2 VAE decoder from %s", vae_path)
+             # Keep the VAE out of the module tree (__dict__, not an nn.Module
+             # attribute): the checkpoint has no VAE keys, so a registered
+             # submodule would trip DefaultModelLoader.track_weights_loading,
+             # and a model-wide dtype/device pass would change VAE numerics.
+-            self.__dict__["_vae"] = YuE2VAE.from_pretrained(vae_path, decoder_only=True, device="cpu")
++            self.__dict__["_vae"] = YuE2VAE.from_pretrained(
++                vae_path,
++                revision=self.config.yue2_vae_revision,
++                token=self.vllm_config.model_config.hf_token,
++                cache_dir=self.vllm_config.load_config.download_dir,
++                decoder_only=True,
++                device="cpu",
++            )
+         if self._vae_device != device:
+             self._vae.to(device)
+             self._vae_device = device
+diff --git a/vllm_omni/tokenizers/yue2_tokenizer.py b/vllm_omni/tokenizers/yue2_tokenizer.py
+index 35c22282..56485b6b 100644
+--- a/vllm_omni/tokenizers/yue2_tokenizer.py
++++ b/vllm_omni/tokenizers/yue2_tokenizer.py
+@@ -40,6 +40,23 @@ class YuE2TextTokenizer:
+             special_tokens={s: i + len(ranks) for i, s in enumerate(specials)},
+         )
+ 
++    @classmethod
++    def from_pretrained(
++        cls,
++        model: str | Path,
++        *,
++        revision: str | None = None,
++        cache_dir: str | Path | None = None,
++        token: str | bool | None = None,
++    ) -> YuE2TextTokenizer:
++        """Resolve checkpoint BPE from a local directory or the standard HF cache."""
++        from transformers.utils.hub import cached_file
++
++        path = cached_file(str(model), "qwen.tiktoken", revision=revision, cache_dir=cache_dir, token=token)
++        if path is None:
++            raise FileNotFoundError(f"Missing qwen.tiktoken in {model}")
++        return cls(path)
++
+     def encode(self, text):
+         return self._enc.encode_ordinary(unicodedata.normalize("NFC", text))
+ 
+diff --git a/vllm_omni/transformers_utils/configs/yue2.py b/vllm_omni/transformers_utils/configs/yue2.py
+index 5063d5b1..97bbe565 100644
+--- a/vllm_omni/transformers_utils/configs/yue2.py
++++ b/vllm_omni/transformers_utils/configs/yue2.py
+@@ -40,6 +40,8 @@ class Yue2Config(PretrainedConfig):
+         latent_dim: int = 64,
+         max_latent_frames: int = 24576,
+         timestep_shift: float = 1.0,
++        yue2_vae_path: str | None = None,
++        yue2_vae_revision: str = "main",
+         **kwargs: Any,
+     ) -> None:
+         super().__init__(tie_word_embeddings=tie_word_embeddings, **kwargs)
+@@ -56,6 +58,8 @@ class Yue2Config(PretrainedConfig):
+         self.latent_dim = latent_dim
+         self.max_latent_frames = max_latent_frames
+         self.timestep_shift = timestep_shift
++        self.yue2_vae_path = yue2_vae_path
++        self.yue2_vae_revision = yue2_vae_revision
+         # The checkpoint's config.json (like upstream's qwen_config derivative,
+         # fast.py) omits the standard Qwen3 fields the AR backbone expects;
+         # synthesize the same defaults upstream does so vLLM's Qwen3Model and

@@ -1,0 +1,110 @@
+# 按 token 预算合批（完成，未证实 E2E 提速）
+
+用户批准先做合批优化，暂不做 fair queue。独立候选 `experiments/yue2-token-batch-20261009/source` 继承 queue-output；原候选、上游、共享执行和原计算不改。
+
+新增 `hf_overrides.yue2_nar_batch_max_tokens`，非负整数，默认 0 关闭。启用时每首成本为最大声学 chunk 的 `conditioning tokens + NAR tokens = prefix_length + 2 * chunk_frames + 3`，使用原 `chunk_ranges`，不构造噪声或 GPU tensor。累计预算与 `yue2_nar_batch_size` 上限同时生效。
+
+FIFO 不跳过队首；下一个请求装不下或恰好达到预算即开跑，不再等待无用的凑批窗口。单首超过预算时单独执行，沿用请求原有长度约束；不是 OOM 自动回退。其余等待窗口/取消/输出所有权沿用既有逻辑。
+
+此预算限制 packed conditioning + NAR 的 token 总量，**不是 FLOPs/GPU 时间预算或总显存硬上限**：activation、graph、allocator、多 chunk 存活对象、VAE/输出等还需计入实测。不会根据瞬时 free memory 自动选择批次。部署预算通过同卡测试校准。
+
+验证范围：
+
+1. CPU 检查实际 chunk 成本、FIFO、预算边界、超预算单首、取消及既有 packed 算术。
+2. 固定 conditioning/codec/噪声，真实 GPU B1/B2/预算 B3/B4；检查完整音频形状/有限值/错误标记，记录数值差异。此步无 AR，不冒充 E2E。
+3. 自动 ABC 完整 E2E，同 H800 / AR32 / KV24GiB / VAE1 / 200ms窗口 / full CoT / CFG1，比固定 B2 与预算允许最多 B4。共享显存配置保证两边同条件；不与历史 KV32GiB 数值直接混比。
+4. 实际 job/packed chunk 的低频探针与设备记录验证覆盖及峰值；重点 E2EL、Throughput、RTF。完整结果见下文。
+
+SSH36665，独立 `/root/autodl-tmp/yue2-token-batch-20261009-01`，screens `yue2-token-batch` / `yue2-token-batch-e2e` / `yue2-token-batch-48` 均已结束。无音频/latent/权重保存或下载；未 commit/push。
+
+## 已完成的功能验证
+
+48 项 CPU 测试通过（20 项合批/队列，28 项自动 ABC/内部 CFG）；13 个适用的统一 pre-commit hooks 通过。完整 pre-commit 首次受复制目录 ownership 检查、随后无关 actionlint 环境下载 SSL EOF 阻断，日志保留；未添加 skip/排除，改为逐项执行全部适用 hooks。
+
+固定输入 GPU 共 48 首（三种长度组成 × B1/B2/预算32k/预算48k × 四首），真实覆盖 B2/B3/B4，形状/有限值/错误标记/预算检查通过。混合及长组相对 B1 逐值精确。短组前两首 packed 相对 B1 的音频 relative L2 为 0.014127/0.019728；其它两首精确。
+
+另起进程补短组20首：B1 repeat 精确复现 B1，预算 B4 与原 B2 四首全部逐值精确。因此已测短组的差异不是首次 B1 热身漂移，且未观察新 B4 相对 B2 的新增差异；不外推全部 packed 数值 parity 或听感通过。
+
+初次固定输入进程多形状连续测试出现一次 CUDA allocator 分配失败后回收重试成功的警告，整个 probe 正常返回并退出；不把它隐去或称为 fatal OOM。不同模式共用进程的 reserved 高水位累积，不能用其逐模式峰值作公平部署对照。后续完整 E2E 每组使用新进程，并记录 allocator retries/num_ooms。
+
+另有8首自动ABC短GPU smoke +1预热通过（预算截断，仅验链路），未保存音频。三组完整 E2E 已完成。
+
+## 配置语义
+
+实验配置（还不是默认部署推荐值）：
+
+```yaml
+hf_overrides:
+  yue2_nar_batch_size: 4
+  yue2_nar_batch_max_tokens: 32768
+  yue2_nar_batch_wait_ms: 200
+  yue2_vae_batch_size: 1
+```
+
+预算包含每块的 AR 条件和 NAR 查询 token，不是仅音频帧数。完整歌曲超过单块时按最大块计预算，保守约束同时合批的块规模；单首超预算仍运行 B1。因此 `batch_max_tokens` 不应被解释为请求长度限制、总显存上限或 OOM 恢复策略。默认仍 B1、预算0；较高 B 上限仅本实验配置启用。
+
+实际短 E2E smoke 观察到两个 B4 job（共8首），说明 HF 配置确实传至模型队列，而非仅独立 probe 构造队列生效。
+
+
+## 完整 E2E 结果
+
+顺序为原队列B2→预算32k→预算48k，每组新进程，2首完整预热后同64首提示/种子；自动ABC、full CoT、CFG1、ABC4096/semantic9000上限。AR32/KV24GiB/client64、NAR等待200ms/VAE1、最高声学stream优先级−3/MAX_INFLIGHT2、MPS关闭。两边相同低频job/packed构造记录，没有Nsight或逐步记录；pump边界观察wrapper仍存在，不能冒充无探针正式测速。
+
+| 指标 | 原队列固定 B2 | max B4 / 32768 tokens | max B4 / 49152 tokens |
+|---|---:|---:|---:|
+| 吞吐（音频秒/秒） | 21.91625 | 21.96552（+0.225%） | 21.67966（−1.080%） |
+| 请求吞吐（首/秒） | 0.097032 | 0.097619（+0.605%） | 0.095116（−1.975%） |
+| Semantic TPS（E2E） | 547.91 | 549.14 | 541.99 |
+| ABC内容 TPS（E2E） | 197.68 | 198.00 | 195.20 |
+| 合计内容 TPS（E2E） | 745.59 | 747.15 | 737.20 |
+| E2EL P50 / P95（秒） | 354.511 / 610.896 | 346.646 / 597.392 | 369.001 / 613.979 |
+| RTF P50 / P95 | 1.46324 / 2.44901 | 1.45053 / 2.43325 | 1.43989 / 2.47410 |
+| 设备采样峰值（GiB） | 71.798 | 58.516 | 57.061 |
+| allocated峰值（GiB） | 38.739 | 37.627 | 40.019 |
+| reserved峰值（GiB） | 70.609 | 57.330 | 55.871 |
+| 实际job | 36B1 + 14B2 | 46B1 + 9B2 | 38B1 + 10B2 + 2B3 |
+| 进入packed的歌曲 | 28/64 | 18/64 | 26/64 |
+| 进入B3/B4的歌曲 | 0 | 0 | 6 / 0 |
+| ABC / semantic预算截断 | 1 / 0 | 1 / 1 | 2 / 2 |
+
+192计时+6预热输出形状/有限值/错误标记全部通过，预算截断全部保留。三组allocator retries/num_ooms均0，model_states最终0；各进程退出0。温度范围48–64°C/49–64°C/49–64°C，温控标志均0，中位SM均1230MHz；没有锁频、改功率或启用MPS。
+
+32k没有在完整链路触发B3；基线每首成本中位13306 token，因此常见长度只能装两首。随后仅把预算提高到已固定输入验收的49152，实际触发两个B3 job，但没有提高完整链路吞吐。最初计划和后续校准理由分别保留在 `evidence/plan.json`、`evidence/followup-plan.json`，没有事后隐藏32k结果。短E2E有B4，完整长歌本轮没有B4。
+
+32k/48k设备采样峰值相对本轮基线少13.281/14.736GiB，但主要差异在reserved；48k allocated反而比基线多1.280GiB。reserved高水位受形状与分配/回收历史影响，本轮未拆分其贡献，不能说token预算越小总峰值就必然越低，也不能保证其它负载固定省这些显存。
+
+三组音频总长14455.435/14400.835/14587.475秒，候选相对基线−0.378%/+0.913%；同时报告请求吞吐，避免隐藏长度变化。候选ABC token精确31/64、30/64，semantic精确均0/64，不能当数值parity或质量验收，也不能将整条自由生成链路的差值直接视为固定计算量的kernel提速。
+
+## 结论与保留范围
+
+- **实现和功能验证完成**：按实际条件+NAR token预算与首数上限共同合批，保留FIFO和原计算；固定输入B3/B4、短E2E B4、完整E2E B3均已真实执行。
+- **本轮没有E2E提速证据**：32k吞吐基本持平，48k略低；不支持提高默认批量，不把“能合B3”直接当优化收益。默认仍B1/预算0，实验配置作为可选的合批规模控制保留。
+- 显存峰值较低是本轮观测，尚不是稳定部署承诺。这是三个顺序带低频观察的校准组，未做交错重复或无探针稳定性验收；基线是旧队列B2，未新跑原生上游。不混用历史KV32GiB或“6%”数值。
+- 未做新WSB/听感、CFG≠1 GPU验收、HTTP/取消/进行中shutdown、多卡或普遍数值parity验证；短固定输入的已有B1/packed差异保留在上文。
+
+## 证据与回收
+
+48项CPU和13个适用统一hooks通过；两个生产实现文件、三份YAML声明及一个测试文件的完整diff见 `evidence/implementation.patch`。旧候选1860份生产文件未变，新候选1860份生产文件本地/远端及三组运行前后匹配；公共执行、模型计算/采样、NAR/VAE算术不改。
+
+独立分析首次因native worker在请求ID后添加随机suffix而匹配失败；保留失败日志与旧分析器，以唯一前缀匹配修正。原始冻结plan/测量harness/配置/生产未改，分析器旧新hash及说明见 `evidence/analysis-revision.json`。`scripts/analyze.py`重算指标、身份映射、源码与实际预算；`scripts/verify.py`独立核验提示/种子、共同部署、MPS/优先级及冻结文件。最终 `artifacts/analysis.json`、`artifacts/verification.json` 均通过。
+
+回收95份文本/JSON/日志/配置/脚本，6,841,066字节，SHA256全部一致，清单与核验在 `evidence/collection-sha256.json`、`evidence/collection-verification.json`。未保存或下载音频/latent/权重。17:14核查GPU为0MiB、无计算进程/MPS/本轮screen；平台遗留dead WSB screen未动。原始失败、allocator警告和校准日志保留。未commit/push。
+
+
+## TPS 补录与下一步（用户后续要求）
+
+用户明确显存下降本身有价值，后续metric必须加TPS。此次同吞吐附近、设备峰值更低的结果作为有效资源效率观测保留；后续同时评价容量收益和速度收益。
+
+通过 `scripts/tps.py` 从冻结逐请求记录补算 `artifacts/tps.json`，不改原harness/summary/回收清单。Semantic TPS为codec帧token总数÷完整E2E窗口，ABC TPS为保留谱子token数÷同一窗口，合计为二者相加。排除预热、prompt、控制token、CFG负分支计算和NAR ODE评估。不是每请求TPS平均，也不是只计AR阶段的decode TPS；当前记录缺少完整阶段起止，不能补造后者。Semantic TPS与音频吞吐几乎成固定比例（每秒25帧），同时加ABC及合计才补充新的工作量信息。脚本含聚合自检，并使用48000Hz/1920hop/64样本尾裁剪公式与音频吞吐交叉核对。
+
+后续候选按收益与改动范围排序，尚未实施：
+
+1. **先把显存余量用于AR供给**：32k预算保持，先AR32→48并配套capture bucket；client64不变，KV24GiB先保持，观察实际running规模与KV抢占/等待。若KV不足，再单独提高KV预算，避免把多个参数同时改变。AR更大不保证更快，但这是把已观察的内存余量转成吞吐的直接检验。
+2. **消除packed条件KV中间副本**：当前 `CachedNAR._prefill` 为每首分配完整KV，`BatchedCachedNAR.__init__` 又分配合批KV并复制条件区，原成员之后通过event释放。目标是让各首prefill直接写最终packed切片，减少短暂双份KV及copy；需验证非连续视图、Graph地址、event和取消所有权。它不等于回收native AR paged KV，也不代表已测到E2E收益。
+3. **查NAR真实算子成本**：已有FA3/融合投影/Graph，继续展开Graph看GEMM、attention及KV写回，先找热点再改。NAR velocity是既有profile主体，VAE和交接优先级较低；不先改变ODE步数或精度。
+4. **声学提交量按成本约束**：现有MAX_INFLIGHT=2只数work unit，B1/B3每个unit大小不同。可先测简单深度1对2，再考虑按tokens/实测时间限制提前提交，不直接上复杂fair queue。已有MPS、同优先级及固定阶段轮转结果不支持优先重做那些路线。
+
+本次仅补指标与记录优化方向，未启动GPU实验、未改生产或冻结测量文件。
+
+
+后续已完成[同卡直接对上游](../2026-10-09-yue2-token-upstream/README.md)：无batch探针新鲜上游→32k候选，音频吞吐21.815→21.907（+0.419%）、合计TPS741.92→745.15，设备峰值54.421→58.516GiB。故本报告“省约13GiB”严格限定为相对旧队列B2，不能理解为优于原生上游显存。后续部署调优应同时给上游相同显存预算。

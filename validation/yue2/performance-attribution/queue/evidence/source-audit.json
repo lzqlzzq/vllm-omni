@@ -1,0 +1,20 @@
+{
+  "upstream": "5f95115e703ffe51e03e40ae23c78ff841c3335e",
+  "unchanged_production": 1823,
+  "changed_production": [
+    "vllm_omni/config/pipeline_registry.py",
+    "vllm_omni/deploy/yue2.yaml",
+    "vllm_omni/entrypoints/openai/tts_adapters/yue2.py",
+    "vllm_omni/model_executor/models/registry.py",
+    "vllm_omni/model_executor/models/yue2/pipeline.py",
+    "vllm_omni/model_executor/models/yue2/yue2.py",
+    "vllm_omni/tokenizers/yue2_tokenizer.py",
+    "vllm_omni/transformers_utils/configs/yue2.py"
+  ],
+  "added": [
+    "vllm_omni/deploy/yue2_queue.yaml",
+    "vllm_omni/model_executor/models/yue2/queued.py",
+    "tests/worker/test_yue2_queue.py",
+    "tests/worker/test_yue2_loading.py"
+  ]
+}

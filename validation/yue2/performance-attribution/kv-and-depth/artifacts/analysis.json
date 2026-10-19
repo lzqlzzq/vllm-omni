@@ -1,0 +1,174 @@
+{
+  "complete": true,
+  "results": [
+    {
+      "label": "baseline-01",
+      "arm": "baseline",
+      "elapsed_s": 649.0136340819299,
+      "throughput": 22.18880145258819,
+      "request_throughput": 0.09861117954868849,
+      "e2el": {
+        "p50": 343.7831814158708,
+        "p95": 591.0850671099498
+      },
+      "rtf": {
+        "p50": 1.4377541279142898,
+        "p95": 2.409689988359751
+      },
+      "semantic_tokens": 360023,
+      "abc_content_tokens": 129814,
+      "semantic_tps": 554.723323354023,
+      "abc_content_tps": 200.0173697177101,
+      "total_content_tps": 754.7406930717332,
+      "peak_gib": 58.516357421875,
+      "allocated_gib": 37.62721872329712,
+      "reserved_gib": 57.330078125,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 14400.834666666668,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "temperature": [
+        49,
+        66
+      ],
+      "sm_median": 1245.0,
+      "thermal_fraction": 0.0,
+      "returned_token_sequence_equal_to_first": 64,
+      "abc_equal_to_first": 64
+    },
+    {
+      "label": "zero-copy-01",
+      "arm": "source",
+      "elapsed_s": 647.4366053119302,
+      "throughput": 22.242849027247157,
+      "request_throughput": 0.09885137706905725,
+      "e2el": {
+        "p50": 342.8890232741833,
+        "p95": 590.11068650987
+      },
+      "rtf": {
+        "p50": 1.4342208513208061,
+        "p95": 2.4055999312939043
+      },
+      "semantic_tokens": 360023,
+      "abc_content_tokens": 129814,
+      "semantic_tps": 556.0745207270812,
+      "abc_content_tps": 200.5045728569156,
+      "total_content_tps": 756.5790935839967,
+      "peak_gib": 58.516357421875,
+      "allocated_gib": 36.94821262359619,
+      "reserved_gib": 57.330078125,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 14400.834666666668,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "temperature": [
+        50,
+        67
+      ],
+      "sm_median": 1245.0,
+      "thermal_fraction": 0.0,
+      "returned_token_sequence_equal_to_first": 64,
+      "abc_equal_to_first": 64
+    },
+    {
+      "label": "depth1-01",
+      "arm": "depth1",
+      "elapsed_s": 647.9130100235343,
+      "throughput": 22.226494056885173,
+      "request_throughput": 0.0987786925249044,
+      "e2el": {
+        "p50": 342.90527786687016,
+        "p95": 590.62361776717
+      },
+      "rtf": {
+        "p50": 1.4328289515958215,
+        "p95": 2.4399319226814433
+      },
+      "semantic_tokens": 360023,
+      "abc_content_tokens": 129814,
+      "semantic_tps": 555.6656440452134,
+      "abc_content_tps": 200.35714361606156,
+      "total_content_tps": 756.022787661275,
+      "peak_gib": 70.321044921875,
+      "allocated_gib": 37.91144132614136,
+      "reserved_gib": 69.134765625,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 14400.834666666668,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "temperature": [
+        52,
+        67
+      ],
+      "sm_median": 1260.0,
+      "thermal_fraction": 0.0,
+      "returned_token_sequence_equal_to_first": 64,
+      "abc_equal_to_first": 64
+    },
+    {
+      "label": "baseline-02",
+      "arm": "baseline",
+      "elapsed_s": 655.3335452005267,
+      "throughput": 22.05813325524702,
+      "request_throughput": 0.09766019223144837,
+      "e2el": {
+        "p50": 352.0998229738325,
+        "p95": 606.6764342831448
+      },
+      "rtf": {
+        "p50": 1.453167219644837,
+        "p95": 2.4317857241247594
+      },
+      "semantic_tokens": 361388,
+      "abc_content_tokens": 130385,
+      "semantic_tps": 551.4565867209167,
+      "abc_content_tps": 198.9597525640218,
+      "total_content_tps": 750.4163392849384,
+      "peak_gib": 71.817138671875,
+      "allocated_gib": 38.73897886276245,
+      "reserved_gib": 70.630859375,
+      "allocator_initial": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "allocator_final": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "total_audio_s": 14455.434666666666,
+      "abc_truncated": 1,
+      "semantic_truncated": 0,
+      "temperature": [
+        51,
+        66
+      ],
+      "sm_median": 1245.0,
+      "thermal_fraction": 0.0,
+      "returned_token_sequence_equal_to_first": 0,
+      "abc_equal_to_first": 31
+    }
+  ],
+  "scope": "Two isolated candidate changes bracketed by baseline runs; ordered, not repeated ABBA; no batch/step/Nsight observers; full E2E content TPS, not phase-local decode TPS."
+}

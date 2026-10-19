@@ -1,0 +1,101 @@
+# 同 worker ABC / semantic 分阶段队列实验
+
+2026-10-08，SSH16593 H800 PCIe 80GB。**实现及功能验收通过，但当前固定32步轮转策略未带来性能收益，不建议替换原队列。**
+旧、新各64首的一组带探针对照中，吞吐下降5.09%，E2EL P95增加7.27%，设备采样峰值减少6.41GiB。
+最大声学断供改善，累计断供却增加；不能把消除混批当作端到端优化成功。
+
+## 实现范围
+
+独立源码 [experiments/yue2-phase-queue-20261008/source](../../../experiments/yue2-phase-queue-20261008/source)，
+继承 queue-output 的 B1 输出所有权修复。仅新增 YuE `phase_queue.py`，切换本副本 queue/queue_cfg
+的 scheduler 声明，以及把自动 ABC 转 semantic 的入队从 prepend 改为同阶段 FIFO。
+主工作区、旧候选和默认单阶段保持；未 commit/push。
+
+- 原生 waiting/running 按 ABC、semantic 划分执行视图，每步只调度一个阶段。
+- 两阶段可执行时，32个非空调度步轮转；单方可执行时继续，不人为等凑批。
+- 全局 max_num_seqs 不变，双方有需求时准入原则各半，单方可借用。已驻留请求不强制抢占，份额并非硬切分，也不提供墙钟等待上限。
+- 暂停推进的请求保留原生 KV 与状态；schedule 返回或抛异常前恢复完整原生所有权。
+- CFG 正负分支同属 semantic，保留原生原子接纳、同步推进与 KV 预约；预约扣除 parked ABC 占用，小并发下 semantic 份额至少两槽。
+- 复用一个 worker/context/权重/native KV 池及既有声学队列。head、sampler、NAR/VAE、CUDA stream 优先级均保持，不依赖 POSIX/nice/renice。
+
+支持边界沿用现有 queue：TP=PP=1、同步调度、MRv1，无 speculative/APC/外部 KV connector；新增阶段内 FCFS 要求。
+32步是本实验固定值，未新增调参接口、自适应声学背压控制或进程。
+已撤回的统一 index_select 投影没有恢复。
+
+## 同轮性能与机制
+
+两组均为自动 ABC、full CoT、CFG1，NAR1/VAE1/window0，AR32/KV32GiB/client64；
+同64提示和种子、相同冻结模型/legacy VAE、ABC4096/semantic9000上限、各2首完整预热。
+旧→新各独立启动一次，热预条件83°C，启动器最多补热60秒；没有锁频或改变功耗。
+配置见 [formal-queue-b1.yaml](configs/formal-queue-b1.yaml)，固定协议见 [plan.json](evidence/plan.json)。
+
+| 指标 | 原队列 | 分阶段队列 | 变化 |
+|---|---:|---:|---:|
+| 完成墙钟 / s | 803.469 | 845.466 | +41.997 |
+| Throughput / 音频秒每秒 | 17.950 | 17.037 | -5.09% |
+| E2EL P50 / s | 430.805 | 485.661 | +12.73% |
+| E2EL P95 / s | 736.240 | 789.731 | +7.27% |
+| 逐请求 RTF P50 | 1.754 | 2.348 | 变差 |
+| 逐请求 RTF P95 | 3.151 | 3.404 | +8.04% |
+| 设备采样峰值 / GiB | 65.796 | 59.390 | -6.406 |
+| 首个声学 job / s | 77.050 | 92.622 | +15.571 |
+| 最后 ABC 调度步 / s | 470.263 | 253.940 | 提前216.322 |
+| 最大 job 间空档 / s | 50.048 | 21.580 | -28.468 |
+| 累计 job 间空档 / s | 96.447 | 117.348 | +20.901 |
+| 声学 job 墙钟合计 / s | 629.841 | 635.360 | +5.519 |
+| 混合阶段投影调用 | 9163 / 22093 | 0 / 30167 | 消除混批 |
+| 平均投影行数 | 22.185 | 16.260 | -26.71% |
+| 投影调用次数 | 22093 | 30167 | +36.55% |
+
+吞吐以实际输出音频总时长除以整轮墙钟；E2EL为请求提交至完整输出，RTF逐请求以 E2EL 除以音频时长后取分位数。
+峰值来自设备采样，包含预热，是观测下界，不是权重差值或仅 PyTorch allocated。
+两组完整输出总时长14422.155→14403.915秒（-0.126%），ABC token129379→130215；不是固定生成轨迹的算子微基准。
+各有1首 ABC、1首 semantic 预算截断，按原协议保留，不能称64首均自然 EOS。
+
+机制上，ABC更早结束且混批消失，说明阶段选择生效；但本轮平均批次缩水、调用次数增加。
+虽然 LM-head 投影元素估算减少45.49%，这不是总 FLOPs 或 GPU 耗时，不能抵消已观察到的端到端退化。
+handler CPU墙钟3.268→3.110秒，占整轮约0.41%→0.37%，仍不支持将主要退化归于自动 ABC handler。
+
+首job延后15.571秒 + job墙钟增加5.519秒 + job间空档增加20.901秒 + 最后交付增加0.007秒
+= 整轮增加41.997秒。这是时间线分解，不是相互独立的 GPU 成本归因。
+两组累计空档几乎全部没有 ready 声学请求；原来的一个长断供缩短了，更多分散空档使累计空档变长。
+批次缩水是直接观测到的代价，但尚未单独消融32步轮转、准入份额与FIFO，也没有逐kernel分析，不能把全部损失归于某一项。
+
+两组 SM 中位均810MHz，温度范围均79–87°C，热降频标志占计时采样约92.00%/84.86%。
+**这是一组顺序、带逐步观察的诊断对照，不是无探针交错 ABBA 稳定性能结论**；温控与输出轨迹均有影响。
+结果不支持当前策略上线，也不能据此否定所有阶段队列策略，或宣称恢复历史6%收益。
+
+## 功能与记录验收
+
+- 79项 CPU 回归及统一 pre-commit 通过。新增测试覆盖阶段轮转、槽上限、单阶段借用、异常恢复、parked ABC 的 CFG 预约和小并发成对容量。
+- 8首固定预算 GPU smoke 输出形状/有限值/错误标志通过。
+- 独立 CFG 生命周期探针检查16对、4296步的算术、共享 token、负分支 RNG 不变及负 history 为空；实际 guidance 改变 token。
+  ABC/semantic/声学 active 取消、parked ABC 和 parked semantic CFG 对取消及随后复用通过；混合4请求通过。
+  观察到30次阶段切换，最终模型/runner/声学/parked/selected 状态全部空。
+- 两组128首计时及4首预热输出检查通过，正常退出，GPU进程清空。
+  提示/种子/身份、配置、模型、harness一致，吞吐、分位数、采样峰值重新计算通过；候选64声学 job 与零混批断言通过。
+- 49份远端文本/JSON/脚本/配置记录共8,748,609字节，SHA256回收一致。无音频/latent保存或下载。
+- 远端基线1860、候选1861生产 Python/YAML运行前后哈希不变（排除安装自动生成 `_version.py`）。
+  公共执行代码及原模型计算不变。候选本地/远端只有 `phase_queue.py` 的 eligible comprehension 换行不同，AST逐项相同；
+  该差异被最终审计捕获，远端运行原文保存在 [phase_queue.remote.py](evidence/phase_queue.remote.py)，不冒称全部字节相同。
+
+离线核查首次因这处格式差异严格哈希断言失败，随后显式保留原文并验证AST等价，未修改运行证据以消除差异。
+未新增 WSB 质量/听感、并发精确 parity、HTTP、进行中 shutdown、多卡或 NAR B2 验收。
+
+## 证据与复现
+
+- [生产 diff](evidence/production.diff)、[本地源审计](evidence/source-audit-local.json)、[远端最终源审计](evidence/source-audit-remote-final.json)
+- [CPU](evidence/cpu-all.log)、[pre-commit](evidence/pre-commit.log)、[生命周期](artifacts/lifecycle-01/result.json)
+- [旧组汇总](artifacts/profile-baseline-01/summary.json)、[新组汇总](artifacts/profile-source-01/summary.json)
+- [阶段归约](evidence/analysis.json)、[指标比较](evidence/comparison.json)、[记录核查](evidence/record-validation.json)
+- [远端启动器](scripts/run_profile.sh)、[观察器](scripts/phase_probe.py)、[生命周期脚本](scripts/lifecycle.py)
+
+远端根 `/root/autodl-tmp/yue2-phase-queue-20261008-01`，screen `yue2-phase-queue` 已完成。
+从仓库根可离线运行：
+
+```sh
+python3 docs/validation/2026-10-08-yue2-phase-queue/scripts/analyze.py
+python3 docs/validation/2026-10-08-yue2-phase-queue/scripts/validate_records.py
+```
+
+保留独立实验便于继续消融；现有队列仍是推荐保留的路径，本次没有将新策略合入生产。

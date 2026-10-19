@@ -1,0 +1,70 @@
+--- production/yue2.py
++++ experiment/yue2.py
+@@ -2552,16 +2552,8 @@
+     # ------------------------------------------------------------ async synthesis
+ 
+     def _hold_allowed(self, state: _RequestState) -> bool:
+-        """May this request emit one more HOLD_TOKEN step?
+-
+-        Needs the caller's hold budget (and its max_tokens headroom) and room
+-        in the context for the HOLD and the final end token.
+-        """
+-        c = state.constants
+-        if c.skip_synthesis or state.hold_steps >= c.max_hold_steps or not torch.cuda.is_available():
+-            return False
+-        # prompt + frames + the drawn-end HOLD + holds so far + this HOLD + end
+-        return state.prompt_len + len(state.history) + state.hold_steps + 3 <= self._max_model_len
++        # EXPERIMENT: finish cached-condition synthesis within this call.
++        return False
+ 
+     def _song_iter(
+         self, prefix_ids: list[int], codec: list[int], seed: int, keep: list
+@@ -2675,12 +2667,42 @@
+         if constants.skip_synthesis or not state.history:
+             return
+         if torch.cuda.is_available():
+-            # No hold headroom means wait now, but still use the serialized
+-            # synthesis stream and its bounded in-flight work. Independent sync
+-            # graphs would overlap a running job and accumulate private pools.
+-            self._queue_synthesis(state)
+-            state.hold_steps = 0
+-            self._complete_synthesis(state)
++            # EXPERIMENT: one process owns both towers; one condition prefill
++            # builds KV, then the original complete midpoint/VAE loop consumes
++            # it. No synthesis job, HOLD pumping or per-unit event fences.
++            codec = [t - CODEC_OFFSET for t in state.history]
++            if min(codec) < 0 or max(codec) >= CODEC_SIZE:
++                raise RuntimeError("semantic history contains non-codec tokens")
++            device = next(self.vae2llm.parameters()).device
++            stream = self._synthesis.stream()
++            stream.wait_stream(torch.cuda.current_stream(device))
++            keep = []
++            work = None
++            try:
++                with torch.cuda.stream(stream), torch.inference_mode():
++                    work = self._song_iter(state.prefix_ids, codec, constants.seed, keep)
++                    audio = _drain(work)
++                    finite = torch.empty((), dtype=torch.bool, pin_memory=True)
++                    finite.copy_(torch.isfinite(audio).all(), non_blocking=True)
++                    clipped = audio.clamp(-1, 1)
++                    output = torch.empty(clipped.shape, dtype=clipped.dtype, pin_memory=True)
++                    output.copy_(clipped, non_blocking=True)
++                    keep.extend((audio, clipped))
++                stream.synchronize()
++                if not bool(finite):
++                    raise FloatingPointError("Acoustic synthesis produced non-finite audio")
++                self._decode_t0.pop(state.request_id, None)
++                self._ship_audio(state.request_id, output, state.truncated)
++            finally:
++                # All KV/graph/input references outlive their last GPU use,
++                # including a partially submitted solve that raises.
++                stream.synchronize()
++                if work is not None:
++                    work.close()
++                for item in keep:
++                    if isinstance(item, CachedNAR):
++                        item.close()
++                keep.clear()
+             return
+         codec = [t - CODEC_OFFSET for t in state.history]
+         if min(codec) < 0 or max(codec) >= CODEC_SIZE:

@@ -1,0 +1,114 @@
+# 新上游下的同进程声学队列 B=1 对照
+
+收益仍然存在。新上游 + vLLM 0.31.0 下，并发 4 / 8 / 连续 16（上限 8）三轮中位
+吞吐分别提高 **3.12% / 6.28% / 6.44%**，E2EL 与 RTF P95 均改善。
+这支持继续保留可选 B=1 队列实验；尚不足以宣称所有负载受益或默认替换已完成验收。
+
+固定上游为 [`5f95115e`](https://github.com/vllm-project/vllm-omni/commit/5f95115e703ffe51e03e40ae23c78ff841c3335e)
+（2026-10-06，官方 main 与 fork origin/main 当时一致）。相对旧基线 `ee8fdab1`，
+YuE 计算源码及默认 YAML 没有上游变化；共享运行时包含 vLLM 0.31 升级 `0b0d2d70`，
+以及同步 runner 输出复制/无用 payload 减少 `1f47fa2f`。
+本轮两组均在新版环境重新跑；没有以旧版结果直接充当新版对照，也没有逐提交消融归因。
+
+## 性能
+
+吞吐单位为音频秒/墙钟秒，耗时单位为秒；下列均为三轮中位。
+
+| 负载 | 上游耗时 | 队列耗时 | 上游吞吐 | 队列吞吐 | 吞吐变化 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 并发 4 | 22.999 | 22.303 | 6.233 | 6.428 | +3.12% |
+| 并发 8 | 44.619 | 41.982 | 6.426 | 6.829 | +6.28% |
+| 连续 16 / 上限 8 | 84.783 | 79.651 | 6.763 | 7.199 | +6.44% |
+
+| 负载 | E2EL P50 上游→队列 | E2EL P95 上游→队列 | RTF P50 上游→队列 | RTF P95 上游→队列 |
+| --- | ---: | ---: | ---: | ---: |
+| 并发 4 | 13.809→13.749 | 21.992→21.385 | 0.383→0.382 | 0.442→0.430 |
+| 并发 8 | 21.864→21.767 | 42.057→39.844 | 0.679→0.587 | 0.974→0.923 |
+| 连续 16 / 上限 8 | 36.509→30.158 | 47.035→45.250 | 0.950→0.927 | 1.416→1.273 |
+
+连续负载 E2EL P50 降低 17.40%，P95 降低 3.79%，RTF P95 降低 10.10%。
+并发 4/8 的 E2EL P50 仅降低约 0.43%/0.44%，不要把吞吐改善说成每一项延迟都大幅改善。
+上轮旧环境吞吐收益为 3.05% / 7.15% / 6.92%；本轮大体保留，较高并发的收益略小。
+这不是按提交消融，也没有消除两组顺序运行带来的时序影响。
+
+单请求 1024 帧仅一轮：E2EL 11.178→10.830 秒，RTF 0.2729→0.2644，
+不宣称单请求稳定收益。监测峰值设备显存为上游 19284 MiB、队列 19278 MiB。
+原始每轮/每请求数据见 [artifacts](artifacts/)，完整汇总见
+[summary.json](evidence/summary.json)。三轮范围保留在该 JSON，不是统计置信区间。
+
+## 范围与复现
+
+独立源码：`experiments/yue2-upstream-queue-20261006/source/`。
+远端：`root@connect.nmb2.seetacloud.com:27279`，实验根目录
+`/root/autodl-tmp/yue2-upstream-queue-20261006-01`。
+两组共用同一份新上游源码与 `631f5573` HF 加载修复；只按部署配置切换原单阶段
+`yue2` 与可选 `yue2_queue`。旧主工作区及外层参考不改，不 commit/push。
+
+- RTX 3090（UUID `GPU-b247abf1-1a25-c02d-a18c-55e4bef1f73a`），驱动 595.71.05；单 GPU，无 MPS。
+- AR `max_num_seqs=4`，固定 4 GiB KV；同步调度、MR v1、TP=PP=1。
+- 原编译和 CUDA Graph 保留；APC/分块 prefill 关闭。
+- 声学 B=1；无额外 engine、线程、进程或 IPC，原 NAR/CPU 噪声/midpoint/VAE 不变。
+- 四种固定长度 512/768/1024/1280 帧，原歌词/style/seed；完整音频检查，不是自然 EOS。
+- 预热后测试并发 4、并发 8、连续 16/并发上限 8，各三轮。
+- 先运行 baseline 三轮，再运行 queue 三轮，没有交错 AB。
+- Throughput = 总音频秒 / 整组墙钟秒；E2EL = 单请求提交至完整最终输出；
+  RTF = 该请求 E2EL / 音频秒。百分位先逐轮计算，再取三轮中位。
+- 连续负载的客户端信号量等待不计入单请求 E2EL，整组墙钟包含全部 16 首。
+
+基线源码用 `git archive 5f95115e...` 导出后，依次应用
+[evidence/hf-loading.patch](evidence/hf-loading.patch) 和
+[evidence/queue.patch](evidence/queue.patch)。补丁可独立 `git apply`，无需共享执行层改动。
+环境使用独立 venv：Python 3.12.3、vLLM 0.31.0、torch 2.13.0+cu130、
+FlashInfer 0.7.0.post1、Triton 3.7.1。原 vLLM 0.30 环境保留。
+完整依赖版本见 [pip-freeze.txt](evidence/pip-freeze.txt)；`pip check` 无损坏依赖，
+上游 `check_vllm_runtime.py` 的 CUDA/import 检查通过。
+源码 archive 安装需 `SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0+queueupstream`；
+初次仅设置分发专用变量导致版本探测失败，日志保留为 `install-omni.log`，
+修正环境变量后安装通过（`install-omni-02.log`），没有为安装改源码。
+
+AR revision 为 `c044757a011169583f363168348ae380946efff8`，VAE revision 为
+`152733a19ad43aa67e367f9b5503ef8075bb5126`，两组相同，离线缓存加载。
+
+```bash
+cd /root/autodl-tmp/yue2-upstream-queue-20261006-01
+export PATH="$PWD/venv/bin:$PATH"
+venv/bin/python scripts/run.py --arm smoke --label 02
+venv/bin/python scripts/run.py --arm validate --label 02
+venv/bin/python scripts/run.py --arm baseline --label 02
+venv/bin/python scripts/run.py --arm queue --label 02
+# summarize.py 默认读取正式 baseline-01、queue-01；复跑时调整输入标签。
+venv/bin/python scripts/summarize.py
+```
+
+## 输出与生命周期验证
+
+- 24 项 CPU 回归、所有适用统一 pre-commit 检查通过。
+- 两组各 93 次、共 186 次正式固定帧完整输出检查通过（包括预热/顺序样本）。
+- 顺序 512/768/1024/1280 帧的完整 FP32 音频逐值相同；max-abs、RMSE、relative-L2 全部为 0。
+  完整 `.pt` 留在远端，两组哈希与误差在 `summary.json`；本地保存 JSON/日志，不复制大型音频。
+- 并发 84 对音频只有 **11 对**哈希相同：并发 4 为 6/12，并发 8 为 3/24，连续负载为 2/48。
+  不宣称并发精确 parity、batch invariance 或听感/质量验收通过。
+- 真实 GPU 验证零 AR 时声学继续完成、声学运行中与排队取消、取消后复用；
+  8 请求/4 AR 槽下观察到第 5 个及第 6–8 个请求在旧请求仍执行声学时进入 AR。
+- 真实 worker 最终模型 states、runner、声学 active/waiting 全空；smoke、lifecycle、
+  baseline、queue 四次正常退出均清空 GPU 进程。
+- 未新验自然 EOS、HTTP、进行中 shutdown、跨卡或 B>1。这是固定帧最小架构实验。
+
+验证证据见 [lifecycle result](evidence/lifecycle-01/result.json)、
+[events](evidence/lifecycle-01/events.jsonl)、[CPU tests](evidence/cpu-tests.log) 和
+[pre-commit](evidence/pre-commit.log)。验证探针不在正式性能路径中。
+
+## 源码边界
+
+队列模块、可选 YAML 和回归测试与上轮逐字节相同，无新增 0.31 兼容分支，见
+[queue-port-audit.json](evidence/queue-port-audit.json)。两组共同继承新上游全部计算优化。
+
+相对最新上游，1831 个既有生产 Python/YAML 中 1823 个不变，8 个变化仅为共同 HF
+加载修复涉及的 6 个文件，以及队列两处声明注册和 YuE pipeline 定义（pipeline 重叠）。
+新增队列模块/YAML，不修改共享 engine/scheduler/runner 的执行源码，也没有改原 NAR 算法。
+见 [source-audit.json](evidence/source-audit.json) 及两份可应用补丁。
+
+主工作区现有 1823 个生产 Python/YAML 哈希全部保持；实验远端 1833 个生产文件与本地
+快照一致，排除安装生成的 `_version.py`。见 [main-workspace-audit.json](evidence/main-workspace-audit.json)
+与 [remote-source-audit.json](evidence/remote-source-audit.json)。外层 `yue2/` 参考不改。
+实验保留为独立可选副本，未 commit/push。

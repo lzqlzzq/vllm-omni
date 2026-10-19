@@ -1,0 +1,220 @@
+{
+  "nar-isolation-02": {
+    "idle": {
+      "samples": [
+        {
+          "label": "idle-0",
+          "nar_s": 3.401419921875,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.3694964050000697,
+          "main_gemm_median_us": 725.935,
+          "main_gemm_p90_us": 732.176,
+          "main_gemm_p99_us": 754.768,
+          "sm_clock_mhz": {
+            "min": 1875.0,
+            "median": 1890.0,
+            "max": 1935.0
+          }
+        },
+        {
+          "label": "idle-1",
+          "nar_s": 3.4323046875,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.400375252999989,
+          "main_gemm_median_us": 731.696,
+          "main_gemm_p90_us": 743.504,
+          "main_gemm_p99_us": 755.696,
+          "sm_clock_mhz": {
+            "min": 1800.0,
+            "median": 1875.0,
+            "max": 1920.0
+          }
+        },
+        {
+          "label": "idle-2",
+          "nar_s": 3.4455166015625,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.4134959540000147,
+          "main_gemm_median_us": 737.009,
+          "main_gemm_p90_us": 743.729,
+          "main_gemm_p99_us": 755.505,
+          "sm_clock_mhz": {
+            "min": 1815.0,
+            "median": 1860.0,
+            "max": 1920.0
+          }
+        }
+      ],
+      "median_s": 3.4323046875,
+      "median_ar_tokens": 0
+    },
+    "active": {
+      "samples": [
+        {
+          "label": "active-0",
+          "nar_s": 5.72608935546875,
+          "ar_tokens": 1328,
+          "ar_calls": 332,
+          "kernel_sum_s": 5.66779841399932,
+          "main_gemm_median_us": 721.104,
+          "main_gemm_p90_us": 3074.948,
+          "main_gemm_p99_us": 3116.964,
+          "sm_clock_mhz": {
+            "min": 1905.0,
+            "median": 1905.0,
+            "max": 1935.0
+          }
+        },
+        {
+          "label": "active-1",
+          "nar_s": 5.77608203125,
+          "ar_tokens": 1328,
+          "ar_calls": 332,
+          "kernel_sum_s": 5.734675194999489,
+          "main_gemm_median_us": 726.576,
+          "main_gemm_p90_us": 3093.892,
+          "main_gemm_p99_us": 3123.045,
+          "sm_clock_mhz": {
+            "min": 1890.0,
+            "median": 1905.0,
+            "max": 1935.0
+          }
+        },
+        {
+          "label": "active-2",
+          "nar_s": 5.80169921875,
+          "ar_tokens": 1332,
+          "ar_calls": 333,
+          "kernel_sum_s": 5.741936238999579,
+          "main_gemm_median_us": 727.248,
+          "main_gemm_p90_us": 3094.757,
+          "main_gemm_p99_us": 3126.886,
+          "sm_clock_mhz": {
+            "min": 1875.0,
+            "median": 1905.0,
+            "max": 1935.0
+          }
+        }
+      ],
+      "median_s": 5.77608203125,
+      "median_ar_tokens": 1328
+    },
+    "slowdown_pct": 68.28581833908065,
+    "poll_s": 3.468056640625,
+    "hashes": [
+      "0c5fa31131ee2bcc7cf25c2fbaf565569fc2547ff3cee09aaaae1476a35a498a"
+    ]
+  },
+  "nar-mps-03": {
+    "idle": {
+      "samples": [
+        {
+          "label": "idle-0",
+          "nar_s": 3.429279541015625,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.3931646319998476,
+          "main_gemm_median_us": 728.398,
+          "main_gemm_p90_us": 733.453,
+          "main_gemm_p99_us": 756.045,
+          "sm_clock_mhz": {
+            "min": 1875.0,
+            "median": 1890.0,
+            "max": 1950.0
+          }
+        },
+        {
+          "label": "idle-1",
+          "nar_s": 3.445697998046875,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.4095270029998264,
+          "main_gemm_median_us": 732.654,
+          "main_gemm_p90_us": 739.214,
+          "main_gemm_p99_us": 750.671,
+          "sm_clock_mhz": {
+            "min": 1860.0,
+            "median": 1890.0,
+            "max": 1920.0
+          }
+        },
+        {
+          "label": "idle-2",
+          "nar_s": 3.460794189453125,
+          "ar_tokens": 0,
+          "ar_calls": 0,
+          "kernel_sum_s": 3.424634689999846,
+          "main_gemm_median_us": 733.694,
+          "main_gemm_p90_us": 744.559,
+          "main_gemm_p99_us": 750.798,
+          "sm_clock_mhz": {
+            "min": 1785.0,
+            "median": 1875.0,
+            "max": 1875.0
+          }
+        }
+      ],
+      "median_s": 3.445697998046875,
+      "median_ar_tokens": 0
+    },
+    "active": {
+      "samples": [
+        {
+          "label": "active-0",
+          "nar_s": 3.78947119140625,
+          "ar_tokens": 828,
+          "ar_calls": 207,
+          "kernel_sum_s": 3.731151848999985,
+          "main_gemm_median_us": 765.518,
+          "main_gemm_p90_us": 790.159,
+          "main_gemm_p99_us": 808.751,
+          "sm_clock_mhz": {
+            "min": 1755.0,
+            "median": 1815.0,
+            "max": 1935.0
+          }
+        },
+        {
+          "label": "active-1",
+          "nar_s": 3.804220947265625,
+          "ar_tokens": 828,
+          "ar_calls": 207,
+          "kernel_sum_s": 3.7467335289999895,
+          "main_gemm_median_us": 769.375,
+          "main_gemm_p90_us": 794.671,
+          "main_gemm_p99_us": 813.295,
+          "sm_clock_mhz": {
+            "min": 1755.0,
+            "median": 1800.0,
+            "max": 1935.0
+          }
+        },
+        {
+          "label": "active-2",
+          "nar_s": 3.83178857421875,
+          "ar_tokens": 844,
+          "ar_calls": 211,
+          "kernel_sum_s": 3.7730544160000066,
+          "main_gemm_median_us": 774.831,
+          "main_gemm_p90_us": 801.808,
+          "main_gemm_p99_us": 817.072,
+          "sm_clock_mhz": {
+            "min": 1770.0,
+            "median": 1800.0,
+            "max": 1920.0
+          }
+        }
+      ],
+      "median_s": 3.804220947265625,
+      "median_ar_tokens": 828
+    },
+    "slowdown_pct": 10.404944061318533,
+    "poll_s": 3.4807060546875,
+    "hashes": [
+      "0c5fa31131ee2bcc7cf25c2fbaf565569fc2547ff3cee09aaaae1476a35a498a"
+    ]
+  }
+}

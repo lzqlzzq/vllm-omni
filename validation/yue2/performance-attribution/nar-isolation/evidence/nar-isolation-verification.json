@@ -1,0 +1,119 @@
+{
+  "latents": [
+    {
+      "path": "../artifacts/nar-isolation-02/active-0-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/active-1-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/active-2-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/idle-0-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/idle-1-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/idle-2-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-isolation-02/idle-poll-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/active-0-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/active-1-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/active-2-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/idle-0-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/idle-1-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/idle-2-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "path": "../artifacts/nar-mps-03/idle-poll-latent.pt",
+      "exact": true,
+      "max_abs": 0.0,
+      "rmse": 0.0,
+      "relative_l2": 0.0
+    }
+  ],
+  "fixture": {
+    "frames": 768,
+    "ar_tokens": 890,
+    "keys_shape": [
+      28,
+      890,
+      8,
+      128
+    ],
+    "keys_dtype": "torch.bfloat16",
+    "sha256": {
+      "keys": "184a8496696ddf794467525157405521ac41b99dfb85166bdf47e16d289410a0",
+      "values": "92826999bce21fabfd20289c2b0c6088e7280267c91ba0dbd9f3e600a3bcb580",
+      "noise": "631a84fc5baa6ea8b994f069f94c54abc196bd14bbb6d1d67aa76dcda34e591c"
+    },
+    "tokens_sha256": "8240433e437866c901d565359d1616496ee3175ec85967357c4e8f6555b4371c"
+  }
+}

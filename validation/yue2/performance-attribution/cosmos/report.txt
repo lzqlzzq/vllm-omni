@@ -1,0 +1,79 @@
+# Cosmos3 调度与生成实现复查（2026-10-09）
+
+用户要求先复查 NVIDIA Cosmos3，再决定是否做 AR/NAR fair queue。本轮只读官方源码/论文与本地 YuE 对照，未改生产、未启动 GPU、未实现新调度。审阅版本固定为 vLLM-Omni `06afa310c942c0506f0ed9bdd189fa331c46bb97` 与 NVIDIA/cosmos-framework `7c5d20cf330db99f35327166ebe0408318f86a04`；[源码核查](source-audit.json) 保留下载文件 SHA256。
+
+## 关键结论
+
+在核对到的公开 Generator 路径中，没有发现可直接移植的“持续 semantic AR 与 NAR 按 GPU 时间份额公平交替”调度。Cosmos3 通常把固定条件送入 UND 一次、缓存 K/V，再执行 GEN 去噪。可选 prompt upsampling 确有 AR，但原生框架先完成改写，再准备 diffusion 输入；不是 YuE 数千步 semantic AR 持续供给声学的同种负载。
+
+Cosmos3 模型有 UND/GEN 两塔，不等于 vLLM-Omni 部署成两阶段。当前 YAML 明确单 diffusion stage、两塔同进程。YuE 同样有独立 AR backbone 与 `nar_layers`；“只加载一套模型”不意味着两塔参数逐项相同。
+
+## 三层不能混为一谈
+
+| 层 | 本次核实行为 | 对 YuE 的意义 |
+| --- | --- | --- |
+| NVIDIA 原生 cosmos-framework | 原生 packed inference，支持 token 预算或样本数预算；Ray 可配置凑批窗口 | 可借鉴合批准入与预算，不是 AR/NAR 算力份额分配 |
+| vLLM-Omni 通用 DiffusionEngine | 有 RequestScheduler / StepScheduler，按模型能力选择执行方式 | 通用框架能力不自动成为 Cosmos3 模型能力 |
+| 当前 Cosmos3 Omni pipeline | 单 prompt；完整 denoise loop 留在 pipeline；未实现 step execution 四方法契约 | 不能将此路径当作已支持跨请求连续去噪合批或 fair queue 的实例 |
+
+[部署 YAML](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/deploy/cosmos3_omni.yaml#L1)、[执行模式选择](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/diffusion_engine.py#L332)、[step 契约检查](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/worker/diffusion_model_runner.py#L375)。
+
+Cosmos3 `forward` 拒绝多个 prompt；T2I 的多个 outputs 实际循环执行完整 diffusion 再拼接。默认普通请求执行下，无模型 request-batch 能力而把 max_num_seqs 提到 1 以上会被 engine 拒绝。单独把 step_execution 打开，也不能补齐 pipeline 缺失的接口。这里不外推为所有后端或分布式副本均不支持并发。
+
+[单 prompt 检查](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/models/cosmos3/pipeline_cosmos3.py#L3715)、[多输出顺序循环](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/models/cosmos3/pipeline_cosmos3.py#L4103)。
+
+## 值得补进我们判断的细节
+
+### 1. 长 AR 不是普通 Cosmos Generator 每请求的必经阶段
+
+`need_kv = self.cached_kv is None` 才调用 language_model，之后 GEN 使用缓存。可选原生 prompt upsampling 在 `generate_samples_from_batch` 内先完成，再准备生成数据。
+
+[UND 一次前向](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/models/cosmos3/transformer_cosmos3.py#L2044)、[原生 upsampling 顺序](https://github.com/NVIDIA/cosmos-framework/blob/7c5d20cf330db99f35327166ebe0408318f86a04/cosmos_framework/model/generator/omni_mot_model.py#L4029)。
+
+因此 Cosmos 两塔的结构合理性不能直接证明 YuE 长 AR 与 dense NAR 在同一 GPU 上应当几乎无代价重叠。我们固定计算对照测到重叠净省约 3.5%，不代表队列对上游的 E2E 增益，也不是任意调度的硬件上限。
+
+### 2. 原生框架有 token-budget packing；我们目前主要按首数合批
+
+`_iter_packed_batches` 保持输入顺序贪心装批，token budget 与 sample count 二选一。Ray 用 `ray.serve.batch` 做入口凑批，源码默认 max_batch_size=1、等待 0.01s，可配置。worker 仍逐 batch 调用完整 generate_batch；并非根据 AR/NAR 的已用 GPU 时间进行调度。
+
+注意其 oversize 单样本仍单独放行，因此不能把这个 budget 当作严格 OOM 保证。YuE 可借鉴按实际 conditioning+NAR 长度设合批预算；显存与 attention 工作量仍需设备实测，不能只用 token 总数精确预测。
+
+[预算 packer](https://github.com/NVIDIA/cosmos-framework/blob/7c5d20cf330db99f35327166ebe0408318f86a04/cosmos_framework/inference/inference.py#L175)、[Ray batching](https://github.com/NVIDIA/cosmos-framework/blob/7c5d20cf330db99f35327166ebe0408318f86a04/cosmos_framework/inference/ray/serve.py#L107)。
+
+### 3. cu_seqlens 的方向成立，我们已经具备核心机制
+
+NVIDIA 原生 `InferenceTextKVMemoryState` 在编译 decoder 外准备样本 KV 重排与 cumulative sequence lengths；attention 将每样本 UND+GEN 隔离。支持批量 CFG 的 cond/uncond pack，并按请求/分支保存静态文本 KV。
+
+我们的 `BatchedCachedNAR` 已将真实 token 合并做 GEMM，用独立 query/key offsets、cu_seqlens 隔离歌曲，元数据也在初始化时准备。因此这不是漏掉的一整项优化。布局/搬运开销是否仍可省，需要测具体路径，不能仅因不同索引实现就断言更快。
+
+[原生 KV 与 varlen 布局](https://github.com/NVIDIA/cosmos-framework/blob/7c5d20cf330db99f35327166ebe0408318f86a04/cosmos_framework/model/generator/mot/inference_text_kv_memory.py#L77)、[批量 CFG cache](https://github.com/NVIDIA/cosmos-framework/blob/7c5d20cf330db99f35327166ebe0408318f86a04/cosmos_framework/model/generator/omni_mot_model.py#L4232)。
+
+### 4. 两个实现的 CFG 能力也不同
+
+当前 Cosmos Omni 单卡 cond/uncond 顺序执行并切换 KV cache；代码说明简单 B2 padding 会使较短分支错误 attention，因此没有直接合批。多卡 CFG 按 rank 拆分。原生 cosmos-framework 则有具备样本隔离的 packed CFG 快路径。
+
+这说明 packed/varlen 可以解决不同长度分支合批，但 Cosmos 的 diffusion CFG 与我们 semantic AR logits CFG 作用点不同，不能直接复制公式或把当前 CFG=1 性能问题归于负分支。
+
+[Omni CFG 说明](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/vllm_omni/diffusion/models/cosmos3/pipeline_cosmos3.py#L2781)。
+
+### 5. Cosmos 的其它提速多数针对生成计算本身
+
+当前 Nano recipe 的 SeaCache 为可选；还有量化、TP/CP/CFG parallel 等路径。近似缓存、量化会影响数值与质量，不能加入当前保持算法的对照后仍称纯调度收益；四步蒸馏也需对应模型，不是把 YuE solver 参数减为 4 即可。
+
+论文 §5.3.1 的 batching 表也显示，大 workload 单样本已密集时收益明显收窄。这只提供机制参照，不把其百分比外推 YuE。我们已有条件 KV 缓存与 NAR Graph；跨请求 capture/分配复用可以核查，但当前实验未量化它的 E2E 占比。
+
+[当前 Nano recipe](https://github.com/vllm-project/vllm-omni/blob/06afa310c942c0506f0ed9bdd189fa331c46bb97/recipes/cosmos3/Cosmos3-Nano.md#L109)、[官方论文 §5.3](https://arxiv.org/html/2606.02800v1#S5.SS3)。
+
+## fair queue 能做什么（设计推断，尚未实现）
+
+可以把调度点放在 **完整 AR batch 的一步**与 **一次 NAR velocity evaluation**之间，用预计计算耗时累计服务份额；双方都有工作时按权重补足服务，一方无工作时另一方继续，限制提前提交量。保留 AR batch，不重演把 AR32 拆成阶段半批的已失败策略。
+
+不能简单一边一次：固定 mixed32 测量 AR 每步约 14.2ms，NAR 每次评估平均约 103ms。后者是完整 solver 总时间除 64，含 solver/提交成本，只能作为初始估计。1:1 次数不代表 1:1 时间；重叠下 CUDA event span 又包含竞争等待，不能当独占 GPU 服务时间精确记账。
+
+普通 stream priority 只是调度提示，不提供硬时间份额，也不抢占已经运行的工作。公平机制需要应用在尚未提交的 work 上，先保证进展和可控等待；吞吐能否改善仍需 E2E。当前长 NAR/AR 都很密集，公平可能只改变延迟分布，也可能损失重叠收益。
+
+[CUDA 官方执行语义](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/asynchronous-execution.html)。
+
+本轮建议保留独立声学队列；将“按成本协调 AR/NAR 的提交”与“按 token/显存预算合批”作为两个独立假设。没有发现需要整体移植 Cosmos engine 才能获得的现成公平调度器。
+
+未运行 Cosmos GPU benchmark、未覆盖 NIM/TRT-LLM/SGLang 私有或完整执行路径，未验证新缓存/量化质量；公开源码核查不能证明所有 Cosmos 后端均无其它策略。

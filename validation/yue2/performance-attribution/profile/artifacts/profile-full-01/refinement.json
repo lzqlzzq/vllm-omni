@@ -1,0 +1,303 @@
+{
+  "device_by_acoustic": {
+    "False": {
+      "count": 1738,
+      "sm_median": 1755.0,
+      "power_median_w": 284.795,
+      "gpu_busy_mean": 78.91311852704258,
+      "thermal_fraction": 0.0,
+      "clock_reason_counts": {
+        "0": 1576,
+        "4": 162
+      }
+    },
+    "True": {
+      "count": 4408,
+      "sm_median": 1215.0,
+      "power_median_w": 346.018,
+      "gpu_busy_mean": 99.9244555353902,
+      "thermal_fraction": 0.0,
+      "clock_reason_counts": {
+        "4": 4408
+      }
+    }
+  },
+  "matched_composition_and_clock": [],
+  "largest_gaps": [
+    {
+      "start": 26625173.76529061,
+      "end": 26625201.808950767,
+      "duration": 28.043660156428814,
+      "no_ready": 28.04363711923361,
+      "ready_not_started": 2.3037195205688477e-05,
+      "ar_min_max": [
+        32,
+        32
+      ],
+      "abc_min_max": [
+        4,
+        11
+      ],
+      "waiting_min_max": [
+        1,
+        1
+      ],
+      "gpu_envelope_busy_s": 22.33546367660165,
+      "gpu_envelope_idle_s": 5.708196479827166,
+      "offset_s": [
+        316.9260228872299,
+        344.96968304365873
+      ],
+      "jobs_completed_before": 31,
+      "abc_transitions_inside": 7
+    },
+    {
+      "start": 26625215.26603728,
+      "end": 26625233.134954114,
+      "duration": 17.86891683191061,
+      "no_ready": 17.86890521273017,
+      "ready_not_started": 1.161918044090271e-05,
+      "ar_min_max": [
+        32,
+        32
+      ],
+      "abc_min_max": [
+        2,
+        4
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 14.760947301983833,
+      "gpu_envelope_idle_s": 3.107969529926777,
+      "offset_s": [
+        358.4267695583403,
+        376.2956863902509
+      ],
+      "jobs_completed_before": 32,
+      "abc_transitions_inside": 2
+    },
+    {
+      "start": 26625488.510980748,
+      "end": 26625501.268490963,
+      "duration": 12.757510215044022,
+      "no_ready": 12.757490158081055,
+      "ready_not_started": 2.0056962966918945e-05,
+      "ar_min_max": [
+        1,
+        1
+      ],
+      "abc_min_max": [
+        0,
+        0
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 8.822928790003061,
+      "gpu_envelope_idle_s": 3.9345814250409603,
+      "offset_s": [
+        631.6717130243778,
+        644.4292232394218
+      ],
+      "jobs_completed_before": 63,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26624940.87995257,
+      "end": 26624948.63451134,
+      "duration": 7.754558771848679,
+      "no_ready": 7.754547372460365,
+      "ready_not_started": 1.1399388313293457e-05,
+      "ar_min_max": [
+        32,
+        32
+      ],
+      "abc_min_max": [
+        1,
+        1
+      ],
+      "waiting_min_max": [
+        31,
+        31
+      ],
+      "gpu_envelope_busy_s": 6.590707112103701,
+      "gpu_envelope_idle_s": 1.163851659744978,
+      "offset_s": [
+        84.04068484529853,
+        91.79524361714721
+      ],
+      "jobs_completed_before": 1,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26625439.562432773,
+      "end": 26625446.51055357,
+      "duration": 6.948120795190334,
+      "no_ready": 6.948110211640596,
+      "ready_not_started": 1.0583549737930298e-05,
+      "ar_min_max": [
+        5,
+        5
+      ],
+      "abc_min_max": [
+        0,
+        0
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 5.0948506481945515,
+      "gpu_envelope_idle_s": 1.8532701469957829,
+      "offset_s": [
+        582.723165050149,
+        589.6712858453393
+      ],
+      "jobs_completed_before": 59,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26625416.161723513,
+      "end": 26625422.726843443,
+      "duration": 6.565119929611683,
+      "no_ready": 6.5651037991046906,
+      "ready_not_started": 1.6130506992340088e-05,
+      "ar_min_max": [
+        7,
+        7
+      ],
+      "abc_min_max": [
+        0,
+        0
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 5.002642884850502,
+      "gpu_envelope_idle_s": 1.5624770447611809,
+      "offset_s": [
+        559.3224557898939,
+        565.8875757195055
+      ],
+      "jobs_completed_before": 57,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26625464.808826674,
+      "end": 26625469.724286437,
+      "duration": 4.915459763258696,
+      "no_ready": 4.915444124490023,
+      "ready_not_started": 1.5638768672943115e-05,
+      "ar_min_max": [
+        3,
+        3
+      ],
+      "abc_min_max": [
+        0,
+        0
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 3.558853592723608,
+      "gpu_envelope_idle_s": 1.3566061705350876,
+      "offset_s": [
+        607.9695589505136,
+        612.8850187137723
+      ],
+      "jobs_completed_before": 61,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26625240.212087143,
+      "end": 26625243.673771948,
+      "duration": 3.4616848044097424,
+      "no_ready": 3.4616664983332157,
+      "ready_not_started": 1.8306076526641846e-05,
+      "ar_min_max": [
+        31,
+        31
+      ],
+      "abc_min_max": [
+        2,
+        2
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 2.8717385306954384,
+      "gpu_envelope_idle_s": 0.589946273714304,
+      "offset_s": [
+        383.37281941995025,
+        386.83450422436
+      ],
+      "jobs_completed_before": 33,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26624961.801302064,
+      "end": 26624965.028251145,
+      "duration": 3.226949080824852,
+      "no_ready": 3.226932018995285,
+      "ready_not_started": 1.7061829566955566e-05,
+      "ar_min_max": [
+        32,
+        32
+      ],
+      "abc_min_max": [
+        3,
+        3
+      ],
+      "waiting_min_max": [
+        29,
+        29
+      ],
+      "gpu_envelope_busy_s": 2.7384585067629814,
+      "gpu_envelope_idle_s": 0.4884905740618706,
+      "offset_s": [
+        104.96203434094787,
+        108.18898342177272
+      ],
+      "jobs_completed_before": 3,
+      "abc_transitions_inside": 0
+    },
+    {
+      "start": 26625405.485646658,
+      "end": 26625408.137219142,
+      "duration": 2.651572484523058,
+      "no_ready": 2.6515627168118954,
+      "ready_not_started": 9.767711162567139e-06,
+      "ar_min_max": [
+        8,
+        8
+      ],
+      "abc_min_max": [
+        0,
+        0
+      ],
+      "waiting_min_max": [
+        0,
+        0
+      ],
+      "gpu_envelope_busy_s": 2.0733211413025856,
+      "gpu_envelope_idle_s": 0.5782513432204723,
+      "offset_s": [
+        548.6463789343834,
+        551.2979514189065
+      ],
+      "jobs_completed_before": 56,
+      "abc_transitions_inside": 0
+    }
+  ],
+  "nar_chunks": 64,
+  "nar_velocity_calls": 4096,
+  "vae_tile_calls": 381,
+  "jobs_waiting_over_1s": 43,
+  "note": "Frequency bins are observational, not a clock-controlled causal comparison."
+}

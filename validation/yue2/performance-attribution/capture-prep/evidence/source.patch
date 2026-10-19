@@ -1,0 +1,11 @@
+--- a/vllm_omni/model_executor/models/yue2/yue2.py
++++ b/vllm_omni/model_executor/models/yue2/yue2.py
+@@ -662,6 +662,8 @@
+                 # Already on a side stream (the async synthesis path): capture
+                 # in place, without torch.cuda.graph's device-wide sync, which
+                 # would stall the decode loop behind every queued kernel.
++                torch.cuda.synchronize(self.device)
++                torch.cuda.empty_cache()
+                 self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
+                 try:
+                     self.velocity_out = self._velocity(self.state_in, self.time_in)

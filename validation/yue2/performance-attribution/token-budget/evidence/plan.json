@@ -1,0 +1,24 @@
+{
+  "runtime_files": {
+    "scripts/analyze.py": "90208361c770574ce7506f1fd92c10dbd7c0fae7517adbda53f67fb19d8f5c79",
+    "scripts/bench_e2e.py": "9dc02de027c6e110a4e84193ae3c20247540fc79647d12693a9f9d345e5c999f",
+    "scripts/controller.sh": "0d8654d14efdba2783e00a177c8cc200194fab8df0af14da8e0054d676193faa",
+    "scripts/env.sh": "f645417f282cd2cfff793e741ceb9004a868f586a0117b2d134f3579d62f8482",
+    "scripts/probe.py": "7ee0c9414db806d7c064d602926dddb5a350210399311cbd4162e2cfd5d18e84",
+    "scripts/probe.sh": "588317204331bbc9380c0a7e9cc80dd9619dfb4647caf44c6b6562608b54856c",
+    "scripts/probe_repeat.py": "717477012bc7869da3c7c8e7f20105a9ec7a211e4888713676fdc6e2cf61b1e7",
+    "scripts/run.sh": "2bf4218315d657c8899fb017735bc2cf6fc34a2e654372f02f5d1167915ed22a",
+    "configs/baseline.yaml": "f5d0f4b11c490b938592c66fc4797051a52662db6b4cddbbf40aaa583cbf2523",
+    "configs/candidate.yaml": "e617d5a9960c34718788ada84d7765718a7a95f2c8a604f94c38e82d201b77ca",
+    "configs/candidate48.yaml": "86213ca54df60c8c45de3bc8fcbd98470d5998c7f0cef0290f75edcb1dae77b7"
+  },
+  "scope": "Fixed B2 vs max B4 with aggregate token budget; same AR32/KV24GiB/window200ms/client64/full CoT/CFG1/VAE1. No math changes.",
+  "initial_sequence": [
+    "baseline-01",
+    "budget32-01"
+  ],
+  "candidate_budget": 32768,
+  "probe_only_budget": 49152,
+  "formal_observer": "job boundary and packed constructor only, same both arms",
+  "next_step": "Assess first pair; reverse order for a repeat if useful; do not claim unprofiled stable speedup from this pilot."
+}

@@ -1,0 +1,128 @@
+{
+  "validation_passed": true,
+  "measured_requests": 256,
+  "warmup_requests": 8,
+  "mps_on_off_verified": true,
+  "results": [
+    {
+      "label": "mps-off-01",
+      "mode": "off",
+      "elapsed_s": 683.925733409822,
+      "audio_s": 14300.274666666666,
+      "throughput": 20.909104553458373,
+      "e2el": {
+        "p50": 405.53210288472474,
+        "p95": 639.0432276591658
+      },
+      "rtf": {
+        "p50": 1.8893944725252936,
+        "p95": 2.6882038151508234
+      },
+      "peak_gib": 59.131591796875,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "sm_median_mhz": 1230.0,
+      "temperature_range_c": [
+        49,
+        65
+      ],
+      "thermal_fraction": 0.0
+    },
+    {
+      "label": "mps-on-01",
+      "mode": "on",
+      "elapsed_s": 692.1596005260944,
+      "audio_s": 14371.914666666667,
+      "throughput": 20.76387390385528,
+      "e2el": {
+        "p50": 412.0750382952392,
+        "p95": 647.2644054733216
+      },
+      "rtf": {
+        "p50": 1.9460150269350387,
+        "p95": 2.8116009216376976
+      },
+      "peak_gib": 59.35821533203125,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "sm_median_mhz": 1230,
+      "temperature_range_c": [
+        49,
+        64
+      ],
+      "thermal_fraction": 0.0
+    },
+    {
+      "label": "mps-on-02",
+      "mode": "on",
+      "elapsed_s": 691.0311963073909,
+      "audio_s": 14300.274666666666,
+      "throughput": 20.69410866409783,
+      "e2el": {
+        "p50": 409.77046053670347,
+        "p95": 645.3049204438925
+      },
+      "rtf": {
+        "p50": 1.908162666364011,
+        "p95": 2.7140151686738294
+      },
+      "peak_gib": 59.21368408203125,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "sm_median_mhz": 1230.0,
+      "temperature_range_c": [
+        49,
+        64
+      ],
+      "thermal_fraction": 0.0
+    },
+    {
+      "label": "mps-off-02",
+      "mode": "off",
+      "elapsed_s": 685.557721208781,
+      "audio_s": 14403.914666666667,
+      "throughput": 21.010506075651175,
+      "e2el": {
+        "p50": 407.7317208442837,
+        "p95": 641.8492563471198
+      },
+      "rtf": {
+        "p50": 1.9161273878747997,
+        "p95": 2.7824552079490097
+      },
+      "peak_gib": 59.395263671875,
+      "abc_truncated": 1,
+      "semantic_truncated": 1,
+      "sm_median_mhz": 1230,
+      "temperature_range_c": [
+        49,
+        65
+      ],
+      "thermal_fraction": 0.0
+    }
+  ],
+  "pairs": [
+    {
+      "off": "mps-off-01",
+      "on": "mps-on-01",
+      "throughput_pct": -0.694580914413534,
+      "e2el_p50_pct": 1.6134198412337097,
+      "e2el_p95_pct": 1.2864822688553046,
+      "rtf_p95_pct": 4.590318107258207,
+      "peak_delta_gib": 0.22662353515625,
+      "audio_length_pct": 0.5009693986297359
+    },
+    {
+      "off": "mps-off-02",
+      "on": "mps-on-02",
+      "throughput_pct": -1.5059009545706048,
+      "e2el_p50_pct": 0.5000198876354833,
+      "e2el_p95_pct": 0.5383918517627428,
+      "rtf_p95_pct": -2.4596995876037253,
+      "peak_delta_gib": -0.18157958984375,
+      "audio_length_pct": -0.7195266175787807
+    }
+  ],
+  "collected_files": 133,
+  "collected_bytes": 7039225
+}

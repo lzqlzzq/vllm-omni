@@ -1,0 +1,156 @@
+# 单阶段与 KV transfer 两阶段：架构 probe
+
+本轮按用户要求定位两条链路的差异，保留两阶段设计及上游采样、NAR 融合/编译/velocity Graph、VAE。只新增外置观察脚本和报告，生产源码与 [按需分配版本](../2026-10-03-yue2-kv-on-demand/README.md) 的 12 项快照哈希完全相同，未 commit/push。
+
+当前证据支持继续保留两阶段实验。它消除了真实存在的 HOLD backbone 工作，也确实提前完成了整批 semantic；本轮并发差距主要表现为声学执行变长及后段排队。KV gather 的复制成本很小，IPC 释放及同步 ACK 则有可见停顿。尚未通过干预实验将声学变化唯一归因于 CUDA context、stream priority 或某项调度策略。
+
+## 方法与可比范围
+
+- 同一 RTX 3090，同卡运行；torch 2.13/cu130、vLLM 0.30、transformers 5.14。源码 HEAD `631f5573` 加当前未提交两阶段实验；源码哈希见 [source-sha256.json](source-sha256.json)。
+- 相同四条 prompt/seed，固定输出 **512/768/1024/1280 帧**，总音频 **143.354667 秒**。以 `yue2_min_tokens` 配合最大帧数固定工作量，均为预算结束、`truncated=1`，**不是自然 EOS 测试**。
+- 固定的是长度和计算形状，不是相同 semantic token。probe 中第 1 首 token 全同，另三首首次分叉的零基位置为 536、611、542。不得作为 token/audio parity 验收；条件 prefill 的数值路径也不同。
+- 主模型 revision `c044757a011169583f363168348ae380946efff8`，VAE revision `152733a19ad43aa67e367f9b5503ef8075bb5126`。输入及四份 YAML 见 [configs](configs)。AR 同为 `max_num_seqs=4`、4 GiB 原生 KV 池、24576 context、APC/chunked prefill 关闭、相同 AR Graph 配置。两阶段接收容量 4、声学执行容量 1，按实际长度分配。
+- **干净计时**用生产 worker；各 engine 先预热并发四条，再跑单条 1024 帧与三轮并发四条。没有 probe worker、NVTX 或 Nsight。请求计时到最终输出返回；batch 时间包含返回后的轻量输出检查，不含音频 SHA256 计算。两端顺序执行，没有同时占卡。
+- **观察运行**是另一对 engine：相同并发四条预热后采集一轮。外置 worker 包装记录 CPU/NVTX、CUDA events、显存快照和 semantic token；Nsight 用 CUDA API correlation ID 关联 kernel 与 NVTX。两个 trace 共 1,388,874 个 kernel，负时长记录为 0。单阶段全部分类；两阶段 24 个小 kernel、合计 44.731 微秒未分类。
+- CUDA event 为流上的经过时间，包含等待；kernel interval 时长也可能受资源竞争影响。多个 category 可以重叠，不能直接求和当作 wall time。跨 context 的 kernel 区间重叠不证明 SM 指令在同一时刻执行，更不是 SM 利用率或已消除切换开销的证据。
+- 本轮每批恰好 4 条，没有第 5 条 waiting 请求，不能直接测量解除全局 admission 阻塞的收益。接收端四次发布均一次成功，没有 Busy 重试；本轮差距不是接收槽已满导致。
+
+## 生产 worker 计时
+
+| 干净计时 | 单阶段 | 两阶段 |
+|---|---:|---:|
+| 单请求 1024 帧（单轮） | 11.029 s | 10.694 s |
+| 并发 4，第 1 轮 | 23.004 s | 24.602 s |
+| 并发 4，第 2 轮 | 23.199 s | 24.756 s |
+| 并发 4，第 3 轮 | 23.248 s | 24.800 s |
+| 并发 4，中位数 | **23.199 s** | **24.756 s** |
+| 并发吞吐（音频秒/秒） | 6.179 | 5.791 |
+
+两阶段单请求耗时减少 3.04%（仅一轮），并发 4 中位耗时增加 6.71%，吞吐减少 6.29%。所有计时输出通过有限值、固定长度及 error=0 检查。原始逐请求时间见 [timing-summary.json](evidence/timing-summary.json)、[单阶段](evidence/single-timing/summary.json)和[两阶段](evidence/kv-timing/summary.json)。
+
+这组固定长度实验与之前自然 EOS 单轮并发约 0.7% 的差距不是同一口径，不覆盖旧结果。三轮仍不足以建立跨机器或广泛负载的性能结论。
+
+## 阶段时间线
+
+![Measured request phase intervals](request-timeline.png)
+
+蓝条是请求从提交到 semantic 完成的经过时间，包含排队及与其它请求共享 GPU；绿条是 NAR generator 的经过时间，均不代表独占 GPU 时间。灰条表示 ACK 后等待声学开始（含少量 dispatch/init）。图来自带观察的一轮，不代替上面的干净计时。
+
+| probe 指标 | 单阶段 | 两阶段 |
+|---|---:|---:|
+| semantic 内容帧总数 | 3584 | 3584 |
+| semantic rows（含结束步） | 3588 | 3588 |
+| HOLD token rows | **698** | **0** |
+| 只有 HOLD 的 backbone steps | **233** | **0** |
+| AR execute 次数（含一次空清理） | 1516 | 1285 |
+| NAR velocity eager / capture / replay 调用 | 4 / 4 / 248 | 4 / 4 / 248 |
+| AR backbone kernel union | 11.684 s | 10.156 s |
+| AR head/sampler kernel union | 0.367 s | 0.319 s |
+| NAR kernel union | 16.098 s | 19.425 s |
+| VAE kernel union | 0.557 s | 0.703 s |
+| GPU kernel 全部区间 union | 21.769 s | 23.581 s |
+| GPU 首末 kernel 跨度 | 23.395 s | 24.976 s |
+| AR 与声学 kernel 区间交集 | 7.183 s | 7.023 s |
+
+在首末 kernel 跨度内，没有任何 kernel 区间覆盖的间隙约为 **1.626 → 1.395 秒**，并未扩大。这只描述 kernel 时间线，不将内存复制等非 kernel 活动当成设备空闲，也不把区间覆盖率当成 SM 利用率。当前变慢主要出现在已有 GPU 工作覆盖的执行区间。
+
+### 1. HOLD 是真实工作，已经省掉
+
+单阶段的 698 个 HOLD row 中，465 步与仍在生成 semantic 的行同批，233 步只含 HOLD。后者的 backbone kernel union **1.844 秒**；混合 batch 的成本不能按行数直接拆分。两阶段没有 HOLD row，但新增条件 prefill。因此不能把 698 个 token 等价换算成端到端节省时间。
+
+本轮两阶段整个 AR backbone union 减少约 **1.527 秒**。这些工作原本部分与声学重叠，所以消除后不必然等比例缩短请求完成时间。
+
+### 2. 条件 KV 生成路线不同，transfer 没有消掉条件计算
+
+单阶段在声学 side stream 调用 `CachedNAR._prefill()`，重新用完整 `prefix + semantic + end` 做 dense 条件计算，kernel union 合计 **246.807 ms**。
+
+两阶段仍需要完整条件 prefill，但交给 AR 原生 Qwen/paged KV 路径执行，再传给声学。记录到 8 个 condition rows / 4080 scheduled tokens，包含四次整段 prefill及其收尾步。含条件 row 的 backbone batch kernel union 合计 **390.538 ms**，其中一部分与其它 semantic row 同批，**不能全部归为条件计算，也不能直接与 246.807 ms 作孤立算子比较**。两条路径的最后一层计算和数值实现亦不完全相同。
+
+它当前解决的是让 AR worker 负责条件 KV、声学 worker 无须常驻完整 AR 权重，不是直接复用 semantic decode KV 跳过条件 prefill。没有新 parity 证据前不取消条件 prefill。此前固定相同 KV/噪声的声学精确对照属于 [初版两阶段报告](../2026-10-03-yue2-two-stage/README.md) 的独立证据。
+
+### 3. 拷贝很短，映射释放和同步 ACK 值得单独处理
+
+| 请求帧数 | 整次 publish（CPU） | ACK → take | IPC close API |
+|---|---:|---:|---:|
+| 512 | 24.274 ms | 14.789 ms | 0.397 ms |
+| 768 | 21.985 ms | 11.599 ms | 0.341 ms |
+| 1024 | 126.728 ms | 2205.636 ms | 99.240 ms |
+| 1280 | 91.722 ms | 3276.394 ms | 71.668 ms |
+
+四次 publish 总计 **264.710 ms**，其中 `_receive_ack` 等最终 ACK 总计 **251.769 ms**；Prepare 等待仅 **1.471 ms**。真实 gather kernel 共 224 个、union **3.049 ms**。其 CUDA event 经过时间为 **45.559 ms**，包含同流等待与 CPU 分批发射间隙，不能误报成纯复制耗时。
+
+Nsight 明确记录四次 `cudaIpcCloseMemHandle` 共 **171.646 ms**，长的两次发生在 receiver 释放 imported references、发送 ACK 之前。源码的 `publish()` 在 AR runner 执行线程同步调用，直到最终 ACK 返回，所以这些停顿会挡住该 worker 的后续执行；它与已经移除的 scheduler 全局 waiting admission gate 是两件事。
+
+接收容量检查时 pending 为 0/0/1/1；四槽没有耗尽。后两次 ACK → take 的秒级等待发生在 **已成功接收之后**，对应声学 worker 还在完成前一首，不能归罪于 gather 慢或没有预分配。
+
+CUDA IPC 映射源 storage 后仍做 GPU gather 成连续 K/V；无 KV 的 CPU 往返，但并非端到端 zero-copy。不能为了优化 ACK 提前复用源 blocks；导入引用/读完成/ACK 生命周期必须继续成立。
+
+### 4. 声学慢在执行区间，AR 提前产出形成后段队列
+
+| 帧数 | 单阶段 NAR CUDA event | 两阶段 NAR CUDA event |
+|---|---:|---:|
+| 512 | 2.393 s | 3.338 s |
+| 768 | 3.752 s | 6.104 s |
+| 1024 | 4.472 s | 4.875 s |
+| 1280 | 5.890 s | 5.441 s |
+| 合计 | **16.507 s** | **19.758 s** |
+
+这不是禁用了上游优化：两端 NAR velocity 的 eager/capture/replay 数完全相同，原 NAR 融合/编译/Graph 路径与单曲串行声学执行保留。单阶段由 `_SynthesisQueue.pump()` 在每个 AR step 推进；两阶段由独立 acoustic worker 调用同一 job 的 `complete()/drain()`。两端代码均创建高优先级声学 stream，但 CPU 推进方式、CUDA context 和 AR/声学资源竞争时序已经改变。
+
+单阶段最后一个 semantic 在 batch 约 17.21 秒完成，两阶段约 15.79 秒完成；两阶段后半段却积累声学队列。本轮最长一首在 AR 已结束后运行，其 NAR 反而较单阶段快，前两首与其它请求 AR 重叠时变慢。**这支持优先检查同卡调度/竞争，而不是继续调大接收容量；尚不构成对某个 CUDA context/priority 机制的唯一因果证明。**
+
+## 显存：权重仅多 4 KiB，不能全部叫 KV 池
+
+probe 完成后同步读取两端 allocator snapshot，按实际 CUDA storage 指针去重参数（含独立加载的 VAE）：
+
+| 项目 | 单阶段 | 两阶段合计 |
+|---|---:|---:|
+| 参数 storage | 6.916191 GiB | 6.916194 GiB |
+| 其中 AR | 4,331,915,264 B | 同左 + 4096 B final norm |
+| NAR | 2,818,816,000 B | 相同 |
+| latent projections | 9,973,888 B | 相同 |
+| VAE | 265,497,864 B | 相同 |
+| 请求结束时 allocated | 11.404 GiB | 11.501 GiB |
+| 请求结束时 reserved | 18.447 GiB | 19.160 GiB |
+| 本次 trace 全设备 NVML 峰值（200 ms 采样） | 19,303 MiB | 20,368 MiB |
+
+两阶段 worker 拆分权重，只有 4096 B final norm 冗余。这个参数统计不将任意非参数运行缓存算作权重。两边仍有相同的 4 GiB 原生 AR KV 池；接收 dense KV 的四次实际分配分别约 125.45/181.56/238.00/293.67 MiB，分配含后续 NAR 的可写位置，并非都同时存活。
+
+结束时 reserved 比 allocated 多的空间主要是分配器保留空间，不能算作当前仍活跃的 KV。两阶段多一个 allocator/context，不能共享整个缓存池。此次 graph-private segment 总大小两边均约 278 MiB；差异主要落在普通 allocator segment，不能笼统归为 Graph 私有池膨胀。NVML 还计入框架 allocator 外的 CUDA/context 等占用，不能用参数+KV 两项强行凑平。
+
+不同 worker 的 peak_allocated 发生时刻可能不同，本报告不把各进程 peak 求和伪装成同一时刻的 GPU 峰值。此次固定长度 workload 的数字也不替代之前自然长曲的显存报告。
+
+## 下一步可以怎样验证
+
+保留两阶段边界，优先做两项针对性干预：
+
+1. 在相同已保存 KV/噪声、相同 NAR shape 下，分别测 acoustic 独跑与 AR 共跑，核对相同 NAR kernel 的耗时及排队变化；然后再区分 context、调度优先级和 CPU pump/drain 方式，不能现在就认定是某一个因素。
+2. 将当前同步交接的 export/import/gather/close/ACK 分别测量并缩短 AR worker 停顿。尤其审查长 `cudaIpcCloseMemHandle`，任何缓存映射或异步交接方案都必须先设计清楚源 blocks 与导入引用的生命周期，不能提前 ACK 换取表面性能。
+
+当前不建议根据这批数据恢复固定预分配或单纯增大接收容量：没有发生 Busy，复制 kernel 只有约 3 ms。也没有证据要求放弃两阶段架构。本轮止于 probe，不夹带新的执行逻辑优化。
+
+## 证据与复现
+
+- [单阶段聚合](evidence/single-analysis.json)、[两阶段聚合](evidence/kv-analysis.json)：CPU scope / GPU event / kernel union / memory。
+- [单阶段细分](evidence/single-detail.json)、[两阶段细分](evidence/kv-detail.json)：HOLD-only 与条件 batch、逐次 IPC API、逐请求 kernel。
+- [单阶段 worker 原始记录](evidence/single-trace-workers)、[两阶段 worker 原始记录](evidence/kv-trace-workers)：完整 token、CPU timestamp、allocator segments。
+- Nsight SQLite、服务日志、GPU 采样在 [evidence](evidence)。完整 `.nsys-rep` 保留于远端 `/root/autodl-tmp/yue2-enhancements-20261003-01/evidence/arch-{single,kv}-trace-01.nsys-rep`；该 evidence 目录实际位于系统盘的 `/root/yue2-kv-experiment-20261003/`。
+- [外置 worker](scripts/architecture_worker.py)、[工作量 driver](scripts/architecture_run.py)、[带进程归属检查的 launcher](scripts/run_architecture.py)、[聚合分析](scripts/analyze_architecture.py)、[细分分析](scripts/detail_architecture.py)、[作图](scripts/plot_architecture.py)。
+
+远端把三个运行脚本放在源码目录的父目录、YAML 放在 `../kv-configs/`、输入放在 `../inputs.json` 后，从 source 运行：
+
+```bash
+export PATH=/root/autodl-tmp/yue2-enhancements-20261003-01/venv/bin:$PATH
+export PYTHONPATH=$PWD:$PWD/..
+export HF_HOME=/root/autodl-tmp/yue2-hf-cache
+export HF_ENDPOINT=https://hf-mirror.com HF_HUB_OFFLINE=1
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+python ../run_architecture.py --arm single --mode trace --label NEW_LABEL
+python ../run_architecture.py --arm kv --mode trace --label NEW_LABEL
+python ../run_architecture.py --arm single --mode timing --label NEW_LABEL
+python ../run_architecture.py --arm kv --mode timing --label NEW_LABEL
+```
+
+launcher 使用 `nsys profile --trace=cuda,nvtx --sample=none --cpuctxsw=none --capture-range=cudaProfilerApi --capture-range-end=stop --cuda-graph-trace=node --trace-fork-before-exec=true --export=sqlite`。先用 [nsys_smoke.py](scripts/nsys_smoke.py) 验证 graph replay kernel timestamp 有效。两阶段日志中的 condition-prefill 请求清理可能打印“no audio was produced”；这描述 AR 条件阶段的收尾，driver 独立检查最终 acoustic 输出非空、有限、长度正确且 meta.error=0。
+
+每组完成后正常关闭 engine，未新测试进行中取消/关闭，不沿用本轮结果宣称这些生命周期场景通过。

@@ -1,0 +1,28 @@
+{
+  "root": "/root/autodl-tmp/yue2-e2e-profile-20261009-01",
+  "source": "rollback queue-output (1860 production files)",
+  "count": 64,
+  "concurrency": 64,
+  "warmup": 2,
+  "abc": 4096,
+  "semantic": 9000,
+  "ar_slots": 32,
+  "kv_gib": 32,
+  "nar": 1,
+  "vae": 1,
+  "wait_ms": 0,
+  "mps": false,
+  "thermal_topup": false,
+  "production_changes": false,
+  "save_audio_latents": false,
+  "scope": "full E2E CPU phase/queue observers and Nsight CUDA/NVTX; graph activity mode; instrumented diagnostic only",
+  "files": {
+    "scripts/bench_e2e.py": "a02225cf74bacbb3adac508ecc28cfa9ec7d4909527025c8eba8a8a7259f9e34",
+    "scripts/env.sh": "72c304854ffa22744505c5dbc309b47ab3582066fba5a874329e24fc9e67d431",
+    "scripts/phase_probe.py": "51ddf3268dedf7face89cb2485a2da2b0ebf471a7e82e936351277f41d70fd8e",
+    "scripts/pipeline_probe.py": "98a6a16317082e7b11300dde8fd4e07cbe52afdfe5eb21c478afc82facbcf681",
+    "scripts/profile_bench.py": "052a2a8fee98ac58cc588291e8f95955b6ec3d83dcc5933f5fe1c33ca4ae0471",
+    "scripts/run.sh": "af135a4e45fb037e573b5fb19fb07576b96c3259c18091d4b90b96f75f1ebe9b",
+    "configs/candidate.yaml": "ae9a2b4605dcaa9a0477234f0bdfe2925c4075e9a1d6071df44bf13a0a13acac"
+  }
+}

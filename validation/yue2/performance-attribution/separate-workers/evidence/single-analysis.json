@@ -1,0 +1,392 @@
+{
+  "memory": [
+    {
+      "pid": 69008,
+      "weight_storage_bytes": {
+        "ar": 4331915264,
+        "nar": 2818816000,
+        "projection": 9973888,
+        "vae": 265497864
+      },
+      "memory": {
+        "allocated": 12244583424,
+        "reserved": 19807600640,
+        "peak_allocated": 14889772544,
+        "peak_reserved": 19807600640
+      },
+      "segments": {
+        "ordinary": {
+          "total": 19516096512,
+          "allocated": 12244576768,
+          "active": 12244576768
+        },
+        "graph_private": {
+          "total": 291504128,
+          "allocated": 6656,
+          "active": 6656
+        }
+      }
+    }
+  ],
+  "cpu_scopes_ms": {
+    "AR.execute": {
+      "count": 1516,
+      "sum_ms": 2672.591925,
+      "max_ms": 21.246235,
+      "mean_ms": 1.7629234333773087
+    },
+    "AR.sample": {
+      "count": 1515,
+      "sum_ms": 20368.601623,
+      "max_ms": 230.961153,
+      "mean_ms": 13.444621533333333
+    },
+    "condition.dense": {
+      "count": 4,
+      "sum_ms": 172.949547,
+      "max_ms": 43.986698,
+      "mean_ms": 43.23738675
+    },
+    "NAR.init": {
+      "count": 4,
+      "sum_ms": 180.555419,
+      "max_ms": 46.097806,
+      "mean_ms": 45.13885475
+    },
+    "NAR.velocity.eager": {
+      "count": 4,
+      "sum_ms": 74.260261,
+      "max_ms": 19.087661,
+      "mean_ms": 18.56506525
+    },
+    "NAR.solve.unit": {
+      "count": 260,
+      "sum_ms": 681.505454,
+      "max_ms": 83.192269,
+      "mean_ms": 2.621174823076923
+    },
+    "NAR.velocity.capture": {
+      "count": 4,
+      "sum_ms": 122.264565,
+      "max_ms": 42.490808,
+      "mean_ms": 30.56614125
+    },
+    "NAR.velocity.replay": {
+      "count": 248,
+      "sum_ms": 175.933235,
+      "max_ms": 2.636426,
+      "mean_ms": 0.7094082056451613
+    },
+    "acoustic.start": {
+      "count": 4,
+      "sum_ms": 304.736933,
+      "max_ms": 85.777249,
+      "mean_ms": 76.18423325
+    },
+    "NAR.solve": {
+      "count": 4,
+      "sum_ms": 16597.299938,
+      "max_ms": 5935.241876,
+      "mean_ms": 4149.3249845
+    },
+    "VAE.decode.unit": {
+      "count": 9,
+      "sum_ms": 427.808269,
+      "max_ms": 145.101661,
+      "mean_ms": 47.53425211111111
+    },
+    "VAE.decode": {
+      "count": 4,
+      "sum_ms": 571.9618800000001,
+      "max_ms": 206.096774,
+      "mean_ms": 142.99047000000002
+    },
+    "acoustic.finish": {
+      "count": 4,
+      "sum_ms": 5.692554,
+      "max_ms": 1.538203,
+      "mean_ms": 1.4231385
+    }
+  },
+  "gpu_stream_inclusive_ms": {
+    "condition.dense": {
+      "count": 4,
+      "sum_ms": 258.3876495361328,
+      "max_ms": 88.24700927734375,
+      "mean_ms": 64.5969123840332
+    },
+    "NAR.init": {
+      "count": 4,
+      "sum_ms": 263.22893142700195,
+      "max_ms": 89.25939178466797,
+      "mean_ms": 65.80723285675049
+    },
+    "NAR.velocity.eager": {
+      "count": 4,
+      "sum_ms": 245.5795497894287,
+      "max_ms": 90.4392318725586,
+      "mean_ms": 61.39488744735718
+    },
+    "NAR.velocity.capture": {
+      "count": 4,
+      "sum_ms": 258.92908477783203,
+      "max_ms": 91.44255828857422,
+      "mean_ms": 64.73227119445801
+    },
+    "NAR.velocity.replay": {
+      "count": 248,
+      "sum_ms": 15951.985935211182,
+      "max_ms": 93.18364715576172,
+      "mean_ms": 64.32252393230316
+    },
+    "NAR.solve": {
+      "count": 4,
+      "sum_ms": 16506.948974609375,
+      "max_ms": 5889.74609375,
+      "mean_ms": 4126.737243652344
+    },
+    "VAE.decode": {
+      "count": 4,
+      "sum_ms": 566.6924819946289,
+      "max_ms": 204.47398376464844,
+      "mean_ms": 141.67312049865723
+    }
+  },
+  "semantic": [
+    {
+      "name": "semantic.end",
+      "start": 33873911779889051,
+      "pid": 69008,
+      "tid": 69008,
+      "request": null,
+      "id": "profile-0-81008879",
+      "frames": 512,
+      "prefix_length": 120,
+      "tokens_sha256": "c24daf1b030041653e79047a09399b7153d02454df05478a69e4a87a94625e09",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33873915461235566,
+      "pid": 69008,
+      "tid": 69008,
+      "request": null,
+      "id": "profile-1-aab930ee",
+      "frames": 768,
+      "prefix_length": 121,
+      "tokens_sha256": "dd184d228ecb136363960e1b8440d425d6f7e2b3de5b363b3eb92cd1bd3d158d",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33873919906647069,
+      "pid": 69008,
+      "tid": 69008,
+      "request": null,
+      "id": "profile-2-9bfc1e4c",
+      "frames": 1024,
+      "prefix_length": 125,
+      "tokens_sha256": "2192aa2d1c20ed2914894550a3235bce9189cbe876115c14e641dcc70a1265ee",
+      "truncated": true
+    },
+    {
+      "name": "semantic.end",
+      "start": 33873925205080295,
+      "pid": 69008,
+      "tid": 69008,
+      "request": null,
+      "id": "profile-3-8a2361be",
+      "frames": 1280,
+      "prefix_length": 122,
+      "tokens_sha256": "149700a8ff03e6bf1158dcd6a49a169ba91bdf9b0d840ed3d9fa3fa466a9b0f9",
+      "truncated": true
+    }
+  ],
+  "holds": [
+    {
+      "id": "profile-0-81008879",
+      "hold_steps": 104
+    },
+    {
+      "id": "profile-1-aab930ee",
+      "hold_steps": 190
+    },
+    {
+      "id": "profile-2-9bfc1e4c",
+      "hold_steps": 171
+    },
+    {
+      "id": "profile-3-8a2361be",
+      "hold_steps": 233
+    }
+  ],
+  "ar_rows": {
+    "semantic_rows": 3588,
+    "semantic_tokens": 4072,
+    "hold_rows": 698,
+    "hold_tokens": 698
+  },
+  "batch_steps": {
+    "1": 319,
+    "4": 616,
+    "3": 343,
+    "2": 237
+  },
+  "transfers": [],
+  "nsys": {
+    "kernel_count": 738554,
+    "invalid_intervals": 0,
+    "clock_offsets_ns": [
+      33873907963716984
+    ],
+    "kernel_sum_s": {
+      "AR_backbone": 11.70782081399249,
+      "AR_head_sampler": 0.36672693000000073,
+      "NAR": 16.11914663699972,
+      "dense_condition": 0.24680728200000154,
+      "VAE": 0.5573065060000006
+    },
+    "kernel_union_s": {
+      "AR_backbone": 11.683530326,
+      "AR_head_sampler": 0.366555922,
+      "NAR": 16.098424763,
+      "dense_condition": 0.246807282,
+      "VAE": 0.557303434,
+      "acoustic_other": 0.0
+    },
+    "kernel_counts": {
+      "AR_backbone": 550806,
+      "AR_head_sampler": 91292,
+      "NAR": 88106,
+      "dense_condition": 6572,
+      "VAE": 1778
+    },
+    "device_kernel_union_s": 21.76907193,
+    "gpu_span_s": 23.395311695,
+    "ar_acoustic_overlap_s": 7.183340003,
+    "runtime_api_ms": {
+      "cudaMemcpyAsync_v3020": 12465.88482100004,
+      "cudaEventSynchronize_v3020": 5369.913271999998,
+      "cudaGraphLaunch_v10000": 965.3086380000008,
+      "cudaStreamSynchronize_v3020": 602.9150719999998,
+      "cudaLaunchKernel_v7000": 306.174504000002,
+      "cuLibraryLoadData": 29.436870999999996,
+      "cuLaunchKernel": 20.508294999999954,
+      "cudaStreamIsCapturing_v10000": 12.448577000000135,
+      "cuLaunchKernelEx": 10.579255000000003,
+      "cudaEventQuery_v3020": 8.868645000000026,
+      "cudaEventRecordWithFlags_v11010": 7.784078999999995,
+      "cudaLaunchKernelExC_v11060": 7.688757999999996,
+      "cudaGraphInstantiateWithFlags_v11040": 7.369493,
+      "cudaEventRecord_v3020": 7.31471100000002,
+      "cuKernelGetName": 5.321916000000014,
+      "cudaEventCreateWithFlags_v3020": 5.269453999999993,
+      "cudaStreamGetCaptureInfo_v12030": 3.9174070000000114,
+      "cudaEventDestroy_v3020": 2.852952999999997,
+      "cudaMemsetAsync_v3020": 2.5077839999999956,
+      "cudaGraphExecDestroy_v10000": 1.690042
+    },
+    "top_kernels": [
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_256x128_32x3_tn_align8>(T1::Params)",
+        "seconds": 6.67742532100002
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x1_tn_align8>(T1::Params)",
+        "seconds": 3.339386258999968
+      },
+      {
+        "category": "NAR",
+        "name": "void pytorch_flash::flash_fwd_kernel<Flash_fwd_kernel_traits<(int)128, (int)128, (int)32, (int)4, (bool)0, (bool)0, cutlass::bfloat16_t, Flash_kernel_traits<(int)128, (int)128, (int)32, (int)4, cutlass::bfloat16_t>>, (bool)0, (bool)0, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)0>(pytorch_flash::Flash_fwd_params)",
+        "seconds": 2.824714886999999
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_64x64_ldg8_f2f_stages_64x5_tn",
+        "seconds": 1.8910124700000026
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x3_tn",
+        "seconds": 1.8881038930000296
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<(int)128, (int)64, (int)128, (int)4, (bool)0, (bool)0, cutlass::bfloat16_t, Flash_kernel_traits<(int)128, (int)64, (int)128, (int)4, cutlass::bfloat16_t>>, (bool)0, (bool)0, (bool)0, (bool)0, (bool)1, (bool)0, (bool)1, (bool)0>(flash::Flash_fwd_params)",
+        "seconds": 1.628101269999995
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s16816gemm_bf16_256x128_ldg8_f2f_stages_32x3_tn",
+        "seconds": 1.6086674069999967
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s1688gemm_bf16_128x128_ldg8_f2f_stages_32x1_tn",
+        "seconds": 1.3199203779999995
+      },
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_128x256_32x3_tn_align8>(T1::Params)",
+        "seconds": 1.1402723169999982
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_32x32_128x2_tn_align8>(T1::Params)",
+        "seconds": 0.928598897999998
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s1688gemm_bf16_128x128_ldg8_f2f_tn",
+        "seconds": 0.839212098000001
+      },
+      {
+        "category": "NAR",
+        "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_256x64_32x4_tn_align8>(T1::Params)",
+        "seconds": 0.4409604949999996
+      },
+      {
+        "category": "NAR",
+        "name": "triton_poi_fused_mul_silu_split_1",
+        "seconds": 0.3704202060000003
+      },
+      {
+        "category": "AR_backbone",
+        "name": "void cutlass::Kernel2<cutlass_75_tensorop_bf16_s1688gemm_bf16_128x64_tn_align1>(T1::Params)",
+        "seconds": 0.34224526900000013
+      },
+      {
+        "category": "AR_backbone",
+        "name": "ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn",
+        "seconds": 0.27524638700000115
+      },
+      {
+        "category": "NAR",
+        "name": "triton_red_fused__to_copy_mean_mul_pow_rsqrt_0",
+        "seconds": 0.2134207119999988
+      },
+      {
+        "category": "AR_backbone",
+        "name": "triton_red_fused_3",
+        "seconds": 0.2038787019999948
+      },
+      {
+        "category": "NAR",
+        "name": "triton_per_fused__to_copy_add_cat_mean_mul_pow_rsqrt_slice_split_with_sizes_sub_unsqueeze_view_1",
+        "seconds": 0.19475286600000044
+      },
+      {
+        "category": "AR_backbone",
+        "name": "std::enable_if<!T7, void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, (bool)0, (bool)1, (bool)1, (bool)0, (int)7, (bool)0, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<const __nv_bfloat16>, cublasGemvTensorStridedBatched<const __nv_bfloat16>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>>(T13)",
+        "seconds": 0.1850024200000005
+      },
+      {
+        "category": "NAR",
+        "name": "ampere_bf16_s16816gemm_bf16_128x128_ldg8_f2f_stages_32x5_tn",
+        "seconds": 0.15779669999999998
+      }
+    ]
+  }
+}

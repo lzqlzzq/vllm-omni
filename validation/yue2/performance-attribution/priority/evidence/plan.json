@@ -1,0 +1,37 @@
+{
+  "root": "/root/autodl-tmp/yue2-stream-priority-20261009-01",
+  "baseline": "highest",
+  "candidate": "equal",
+  "only_production_change": "SynthesisQueue CUDA stream priority highest -> 0",
+  "max_inflight": 2,
+  "count": 64,
+  "warmup": 2,
+  "ar32": true,
+  "kv_gib": 32,
+  "client64": true,
+  "nar": 1,
+  "vae": 1,
+  "window_ms": 0,
+  "mps": false,
+  "abc": 4096,
+  "semantic": 9000,
+  "save_audio_latents": false,
+  "diagnostic_order": [
+    "equal-profile-01",
+    "highest-profile-01"
+  ],
+  "formal": "decide after diagnostic; no profiling results treated as uninstrumented performance",
+  "files": {
+    "scripts/analyze.py": "81c2ed630c47d995fc5de6421ee43354e4d0d0c5d597680ea43b899fcea80022",
+    "scripts/bench_e2e.py": "0d9228463b61005a0ecdeb7fa53d818611736dc6b37a3fda246354ade8b103fe",
+    "scripts/controller.sh": "86582d4332fb44c47eb2674e302030dbdf436529f6d067f10d683cff8fd36d43",
+    "scripts/env.sh": "ea5d8959170ba0502a2bace5aac9b6e9be2c44718a3424c02f43b0aacb648639",
+    "scripts/phase_probe.py": "51ddf3268dedf7face89cb2485a2da2b0ebf471a7e82e936351277f41d70fd8e",
+    "scripts/pipeline_probe.py": "98a6a16317082e7b11300dde8fd4e07cbe52afdfe5eb21c478afc82facbcf681",
+    "scripts/plot.py": "835d6337b5faa04b859a4c8053a30a527b1e9cc8435913590bdca1e1d88ff8b2",
+    "scripts/profile_bench.py": "052a2a8fee98ac58cc588291e8f95955b6ec3d83dcc5933f5fe1c33ca4ae0471",
+    "scripts/refine.py": "a6cb5a965d482adc36f2bd508c8a4cb5e5521d286898b6ec4d5fa516f78eadf0",
+    "scripts/run.sh": "5eb0dbb58688f1931513fee8966b16b35e6ca24edb85fcef1005a244a6905d6e",
+    "configs/candidate.yaml": "ae9a2b4605dcaa9a0477234f0bdfe2925c4075e9a1d6071df44bf13a0a13acac"
+  }
+}

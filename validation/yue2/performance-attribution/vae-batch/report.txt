@@ -1,0 +1,117 @@
+# NAR2/VAE1 补充对照
+
+后续四组交错B1/B2对照见[稳定性能报告](../2026-10-07-yue2-nar-stability/README.md)。
+
+本轮只比较配置，不改生产实现。两组复用
+[前轮](../2026-10-06-yue2-queue-batch/README.md)已修复输出缓冲所有权的源码，
+分别使用 NAR2/VAE2（packed）和 NAR2/VAE1（naronly）。VAE1 仍保留原 tiled decode。
+两份配置仅 `yue2_vae_batch_size: 2 → 1` 不同。
+
+## 测后配置决定：NAR 可调
+
+用户随后选择保留可调 NAR。实验源码沿用已有 `stages[0].hf_overrides.yue2_nar_batch_size`，
+无需新增计算逻辑；队列配置显式设为 1，可选 batching 配置设为 2，两者 VAE 均为 1：
+
+```yaml
+hf_overrides:
+  yue2_nar_batch_size: 2
+  yue2_vae_batch_size: 1
+```
+
+取值必须为正整数，1 使用原逐首 NAR，2 允许 packed NAR；本队列路径尚未 GPU 验收更大值。
+它是每次从就绪队列取出的上限，不保证实际 batch 大小，不等待凑批，独立于 AR 的 `max_num_seqs`。
+修改后重启 engine 生效；不做显存不足自动缩批。VAE 保留 tiled decode，packed 数值分叉仍存在。
+
+此决定仅修改本地实验源码 `experiments/yue2-queue-batch-20261006/source` 下的两份部署 YAML；
+下述测速配置、源码哈希快照及远端验收目录保留原样。主工作区生产默认不变。
+
+## 结果
+
+**本轮支持在 packed NAR 路径中选择 NAR2/VAE1。** 四种并发负载的吞吐差异均在
+±0.4% 内，E2EL/RTF P95 差异也在 ±0.4% 内；VAE 合批没有明确端到端收益。
+设备监测峰值从 **23678 降至 20766 MiB**，减少 **2912 MiB（2.84 GiB，约 12.3%）**。
+峰值覆盖整轮，包括预热及 4096 帧长样本，不应解释为常驻权重或所有请求都节省相同显存。
+
+以下为三轮中位，吞吐单位为音频秒/墙钟秒；变化为 VAE1 相对 VAE2。
+
+| 负载 | NAR2/VAE2 吞吐 | NAR2/VAE1 吞吐 | 变化 |
+| --- | ---: | ---: | ---: |
+| 等长 768 帧 / 并发 4 | 6.531 | 6.553 | +0.35% |
+| 混合 / 并发 4 | 6.413 | 6.388 | -0.39% |
+| 混合 / 并发 8 | 6.815 | 6.812 | -0.04% |
+| 混合 / 连续 16、上限 8 | 7.209 | 7.197 | -0.16% |
+
+| 负载 | E2EL P50 VAE2→VAE1 | E2EL P95 VAE2→VAE1 | RTF P50 VAE2→VAE1 | RTF P95 VAE2→VAE1 |
+| --- | ---: | ---: | ---: | ---: |
+| 等长 768 帧 / 并发 4 | 15.294→15.249 | 18.283→18.222 | 0.498→0.496 | 0.595→0.593 |
+| 混合 / 并发 4 | 13.749→13.824 | 21.429→21.510 | 0.382→0.384 | 0.430→0.432 |
+| 混合 / 并发 8 | 21.545→21.543 | 39.919→39.943 | 0.652→0.653 | 0.931→0.932 |
+| 混合 / 连续 16、上限 8 | 31.184→31.063 | 45.368→45.475 | 0.920→0.921 | 1.325→1.328 |
+
+相对前轮 B1 历史参考，NAR2/VAE1 本轮等长吞吐约高 **5.75%**。这不能直接与前轮
+**+12.71%** 混为一个稳定收益：本轮 NAR2/VAE2 等长中位也由前轮 6.984 降到 6.531。
+完成时间提供了一条线索：本轮 VAE2 三轮呈单首/两首近同时/单首返回，前轮有两轮呈两首/两首；
+VAE1 本轮也有两种返回节奏。它与就绪时机、实际凑批差异相容，但只是由输出时间推断，
+没有直接观测各轮 NAR batch，不能把差异全部归因于 batch 组成。
+
+单请求 1024 帧整组耗时 VAE2/VAE1 为 10.785/10.761 秒；4096 帧为 48.357/48.724 秒，
+长样本 VAE1 单次略慢约 0.76%。两项均只有一轮，不宣称稳定差异。
+
+完整每轮指标、误差与历史 B1 对照见 [summary.json](evidence/summary.json)。
+本轮只给出选择 NAR2/VAE1 的证据，没有修改默认配置或删除 VAE batching 实现。
+
+## 输出与完整性
+
+- 两组各 106 次、共 **212 次新生成**通过 semantic 数量、完整音频长度、有限值及错误标志检查。
+- NAR2/VAE1 顺序四首及 4096 帧的完整 FP32 音频、semantic 均与历史 B1 参考精确相同；
+  音频 max-abs/RMSE/relative-L2 全为 0。长样本逐首 NAR 实际为 B1，不代表 packed NAR 精确 parity。
+- NAR2/VAE2 顺序四首同样精确；4096 帧 semantic 相同，音频 relative-L2 约 0.000333。
+- 两组并发输出仍有 semantic/audio 分叉，固定输入 packed NAR 的已知数值差异未被此次对照消除；
+  未做听感或质量验收。
+- 两次生成进程退出码均为 0，GPU 进程清空（[最终检查](evidence/final-checks.json)）。本轮没有重跑取消/shutdown 测试。
+- 前后 1836 个生产 Python/YAML 哈希保持，与前轮最终源码一致；CPU 检查沿用前轮，不冒充本轮新跑。
+
+两组并发相互比较（相同请求位置，不含预热）如下：
+
+| 负载 | semantic 相同 | 完整音频哈希相同 | 总对数 |
+| --- | ---: | ---: | ---: |
+| 等长 768 帧 / 并发 4 | 8 | 4 | 12 |
+| 混合 / 并发 4 | 12 | 12 | 12 |
+| 混合 / 并发 8 | 24 | 24 | 24 |
+| 混合 / 连续 16、上限 8 | 48 | 48 | 48 |
+
+## 方法与边界
+
+- 远端 `root@connect.nmb2.seetacloud.com:27279`，本轮目录
+  `/root/autodl-tmp/yue2-nar-only-20261007-01`。
+- 同一 RTX 3090、24576 MiB，UUID `GPU-b247abf1-1a25-c02d-a18c-55e4bef1f73a`，
+  驱动 595.71.05；无 MPS。vLLM 0.31.0、torch 2.13.0+cu130，原环境不变。
+- source/venv/HF cache 链接前轮目录，源码包括独立 CPU 输出 clone 修复；
+  无探针、无 hook，不重做或绕过 GPU 计算。
+- AR 四槽、4 GiB KV、MR v1、同步调度、TP=PP=1，原编译/velocity Graph 与条件 prefill 保留。
+- 四种固定帧预算 512/768/1024/1280，歌词、style、seed 与 checkpoint revision 均沿用前轮。
+- 每组先预热四首，再顺序四首、单请求 1024 帧及 4096 帧长样本；等长 768 帧并发四首、
+  混合并发 4、并发 8、连续 16/上限 8 各三轮，共 106 次完整输出检查。
+- 本轮先 packed 后 naronly，未交错 AB；即使 GPU/源码相同，仍不能排除时序影响。
+  前轮 B1 的 base-01 仅为历史参考，不能把相对它的差异都归因于本轮配置。
+- Throughput 为音频秒/整组墙钟；E2EL 为请求提交至完整音频返回；RTF=E2EL/音频秒。
+  先计算每轮百分位再取三轮中位。客户端信号量等待不计入单请求 E2EL，整组墙钟包含全部请求。
+- NAR B=2 是上限，不等待凑批。前轮探针等长为 1+2+1、混合为 1+1+1+1；
+  本轮无探针，不能声称每次实际 batch 大小都相同。
+- B>1 NAR 数值差异与听感未验收的限制继续保留；本轮不新增自然 EOS、HTTP、取消、
+  进行中 shutdown 或多 GPU 验收。前轮取消回归仍是前轮证据。
+
+## 复现
+
+```bash
+cd /root/autodl-tmp/yue2-nar-only-20261007-01
+export PATH="$PWD/venv/bin:$PATH"
+venv/bin/python scripts/run.py --arm packed --label 02
+venv/bin/python scripts/run.py --arm naronly --label 02
+# 正式汇总默认读取两组 label 01；复跑时修改 summarize.py 的 labels。
+venv/bin/python scripts/summarize.py
+```
+
+本轮配置见 [packed](configs/packed.yaml)、[naronly](configs/naronly.yaml)。
+原始请求级数据保存在 [artifacts](artifacts/)，完整 FP32 顺序/长样本 `.pt` 留在远端。
+本地保存 JSON、日志和监测数据。未改默认配置，未 commit/push。

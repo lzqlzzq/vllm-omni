@@ -1,0 +1,38 @@
+{
+  "source": "rollback queue-output 1860 production files unchanged",
+  "remote": "/root/autodl-tmp/yue2-fixed-overlap-20261009-01",
+  "cases": [
+    "mixed32:6ABC+26semantic",
+    "semantic32"
+  ],
+  "nar_frames": 6144,
+  "nar_steps": 32,
+  "nar_evaluations": 64,
+  "ar_steps": "balanced to NAR duration by pilot; rounded to32 and frozen within each case",
+  "modes": [
+    "ar",
+    "nar",
+    "serial",
+    "overlap"
+  ],
+  "rounds": 4,
+  "order": "Latin cyclic rotation",
+  "mps": false,
+  "priority": "AR0/NARdevicehighest",
+  "max_inflight": 2,
+  "measurement": "native full AR graph+original head; complete fixed-input NAR ODE with prefilled conditioning and warmed graph",
+  "excluded": [
+    "AR sampler and scheduler",
+    "prefill/setup/capture",
+    "VAE",
+    "HTTP/E2E quality"
+  ],
+  "production_changes": false,
+  "files": {
+    "scripts/controller.sh": "809c325942279a0a476d97dbe46dff293f3585e05411d9bbd60d46a3f49d2761",
+    "scripts/env.sh": "2100a4364a8e756a04ec71f16a0589778d4aa0999586469468a81a5726b541cf",
+    "scripts/overlap_worker.py": "1d271ad3aac12c5537c3e91e17981ef9d419143d5d6304df02ce1ffb8f515f1b",
+    "scripts/run.py": "36ae1e27ff728c0ccd90158f5c057f23275efff347af4160fb8b1627baa600c8",
+    "configs/candidate.yaml": "ae9a2b4605dcaa9a0477234f0bdfe2925c4075e9a1d6071df44bf13a0a13acac"
+  }
+}

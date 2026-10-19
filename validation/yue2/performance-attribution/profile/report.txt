@@ -1,0 +1,78 @@
+# 回退候选完整 E2E profiling：声学供给波动与 AR/GPU 等待
+
+64首完整负载＋2首完整预热通过，另4请求短trace验收通过。当前原AR混合调度＋独立声学队列存在声学断供，但没有发现大量“ready却未dispatch”的浪费。更强的证据指向：声学活跃期间GPU繁忙、AR推进显著变慢，原生逐步token回传同步把这个等待传回主循环；随后声学缺少新完成请求，又进入断供。该反馈机制与记录一致，尚未单项干预分离stream优先级、资源竞争和功率限制的因果贡献。
+
+本轮只做外置观察，生产代码、调度策略、计算、采样和RNG未修改。数据是带探针诊断，不是正式性能比较；没有新跑上游。
+
+![完整链路时间线](artifacts/profile-full-01/timeline.png)
+
+## 一、声学空档是真实的，ready队列没有明显空转
+
+657.466秒观测窗口的恒等分解：首个声学job前78.431秒＋声学job墙钟473.406秒＋job间空档105.473秒＋最终交付0.157秒。前78秒包含正常ABC/semantic生成，不能整段称为浪费。所有值是墙钟区间，不是可以与GPU/CPU热点相加的独立成本。
+
+job间空档105.473秒中，105.471秒没有就绪声学请求；已有ready而尚未启动总计约0.00164秒。43/64首曾在声学队列等待超过1秒，等待中位6.190秒、P95 31.826秒、最大41.339秒：**积压与断供交替，而非始终只有AR不足或声学不足。**
+
+| 空档位置（秒） | 时长 | 当时AR / ABC | 等待AR请求 | CUDA活动区间覆盖 | 解释 |
+|---|---:|---:|---:|---:|---|
+| 316.926–344.970 | 28.044s | 32 / 4–11 | 1 | 22.335s（79.65%） | 已完成31个声学job；仍有7次ABC→semantic转换，没有ready声学请求 |
+| 358.427–376.296 | 17.869s | 32 / 2–4 | 0 | 14.761s（82.61%） | AR满批推进，声学等待新请求完成 |
+| 631.672–644.429 | 12.758s | 1 / 0 | 0 | 8.823s（69.16%） | 单个尾请求，不能和中途满批供给问题混称 |
+
+最后ABC步骤直到452.650秒才结束。自动semantic prepend及准入形成的两波工作仍是需要考察的机制，但没有单项消融，不能把全部差距归因于这一行；本轮不建议恢复已验证退化的固定分阶段轮转。
+
+## 二、最重的主线程等待在原生token回传，而非YuE pending解析
+
+| 观察位置 | 全程累计CPU墙钟（含GPU等待） | 说明 |
+|---|---:|---|
+| AR.native_token_to_cpu | 504.995s | 内含502.981s的cudaEventSynchronize；不能当成可直接省掉的时间 |
+| AR.resolve_pending | 0.933s | 其中cudaEventSynchronize仅0.0719s |
+| AR.model_sample | 40.476s | 含子调用，与其它CPU范围重叠 |
+| output.poll_audio | 18.055s | 含声学pump、完成交接与CPU音频clone |
+| 自动ABC handler | 3.532s | 不足单独解释几倍步时差异 |
+
+原生vLLM `_to_list` 执行异步pinned copy、record event、随即event.synchronize；[实际源码摘录](evidence/native-to-list.txt)来自冻结vLLM0.31安装的gpu_model_runner.py:7459–7472。这个同步位于逐步推进路径，token可见之前必须等相应CUDA工作完成。回传范围内GPU活动区间仅约0.085秒，远小于同步等待；不要把505秒理解为搬运几个token的带宽成本，也不要归因于已修复的YuE非连续pinned视图。
+
+避开job边界0.25秒：native回传函数耗时中位在声学idle/active时为7.52/49.90ms；YuE pending解析为0.0428/0.0432ms。匹配同一32行组成（6ABC＋26semantic），连续logits调用间隔中位从15.319升到55.720ms（954/171样本，约3.64倍）。并非只因AR批次大小不同；但未匹配上下文长度，频率也不同，不是严格因果消融。
+
+按CUDA API关联，AR logits已提交至开始执行的延迟中位为7.93→39.09ms，原生回传范围中kernel/graph活动的提交后等待为7.45→49.80ms（按活动样本，非请求口径）。这些队列等待与主线程event等待吻合，说明应关注AR/声学GPU推进如何相互影响。不能把kernel级延迟累加当墙钟收益。
+
+## 三、NAR是声学主体，VAE与交接属于次要项
+
+64个NAR chunk、4096次velocity调用、381个VAE tile。CUDA活动区间按NVTX关联：NAR prefill约7.772秒、NAR velocity约437.600秒、VAE约23.772秒。AR.execute对应约428.496秒，AR采样范围约98.324秒；不同stream的这些区间会重叠，绝不能相加得到总耗时或认定全部是独占SM计算。
+
+整个测量窗口里，kernel/graph/memcpy/memset活动区间并集覆盖614.919秒，未覆盖42.548秒（6.47%）；其中声学job活跃区间未覆盖仅1.563秒。这里用CUDA Graph整段活动区间，内部空隙未展开，所以空闲是下界、busy不是SM占用率，也不能把6.47%称为精确优化上限。超过1ms的未覆盖间隙累计19.172秒，最长生成中间隙约67.9ms；约157.6ms最长间隙位于最终交付收尾。
+
+较大的几十毫秒GPU空隙多落在output.poll_audio；另有cudaHostAlloc位于声学收尾。job完成到音频ready中位146ms、P95 235ms；音频ready到客户端完成中位52ms、P95 68ms。这是值得后续处理的次级CPU交接成本，但不是28秒声学断供的主要来源。此次未对clone或分配做逐行干预，不能把全部交接耗时归给其中一个；既有pinned输出所有权修复保持。
+
+## 四、新卡排除了本轮温控干扰，功率与频率仍是混杂因素
+
+全程48–65°C，温控标志占比0。排除job边界后：声学idle中位SM1755MHz、功耗284.8W；active中位SM1215MHz、功耗346.0W，active采样均有NVML mask4（SwPowerCap，设备上限350W）。GPU busy采样均值分别78.91% / 99.92%。
+
+同批次组成、同120MHz频率分桶的idle/active配对没有双方各20个样本，因此还不能把优先级、功率降频与资源占用拆开定责。旧卡的温控不是此前现象的全部解释；也不能从“新卡无温控”推断时钟已经可比。未调功率或锁频。
+
+## 下一步优先级
+
+1. 保留混合AR调度，单项验证YuE声学stream优先级或advance提交深度是否过度拖慢AR；分别看AR等待、声学job总时长与供给空档，避免只让一侧变快。这是待验证假设，本轮没有修改。
+2. 结合完成时序研究ABC/semantic准入产生的供给波动，避免固定阶段轮转导致的批次缩水；不能仅靠延长凑批窗口解决本轮无ready的问题。
+3. 音频交接CPU停顿可作为较小的局部优化点，需保持独立输出存储和取消/生命周期语义。
+
+原生同步回传是已经观测到的关键等待边界，但公共执行层仍按用户约定保持不变。没有把删除这次同步当作可直接实施的方案。
+
+## 运行条件与验收
+
+SSH36665 H800 PCIe80GB/580.82.07，独立根`/root/autodl-tmp/yue2-e2e-profile-20261009-01`。当前回退queue-output候选，1860生产Python/YAML与目标及运行前后完全一致。AR32/KV32GiB/client64/NAR1/VAE1/window0/full CoT/CFG1，固定64提示/种子，ABC4096/semantic9000，两首完整预热，MPS关闭，无强制温度补热，不保存音频/latent。
+
+64正式＋2完整预热＋4短trace输出形状/有限值/错误标记检查通过；正式1ABC/2semantic预算截断保留。正常退出，GPU/MPS清空。64首带探针墙钟657.464秒，吞吐21.831音频秒/秒，E2EL P50/P95 370.992/606.632秒，RTF P50/P95 1.541/2.507；这些只描述本次profiling，不与无探针旧轮比较收益。
+
+Nsight Systems2025.1.1，CUDA/NVTX，graph粒度，cudaProfilerApi在完整预热后启停；关闭OS采样/CPU context-switch tracing。214684条NVTX、4910600条CUDA runtime、1356385条kernel、59433条graph活动。两个时钟锚点对齐CPU/GPU；未见工具报告事件丢失，计数不等于所有Graph内部kernel均被展开。短trace首先验证各阶段marker、CUDA活动和输出完整性。统计区间并集含自检，CPU范围/Graph范围的重叠与口径在脚本和结果中显式保留。
+
+61份记录共181,866,243字节已回收，逐文件SHA256全部一致；包含原始Nsight trace，不包含音频/latent。
+
+远端绘图环境缺matplotlib，图由本地独立临时工具环境生成；未修改推理venv。未新验上游性能、WSB、听感、CFG≠1、多卡、关闭中取消或并发逐值parity。未commit/push。
+
+## 证据
+
+- [完整分析](artifacts/profile-full-01/analysis.json)、[频率与队列细化](artifacts/profile-full-01/refinement.json)、[逐秒时间线](artifacts/profile-full-01/timeline.json)、[SVG图](artifacts/profile-full-01/timeline.svg)。
+- [原始Nsight trace](artifacts/profile-full-01.nsys-rep)、[CPU/阶段原始记录](artifacts/profile-full-01/profile.json)、[逐请求输出记录](artifacts/profile-full-01/requests.jsonl)。SQLite保留远端，哈希见验收记录，可从nsys-rep重新导出。
+- [冻结计划](evidence/plan.json)、[验收](evidence/validation.json)、[源码前](evidence/source-before.json)/[后](evidence/source-after.json)、[回收SHA](evidence/collection-sha256.json)。
+- [完整启动器](scripts/run.sh)、[阶段探针](scripts/phase_probe.py)、[CPU/NVTX探针](scripts/pipeline_probe.py)、[分析脚本](scripts/analyze.py)、[细化脚本](scripts/refine.py)。
