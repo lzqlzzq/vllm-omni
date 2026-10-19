@@ -33,6 +33,8 @@ from vllm.model_executor.layers.logits_processor import LogitsProcessor
 from vllm.model_executor.layers.vocab_parallel_embedding import ParallelLMHead
 from vllm.model_executor.models.qwen3 import Qwen3Model
 from vllm.model_executor.models.utils import AutoWeightsLoader, maybe_prefix
+from vllm.platforms import current_platform
+from vllm.utils.flashinfer import has_flashinfer
 from vllm.v1.outputs import SamplerOutput
 
 from vllm_omni.model_executor.models.output_templates import OmniOutput
@@ -447,11 +449,32 @@ def _nar_pre_attention(x, w_norm, w_qkv, w_q_norm, w_k_norm, cos, sin, eps: floa
     return q, k, v.reshape(tokens, kv_heads, head_dim)
 
 
+_USE_FLASHINFER_SILU = current_platform.is_cuda() and has_flashinfer()
+
+
+# FlashInfer's Python/JIT wrapper cannot be traced inside our fullgraph region.
+@torch.library.custom_op("vllm_omni::yue2_silu_and_mul", mutates_args=())
+def _flashinfer_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
+    from flashinfer.activation import silu_and_mul
+
+    return silu_and_mul(x, enable_pdl=False)
+
+
+@_flashinfer_silu_and_mul.register_fake
+def _fake_flashinfer_silu_and_mul(x: torch.Tensor) -> torch.Tensor:
+    return x.new_empty(x.shape[:-1] + (x.shape[-1] // 2,))
+
+
 def _nar_post_attention(x, attn, w_o, w_norm, w_gate_up, w_down, eps: float):
     """o_proj + residual -> pre-MLP norm -> fused gate/up SiLU MLP + residual."""
     x = x + F.linear(attn.flatten(1), w_o)
-    gate, up = F.linear(_rms(x, w_norm, eps), w_gate_up).chunk(2, dim=-1)
-    return x + F.linear(F.silu(gate) * up, w_down)
+    gate_up = F.linear(_rms(x, w_norm, eps), w_gate_up)
+    if _USE_FLASHINFER_SILU and gate_up.is_cuda and gate_up.dtype == torch.bfloat16:
+        activated = _flashinfer_silu_and_mul(gate_up)
+    else:
+        gate, up = gate_up.chunk(2, dim=-1)
+        activated = F.silu(gate) * up
+    return x + F.linear(activated, w_down)
 
 
 _COMPILED: dict[str, Callable] = {}
@@ -460,8 +483,8 @@ _COMPILED: dict[str, Callable] = {}
 def _nar_kernels() -> tuple[Callable, Callable]:
     """The per-layer NAR halves, compiled once for any token count.
 
-    Compilation fuses the RMSNorm/RoPE/SiLU elementwise chains that dominate
-    the eager NAR pass after its GEMMs and attention.
+    Compilation fuses RMSNorm/RoPE and the residual chains; a custom op keeps
+    the FlashInfer SiLU kernel inside the compiled graph when available.
     """
     if "pre" not in _COMPILED:
         pre, post = _nar_pre_attention, _nar_post_attention
@@ -553,7 +576,7 @@ def fuse_nar_projections(layers: nn.ModuleList) -> list[tuple[torch.Tensor, ...]
 class CachedNAR:
     """One acoustic chunk: AR prefix K/V prefilled once, ODE walks the NAR path."""
 
-    def __init__(self, model, chunk: Chunk, pool: tuple[int, int] | None = None):
+    def __init__(self, model, chunk: Chunk, pool: tuple[int, int] | None = None, kv=None):
         self.model = model
         self.chunk = chunk
         self.pool = pool
@@ -576,6 +599,17 @@ class CachedNAR:
         self.bounds_k = _sequence_bounds(self.ar_length + self.nar_length, self.device)
         self.graph: torch.cuda.CUDAGraph | None = None
         self.last_use: torch.cuda.Event | None = None
+        self.keys = self.values = None
+        if kv is not None:
+            shape = (
+                int(model.config.num_hidden_layers),
+                self.ar_length + self.nar_length,
+                int(model.config.num_key_value_heads),
+                int(model.config.head_dim),
+            )
+            if len(kv) != 2 or any(t.shape != shape or t.dtype != self.dtype or t.device != self.device for t in kv):
+                raise ValueError("Condition KV storage does not match the acoustic chunk")
+            self.keys, self.values = kv
         self._prefill()
 
     def _prefill(self):
@@ -584,8 +618,9 @@ class CachedNAR:
         config = model.config
         total = self.ar_length + self.nar_length
         shape = (len(backbone.layers), total, int(config.num_key_value_heads), int(config.head_dim))
-        self.keys = torch.empty(shape, dtype=self.dtype, device=self.device)
-        self.values = torch.empty(shape, dtype=self.dtype, device=self.device)
+        if self.keys is None:
+            self.keys = torch.empty(shape, dtype=self.dtype, device=self.device)
+            self.values = torch.empty(shape, dtype=self.dtype, device=self.device)
         ids = torch.tensor(self.chunk.ar_tokens, dtype=torch.long).to(self.device, non_blocking=True)
         cos, sin = model.rotary(torch.arange(self.ar_length, device=self.device)[None])
         x = backbone.embed_tokens(ids)  # [T, H]
@@ -624,9 +659,9 @@ class CachedNAR:
                 with torch.cuda.graph(self.graph, pool=self.pool, capture_error_mode="thread_local"):
                     self.velocity_out = self._velocity(self.state_in, self.time_in)
             else:
-                # Already on a side stream (the async synthesis path): capture
-                # in place, without torch.cuda.graph's device-wide sync, which
-                # would stall the decode loop behind every queued kernel.
+                # Capture cannot reclaim eager cache for the graph's private pool.
+                torch.accelerator.synchronize(self.device)
+                torch.accelerator.empty_cache()
                 self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
                 try:
                     self.velocity_out = self._velocity(self.state_in, self.time_in)
@@ -1667,6 +1702,7 @@ class _RequestState:
     finish_ready: bool = False
     end_drawn: bool = False  # the engine counts a drawn end (or its HOLD) too
     job: _SynthesisJob | None = None  # async synthesis in flight
+    acoustic_ready_at: float = 0.0  # monotonic time used by the optional batch window
     hold_steps: int = 0  # HOLD_TOKEN steps emitted while it runs
     # Engine output count once the emitted end token is accepted, and the
     # shipped (audio, truncated, error). A preemption can drop the step that
@@ -2086,13 +2122,20 @@ class Yue2ForCausalLM(nn.Module):
 
     def _vae_model(self, device: torch.device) -> YuE2VAE:
         if self._vae is None:
-            vae_path = os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
+            vae_path = self.config.yue2_vae_path or os.environ.get("YUE2_VAE", DEFAULT_VAE_ID)
             logger.info("Loading YuE2 VAE decoder from %s", vae_path)
             # Keep the VAE out of the module tree (__dict__, not an nn.Module
             # attribute): the checkpoint has no VAE keys, so a registered
             # submodule would trip DefaultModelLoader.track_weights_loading,
             # and a model-wide dtype/device pass would change VAE numerics.
-            self.__dict__["_vae"] = YuE2VAE.from_pretrained(vae_path, decoder_only=True, device="cpu")
+            self.__dict__["_vae"] = YuE2VAE.from_pretrained(
+                vae_path,
+                revision=self.config.yue2_vae_revision,
+                token=self.vllm_config.model_config.hf_token,
+                cache_dir=self.vllm_config.load_config.download_dir,
+                decoder_only=True,
+                device="cpu",
+            )
         if self._vae_device != device:
             self._vae.to(device)
             self._vae_device = device
@@ -2475,7 +2518,7 @@ class Yue2ForCausalLM(nn.Module):
 
         if self._pinned is None or self._pinned.shape[1] < count:
             self._pinned = torch.empty((2, max(count, 64)), dtype=torch.long, pin_memory=True)
-        host = self._pinned[:, :count]
+        host = self._pinned.view(-1)[: 2 * count].view(2, count)
         # Async into pinned memory; the next sample() call resolves it.
         host.copy_(drawn, non_blocking=True)
         event = torch.Event()
