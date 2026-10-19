@@ -1,102 +1,28 @@
-# NAR 固定输入隔离实验
+# Fixed-input NAR isolation with concurrent AR
 
-本轮只查 NAR 退化，不处理 allocator，不修改任何生产源码、默认 YAML 或 ACK 生命周期。
-延续 [架构 probe](../2026-10-03-yue2-architecture-probe/README.md)，通过外置诊断 worker 控制 AR 是否共跑。
+## Setup
 
-## 实验控制
+RTX 3090/580.76.05; same weights, production source and 768-frame KV/noise fixture. Original 32-step midpoint/64-evaluation solver and high-priority synthesis stream. Alternate AR-idle and four active AR requests three times; repeat with a private MPS server. KV upload, conditioning prefill and receiver waiting are outside timing; VAE is omitted. Both groups use the same events/Nsight instrumentation.
 
-- 同一 RTX 3090、driver 580.76.05、同一权重/生产源码/部署参数。
-- 先由真实两阶段请求生成一份 768 帧的条件 KV；保存完整条件 token、KV 和 CPU noise。
-- 重放统一使用这份 fixture。每次重新创建 CachedNAR，保留原 32 步 midpoint、64 次 velocity、首次 eager/随后捕获与 replay、融合算子和高优先级 synthesis stream。
-- 主对照始终调用原 `_SynthesisJob` 的 `complete()/drain()`；去掉 VAE，只保存 NAR 返回的完整 FP32 latent。job 的末尾输出处理未纳入 NAR CUDA-event 区间。
-- 条件 KV 从 CPU fixture 上传及 CachedNAR 初始化均在 NAR event 计时前完成；测量期间没有请求 KV transfer、条件 prefill 或接收槽等待。不是端到端吞吐基准。
-- AR 空闲组与四条 AR 活跃组交替三次。活跃请求预算 5000 帧，在重放前启动并推进一秒，重放后明确取消；确认结束前没有请求自然完成。以真实 scheduled token 数验证 AR 是否工作，记录 AR counter 前后值。
-- 同 engine 先暖机两次。Nsight CUDA/NVTX 与每次 velocity 的 CUDA events 用于诊断，两侧采用相同观测口径，不能与先前无 hook 的端到端计时混用。
-- 另测一次空闲时 polling 推进 job，作为对 `drain` 推进方式的有限检查，不将其解释成上游完整 AR step pump 的等价实现。
-- MPS 为单独的干预组，固定使用普通模式保存的 `nar-isolation-02/fixture.pt`。只对实验子进程设置私有 MPS pipe/log 路径，未改变系统 compute mode、频率或全局部署；退出时关闭自己的 controller。
+## Results
 
-## 结果
+| Median NAR time | AR idle | Four AR requests active | Increase |
+| --- | ---: | ---: | ---: |
+| Separate processes | 3.432 s | 5.776 s | +68.29% |
+| Same processes with MPS | 3.446 s | 3.804 s | +10.40% |
 
-**主要差异已定位到同卡双进程的 GPU 调度环境。** 同一个 acoustic worker、同一份 KV/噪声、同一原生 solver/drain，仅让另一 worker 的 AR 共跑，NAR 中位耗时就增加 68.29%；临时启用 MPS 后，共跑增量降为 10.40%。
+MPS reduced active NAR time 34.14%; extra co-running time fell 2.344→0.359 s (84.70% reduction). All 14 FP32 latents were exact. Each replay used 21824 velocity kernels with identical configurations/counts: one eager, one capture, 62 replay evaluations.
 
-| 768 帧固定输入，三轮中位 | AR 空闲 | 四条 AR 共跑 | 共跑相对空闲 |
-|---|---:|---:|---:|
-| 普通双进程 | 3.432 s | 5.776 s | **+68.29%** |
-| 同样双进程，临时 MPS | 3.446 s | 3.804 s | **+10.40%** |
+Representative GEMM P99: idle 0.756 ms, active 3.123 ms; with MPS idle 0.751 ms, active 0.813 ms. AR still progressed; rough median throughput was 230 versus 219 token/s, approximately 5% lower with MPS. Idle polling 3.468 s (MPS 3.481 s) did not beat drain in its single trial.
 
-普通模式三轮 idle 为 3.401/3.432/3.446 s，active 为 5.726/5.776/5.802 s；MPS 三轮 idle 为 3.429/3.446/3.461 s，active 为 3.789/3.804/3.832 s。
+## Scope
 
-共跑时 NAR 本身减少 **34.14%**；相对于各自 idle 的额外耗时从 **2.344 s 降到 0.359 s**，约消除 **84.70%** 的共跑惩罚。这些是固定输入 NAR 隔离结果，不能冒充完整四曲吞吐改善，也不能将 2.344 s 全部叫作纯 context 保存/恢复成本。
+The same-GPU environment changed NAR execution time while arithmetic and transfer capacity stayed fixed. MPS changes resource sharing as well as context scheduling, leaving their individual contributions unresolved. CUDA intervals record overlap; full-song E2E and VAE/audio quality were outside the probe.
 
-### 同一 kernel 的长尾随 MPS 消退
+## Reproduction and evidence
 
-每次重放都执行 **21,824 个 velocity kernel**。普通/MPS、闲/忙共 14 次，按 kernel 名称、grid/block、动态共享内存和调用次数的完整映射全部相同，没有替换计算路线。64 次 velocity 均为 1 eager、1 capture、62 replay。
+Original `nar_isolation_launch.py nar-isolation-02 --trace` and `nar_mps_launch.py nar-mps-03`; use new labels and the same ordinary-mode fixture.
 
-以主要 CUTLASS GEMM（每次 1792 个，grid 56×6×1、block 256×1×1、动态共享内存 73728 B）为例，取各组第二轮：
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/nar-isolation/report.txt). Commands use the archived experiment layout.
 
-| 条件 | kernel 中位 | P90 | P99 |
-|---|---:|---:|---:|
-| 普通，AR 空闲 | 0.732 ms | 0.744 ms | 0.756 ms |
-| 普通，AR 共跑 | 0.727 ms | **3.094 ms** | **3.123 ms** |
-| MPS，AR 空闲 | 0.733 ms | 0.739 ms | 0.751 ms |
-| MPS，AR 共跑 | 0.769 ms | **0.795 ms** | **0.813 ms** |
-
-普通共跑时中位几乎不变、长尾额外约 2.36 ms；MPS 后变为较均匀的小幅变慢。这个模式与不同 context 的时间片调度相符，且调度环境干预明显消除了它。此前“kernel 起止区间重叠”不能再解释成不同进程 kernel 在 SM 上真实同时执行。
-
-### AR 仍在推进，但改善并非没有代价
-
-普通共跑时，每组 AR 实际推进 1328/1328/1332 个 scheduled tokens；MPS 为 828/828/844 个。MPS 组 NAR 计时窗口更短，不能直接比较 token 总数。用这些增量除以 NAR 时长粗估，普通中位约 **230 token/s**，MPS 约 **219 token/s**，约低 **5%**；counter RPC 包围的窗口比 NAR event 略宽，这不是独立精确 AR benchmark。
-
-因此不是把 AR 完全停止换取 NAR 快；但 MPS 确实改变了资源分配，剩余约 10% 共跑影响也仍存在。尚未新测完整端到端吞吐、延迟分位数或多负载矩阵，不默认启用 MPS。
-
-### 排除范围与仍未分解的部分
-
-- **固定输入成立**：跨普通/MPS、闲/忙/poll 的 14 个完整 FP32 latent 全部 `torch.equal`，max-abs/RMSE/relative-L2 为 0；SHA256 同为 `0c5fa31131ee2bcc7cf25c2fbaf565569fc2547ff3cee09aaaae1476a35a498a`。只验 NAR latent，没有 VAE/audio。
-- **不是 KV transfer / 条件 prefill / 接收排队**：这些都在本隔离计时之外。
-- **不是新增算子或关闭 Graph**：完整 kernel 配置/次数相同。
-- **采样到的降频解释不了主差距**：普通 idle 第二轮 SM 中位 1875 MHz、active 1905 MHz；MPS active 反而约 1800 MHz，但 NAR 明显更快。100 ms 遥测不能排除所有瞬时频率变化，不能把剩余 10% 精确拆账。
-- **没有证明 `drain` 自身是主因**：MPS 实验保留了相同 `drain` 就能消掉大部分差距。空闲 polling 单次 3.468 s（MPS 3.481 s）未优于 drain；未模拟上游完整 AR-step pump，也未做其全部交叉对照。
-- **没有分离纯 context 切换成本**：MPS 同时改变执行重叠能力和资源分配/优先级效果。本轮没有 GPU context-switch activity trace 或 SM 硬件计数器，不能给这些机制各自标百分比。
-
-结论适用于当前同卡双 worker：两阶段边界可以保留，后续要解决的是它们如何共享这张 GPU 的执行资源。NAR 算术、KV gather 和接收容量不是本轮主要退化来源。MPS 目前仅作为因果干预证据；若要选它作部署方案，需要另做端到端验证。
-
-原始统计：[comparison.json](evidence/comparison.json)、[普通模式](evidence/nar-isolation-02/summary.json)、[MPS](evidence/nar-mps-03/summary.json)、[latent 逐值验证](evidence/nar-isolation-verification.json)。[MPS client 列表](evidence/nar-mps-03/mps-clients.txt)确认 AR 与 acoustic 两个 worker 都连接到本次私有 server。
-
-
-## 对 CUDA 时间线的解释
-
-NVIDIA CUDA 13.0 官方文档明确区分不同 context 的 kernel 与同 context streams：不同 context 的工作可能通过时间片推进；跨进程在 SM 上并行需要 MPS。因此此前 Nsight 中 AR/NAR 的 kernel 起止区间重叠，不能当作它们在同一时刻都占用 SM 的证据。见 [CUDA 13.0 §6.2.8.2](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-c-programming-guide/index.html#concurrent-kernel-execution)。
-
-MPS 本身也是调度机制干预，会改变资源竞争和优先级的效果；即使长尾减少，也不能将每一微秒都拆成纯 context-switch 开销。MPS 的作用及私有实例启动方式见 [NVIDIA MPS](https://docs.nvidia.com/deploy/mps/latest/index.html) 与 [Quick Start](https://docs.nvidia.com/deploy/mps/latest/quick-start.html)。本轮不将其自动变成生产依赖。
-
-## 首轮诊断脚本检查修正
-
-`nar-isolation-01` 前两组完成且 latent hash 一致，但第三个 idle 组因 `AR.execute calls == 0` 的过严检查退出。取消后 scheduler 的空清理也会调用 execute。核对该 idle 段 Nsight，21,971 个 kernel 均来自 acoustic worker，没有 AR kernel。后续检查改为实际 scheduled tokens == 0，并给取消清理留出间隔；生产代码不变。
-
-首轮的 JSON、trace、失败日志保留为诊断证据，正式完整结果使用新目录，未覆盖首轮。首轮不能被宣称为完整三组验收通过。
-
-本轮 12 项生产/配置/测试 [源码哈希](source-sha256.json) 与上一轮完全一致；诊断脚本语法及 SQLite 完整性检查通过。MPS controller 正常退出（返回 0），全部 GPU worker 已退出。未 commit/push。
-
-## 文件与复现
-
-外置脚本：
-
-- [worker](scripts/nar_isolation_worker.py)：fixture、原 NAR 重放、事件/哈希、AR counter。
-- [driver](scripts/nar_isolation_run.py)：交替闲忙、取消及复用、输出一致性。
-- [launcher](scripts/launch.py)：GPU 归属检查、日志/遥测、限定本次进程组的超时清理。
-- [MPS launcher](scripts/mps_launch.py)：私有 controller 与 finally 清理。
-- [Nsight 分析](scripts/analyze.py)：按 NVTX/API correlation 定位每个 velocity kernel。
-
-脚本上传到 `/root/autodl-tmp/yue2-enhancements-20261003-01/`；launcher 在远端命名为 `nar_isolation_launch.py`，MPS launcher 为 `nar_mps_launch.py`；配置在 `kv-configs/nar-isolation.yaml`。从 source 目录运行：
-
-```bash
-export PATH=/root/autodl-tmp/yue2-enhancements-20261003-01/venv/bin:$PATH
-export PYTHONPATH=$PWD:$PWD/..
-export HF_HOME=/root/autodl-tmp/yue2-hf-cache
-export HF_ENDPOINT=https://hf-mirror.com HF_HUB_OFFLINE=1
-export VLLM_WORKER_MULTIPROC_METHOD=spawn
-python ../nar_isolation_launch.py nar-isolation-02 --trace
-python ../nar_mps_launch.py nar-mps-03
-```
-
-复现需换新 label，MPS launcher 的 fixture 路径也应指向该次普通模式保存的 fixture。所有原始 fixture、latent 和 `.nsys-rep` 保留于远端该根目录的 artifacts/evidence（系统盘 symlink），本地 evidence 保存 JSON、SQLite 和日志。
+[comparison.json](evidence/comparison.json) · [nar-isolation-verification.json](evidence/nar-isolation-verification.json)

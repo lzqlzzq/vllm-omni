@@ -1,73 +1,29 @@
-# 当前零拷贝候选：NAR 算子热点
+# NAR operator profile after direct packed-KV writes
 
-## 结论
+## Setup
 
-NAR内部主要时间落在FlashAttention-3和MLP，随长度/合批形状变化。长B1偏attention，短B4偏MLP；索引写入和内存拷贝属于次要成本。当前已使用Hopper FA3、编译融合的norm/RoPE/SiLU和CUDA Graph，没有发现“忘记启用某项基础优化”的证据。
+2026-10-10, H800 PCIe 80 GB/580.82.07, MPS off, OMP/MKL 1. Real weights and production CachedNAR/BatchedCachedNAR, fixed 2529-token prefix and 6144-frame token fixture. Five single-chunk shapes; three velocity warmups and one ODE warmup before three measured 32-step/64-evaluation solves. AR/KV24 remains resident but AR/VAE do not run during measurement; separate Nsight node traces cover warm replay.
 
-这次只做诊断，未改生产代码。当前候选仍是`experiments/yue2-current`指向的零拷贝实现、MAX_INFLIGHT=2。SSH36665 H800 PCIe80GB，驱动580.82.07，MPSoff，OMP/MKL1；不改时钟/功率。
+## Results
 
-## 测量方法
+| Shape | Attention | GEMM | SiLU×gate | Full solve median(s) | NAR frames/s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| B1 1024 | 31.61% | 50.05% | 7.27% | 0.849121 | 1205.95 |
+| B1 6144 | 48.11% | 37.73% | 6.54% | 6.437362 | 954.43 |
+| B2 4096+4096 | 42.42% | 40.67% | 7.33% | 7.645637 | 1071.46 |
+| B2 6144+1024 | 45.42% | 38.65% | 6.94% | 7.218538 | 993.00 |
+| B4 1024×4 | 24.55% | 54.06% | 9.26% | 2.992097 | 1368.94 |
 
-冻结2529-token semantic prefix、6144帧token fixture及逐请求CPU噪声seed。用真实模型权重、当前生产CachedNAR/BatchedCachedNAR和生产声学stream/共享Graph池，分别构造5种单chunk形状。AR/KV24配置仍加载，但采样区间没有AR/VAE工作；直接排空NAR generator，不包含queue pump的提交间隔。
+MLP including SiLU accounts for approximately 34.04–48.34% of accumulated GPU activity. Replay intervals with no GPU activity were 3.34%/0.80%/0.68%/0.72%/1.24%. Attention dominates longer B1; MLP dominates shorter B4. Indexing/copies are secondary. FA3, compiled norm/RoPE/SiLU and CUDA Graph were already active.
 
-每形状先3次velocity完成编译/capture/replay及一次完整ODE预热，再测3次完整32步/64次velocity求解，15次正式求解全部有限且与预热latent逐值精确。Nsight另进程使用node trace，每形状观察4次已热Graph replay及1次eager编译调用，输出对reference精确；两个进程固定velocity哈希一致。CPU profiler只记录算子输入形状，不用它的CPU时间充当GPU时间。
+All 15 measured solves and five warmups were exact to their fixed references; trace replay/eager outputs matched, and allocator retry/OOM counts were zero. A failed default-stream graph-pool startup was excluded and retained as failure evidence.
 
-prefill发生在诊断区间但各形状首次构建状态不等，报告不将其首用时间作为公平prefill基准。kernel占比仅取已热replay区间，排除编译、Graph capture、prefill、CPU profiler和初始化。没有保存音频/latent/tensor/权重，只有哈希、计时和profiler trace。
+## Scope
 
-## 已热 NAR 内部 GPU 活动占比
+Kernel shares sum GPU activity; frames/s measures isolated NAR throughput. The profile excludes concurrent AR, bandwidth counters and E2E/WSB evaluation. Prefill includes setup costs.
 
-分母为4次replay中kernel+memcpy+memset累计GPU持续时间。不是完整E2E比例，不包含AR/VAE；少量GPU活动可能重叠，另用区间union计算空档。各投影按执行顺序映射，并验证每轮3个输入/time GEMM+28层×4投影+1个输出GEMM，CPU形状独立确认四种投影各28次。
+## Reproduction and evidence
 
-| 形状（帧） | Attention | GEMM合计 | SiLU×gate | Norm/RoPE | 索引/复制kernel | Memcpy | 其他含memset |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| b1-short [1024] | 31.61% | 50.05% | 7.27% | 6.18% | 1.20% | 2.91% | 0.79% |
-| b1-long [6144] | 48.11% | 37.73% | 6.54% | 4.73% | 0.89% | 1.50% | 0.51% |
-| b2-equal [4096, 4096] | 42.42% | 40.67% | 7.33% | 5.31% | 2.27% | 1.45% | 0.55% |
-| b2-mixed [6144, 1024] | 45.42% | 38.65% | 6.94% | 5.01% | 2.16% | 1.31% | 0.52% |
-| b4-short [1024, 1024, 1024, 1024] | 24.55% | 54.06% | 9.26% | 6.61% | 2.99% | 1.82% | 0.71% |
+Original diagnostic launcher and `scripts/analyze.py`; retain fixed fixture, warm replay selection and RPC completion checks.
 
-MLP gate/up、SiLU×gate、down合计约34.04–48.34%，未将部分norm计入MLP。其细分：
-
-| 形状 | QKV | O投影 | gate/up | down | MLP含SiLU合计 |
-|---|---:|---:|---:|---:|---:|
-| b1-short | 8.57% | 4.61% | 24.90% | 11.64% | 43.80% |
-| b1-long | 6.47% | 3.58% | 18.29% | 9.21% | 34.04% |
-| b2-equal | 6.88% | 3.78% | 20.11% | 9.71% | 37.15% |
-| b2-mixed | 6.74% | 3.58% | 18.88% | 9.27% | 35.08% |
-| b4-short | 9.45% | 5.26% | 25.78% | 13.30% | 48.33% |
-
-源路径每层QKV为2048→4096，O为2048→2048，gate/up为2048→12288，down为6144→2048；CPU形状和kernel调用计数支持上述映射。矩阵使用nvjet_sm90内核；attention实际kernel为FlashAttnFwdSm90，包含prepare_varlen辅助kernel。B1 copy与packed index_copy归类为“索引/复制kernel”，memcpy还有其它中间/输入拷贝，不能把两列简单全部叫作KV传输。
-
-长B1有6146个query、14820个key，短B1为1026/4580。query和key随帧数同时增长，解释了长段attention占比提升；packed通过varlen边界隔离每首，不能把总Q×总K当作跨曲attention计算量。
-
-## 无 profiler 的完整 NAR 求解
-
-| 形状 | 完整64次求值墙钟中位秒 | CUDA区间中位毫秒 | NAR frames/s |
-|---|---:|---:|---:|
-| b1-short | 0.849121 | 848.646 | 1205.95 |
-| b1-long | 6.437362 | 6434.063 | 954.43 |
-| b2-equal | 7.645637 | 7645.532 | 1071.46 |
-| b2-mixed | 7.218538 | 7218.402 | 993.00 |
-| b4-short | 2.992097 | 2992.018 | 1368.94 |
-
-frames/s是完成的声学latent帧数÷NAR求解墙钟，不是AR有效内容TPS。此轮不生成ABC/semantic token，也不产生完整音频，所以不新报E2EL、E2E音频吞吐、RTF或内容TPS。不能把这个隔离求解速度外推并发服务。
-
-Nsight已热replay区间中没有GPU活动的比例依次3.34%/0.80%/0.68%/0.72%/1.24%，说明本次孤立NAR内部没有大空档。它不排除此前E2E声学job之间断供或AR/NAR竞争。node tracing会引入开销；trace的cudaGraphLaunch CPU中位约0.69–0.99ms不能当作原生launch开销，也不据此宣称CPU瓶颈。无profiler CUDA区间同样含GPU空档，不把墙钟减event区间当作完整CPU成本。[NVIDIA profiling说明](https://docs.nvidia.com/dl-cuda-graph/troubleshooting/performance-issues.html)
-
-## 后续优先级
-
-1. MLP gate/up→SiLU×gate→down。SiLU×gate当前已经单kernel融合，但仍物化大中间张量；若继续优化，先以固定输入微基准评估进一步epilogue融合/减少中间读写，要求不能损失现有GEMM效率。当前只定位到时间占比，未用硬件计数器证明带宽瓶颈。
-2. 长段FA3 attention。已是高效后端，后续需针对真实Q/K长度评估kernel配置/实现，不能假设换接口即可更快；不更改可见上下文、ODE步数或精度来冒充等价算子优化。
-3. norm/RoPE和索引/复制后置。当前GPU时间份额有限，零拷贝拼装优化不能消除每次ODE必需的NAR K/V更新。
-
-尚未实现任何上述优化，未新做上游同条件E2E、正常并发AR/NAR共跑热点、NCU硬件计数器、WSB/听感或新精度验收。本次固定prefix和5种形状不代表实际请求分布。
-
-## 验证与失败记录
-
-正式与trace各5种形状通过；完整ODE15次正式+5次预热重复精确，trace4次replay及eager结果精确，跨进程固定velocity哈希一致，源码各1860份前后一致。两个成功进程allocator retries/num_ooms均0，model states空，正常退出。正式全进程温度35–64°C、trace43–52°C，温控标志0；全进程峰值约39.993/40.007GiB，不当作E2E部署峰值。
-
-首版外置脚本在默认stream调用graph_pool.handle，触发CUDA Graph必须非默认stream错误。旧harness未校验collective_rpc错误返回，错误打印FORMAL_COMPLETE；该组结果明确排除。随后将pool创建移入生产声学stream，并新增RPC完整性/形状断言，成功重跑两组。失败源码、协议、RPC错误和日志保留在evidence/failed-startup*，不修改生产源码。
-
-远端根`/root/autodl-tmp/yue2-nar-hotspots-20261010-01`，screen `yue2-nar-hotspots`已结束；GPU已清空，旧dead WSB screen未动。本地Nsight report/SQLite在artifacts/nar-nodes.*，汇总artifacts/analysis.json，分析脚本scripts/analyze.py。未commit/push。
-
-本轮远端37份记录共13,120,827字节回收，SHA256全部一致（含Nsight report/SQLite，不含生成tensor或音频）。最终生产清单再次核验一致。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/nar-hotspots/report.txt). Commands use the archived experiment layout.

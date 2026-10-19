@@ -1,65 +1,30 @@
-# Packed KV 直接写入与声学提交深度对照
+# Direct packed-KV writes and acoustic submission depth
 
-## 2026-10-10：用户决定采用零拷贝
+## Setup
 
-用户确认采用零拷贝，不采用depth1。当前候选入口为 `experiments/yue2-current`，指向已验收的
-`experiments/yue2-kv-inflight-20261010/source`；SSH36665的 `/root/autodl-tmp/yue2-current`
-指向本实验远端 `source`。本地/远端1860份生产文件与验收清单全部一致，MAX_INFLIGHT仍为2。
-合批配置默认不变；没有新计算改动，不重复GPU测试，既有验收继续适用。以下“原候选不替换”
-描述的是测量结束时状态，当前候选选择以本段和 `experiments/README.md` 为准。
+2026-10-10, H800, MPS off, AR32/KV24 GiB/client 64/NAR≤4/token 32768/window 200 ms/VAE1, fullCoT/CFG1/ABC 4096/semantic 9000. Same 64 prompts/seeds and two full warmups each. Order: original PR→direct KV writes→depth 1→original PR. Direct writes eliminate temporary per-song KV plus the packed copy; depth 1 independently changes MAX_INFLIGHT2→1. No batch/step/Nsight probes.
 
-## 目的与边界
+## Results
 
-用户指出：同配置上游对照不等于双方最优部署对照。此前 AR32/KV24 的直接比较控制了部署参数，但没有证明上游或候选已最优。未来若利用显存余量提高 AR 并发，两边必须在同卡、同等显存上限和相同调参预算下分别调优；本轮不改 AR/KV，先隔离两个实现因素。
+| Variant | Audio/s | Content TPS | RTF P95 | Device peak (GiB) | Allocated/reserved peak (GiB) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Original PR 1 | 22.18880 | 754.74 | 2.40969 | 58.516 | 37.627/57.330 |
+| Direct KV writes | 22.24285 | 756.58 | 2.40560 | 58.516 | 36.948/57.330 |
+| Depth 1 | 22.22649 | 756.02 | 2.43993 | 70.321 | 37.911/69.135 |
+| Original PR 2 | 22.05813 | 750.42 | 2.43179 | 71.817 | 38.739/70.631 |
 
-本轮 SSH36665 H800，MPS off、OMP/MKL1、AR32、KV24GiB、client64、max NAR B4、合批 token 预算32768、等待200ms、VAE1；同64提示/种子、full CoT、CFG1、ABC4096/semantic9000预算，各2完整预热。完整E2E覆盖ABC到音频，列E2EL、音频吞吐、RTF、有效内容TPS及显存。无正式batch/step/Nsight探针，输出不保存。
+Direct-write throughput versus bracketing runs: +0.244%/+0.837%; depth 1: +0.170%/+0.763%. The first three runs had identical ABC/returned-token sequences and audio duration; the last original run diverged. Direct writes reduced allocated peak by 0.679 GiB, while reserved/device peaks stayed unchanged in the matching-output comparison.
 
-## 两个独立改动
+Direct-write CPU tests 62 passed; depth 1 state tests 12 passed. Twelve fixed-input FP32 audio pairs were exact, including short B4/mixed B3+B1/long B4, storage-alias checks and cancellation/reuse. All 256 timed requests/eight full warmups passed with zero retry/OOM and empty final states. Direct writes were retained; depth 1 was not adopted.
 
-- `experiments/yue2-kv-inflight-20261010/source`：条件prefill直接写最终packed KV的view，去掉每首临时KV及其到packed KV的复制；B1沿用原路径，每首prefill的yield边界保留。只改YuE的yue2.py、batched_nar.py、batched_synthesis.py及对应测试。这里的零拷贝只指packed拼装，不是原生AR paged KV直接交接，条件prefill仍存在。
-- `experiments/yue2-kv-inflight-20261010/depth1`：从冻结原候选单独复制，只将MAX_INFLIGHT 2改1，没有混入零拷贝。属于提交深度消融，还不是按GPU耗时估算的成本预算调度。
+## Scope
 
-公共engine/core/worker执行不改；旧候选和默认配置保留，未commit/push。
+Zero-copy applies to packed assembly; conditioning prefill remains, and native paged AR KV is separate. The sequential throughput differences were small. A later original-depth run also reached a high memory peak, leaving the depth contribution unresolved. Both recipes retained their recorded tuning.
 
-## 功能验收
+## Reproduction and evidence
 
-零拷贝相关62项CPU测试及12项适用统一hooks通过；depth1请求状态12项CPU通过。真实GPU固定输入覆盖短B4、混合B3+B1、长B4：12首完整FP32音频对冻结复制实现逐值精确。实际storage指针/offset验证最终KV别名；prefill全取消、solve全取消、solve单取消后存活请求精确及后续复用通过。
+Original frozen `evidence/plan.json`, functional checks and E2E launcher; recompute with the original analysis scripts.
 
-两版本各8首并发短E2E+1预热通过；ABC128/semantic256为截断验收，不冒充自然EOS。固定输入探针一次allocator回收重试，num_ooms=0；旧/新在同进程交替，未记录每臂重试计数，不能归因哪一实现，也不用于峰值性能比较。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/kv-and-depth/report.txt). Commands use the archived experiment layout.
 
-## 正式结果
-
-冻结顺序原候选 → 零拷贝 → 深度1 → 原候选复测。4×64计时+8完整预热全部通过，四个进程正常退出。每轮独立启动，正式无batch/step/Nsight探针。全部allocator retries/num_ooms为0，末尾model_states为0。
-
-| 组别 | 音频吞吐 秒/秒 | 合计内容TPS | E2EL P50/P95 秒 | RTF P50/P95 | 设备峰值 GiB | allocated/reserved峰值 GiB |
-|---|---:|---:|---:|---:|---:|---:|
-| 原候选1 | 22.18880 | 754.74 | 343.783/591.085 | 1.43775/2.40969 | 58.516 | 37.627/57.330 |
-| 零拷贝 | 22.24285 | 756.58 | 342.889/590.111 | 1.43422/2.40560 | 58.516 | 36.948/57.330 |
-| 深度1 | 22.22649 | 756.02 | 342.905/590.624 | 1.43283/2.43993 | 70.321 | 37.911/69.135 |
-| 原候选2 | 22.05813 | 750.42 | 352.100/606.676 | 1.45317/2.43179 | 71.817 | 38.739/70.631 |
-
-Semantic/ABC内容TPS分别为554.723/200.017、556.075/200.505、555.666/200.357、551.457/198.960；分母都是完整E2E窗口，不是阶段局部decode TPS。请求吞吐0.098611/0.098851/0.098779/0.097660请求/秒。
-
-零拷贝相对前/后基线音频吞吐+0.244%/+0.837%，合计TPS+0.244%/+0.821%；深度1吞吐+0.170%/+0.763%、TPS+0.170%/+0.747%。两轮基线吞吐自身−0.589%，且不是同轨迹复现，四组顺序运行不构成每个候选重复ABBA；不能据此宣称稳定提速。
-
-前三组64首ABC和返回token序列逐请求完全一致，均360023 semantic帧、129814 ABC内容token、14400.835音频秒，各1个ABC/1个semantic预算截断。末轮基线361388帧、130385 ABC内容token、14455.435音频秒（+0.379%），1个ABC/0个semantic截断；ABC与首轮31/64精确、返回token序列0/64精确。相同代码/提示/种子仍有并发轨迹分叉，不删除截断或长请求。正式未保存音频，不能从token哈希推论完整音频parity或质量。
-
-温度范围49–66/50–67/52–67/51–66°C，SM中位1245/1245/1260/1245MHz，全部温控标志比例0；不锁频、不改功率。
-
-## 结论
-
-1. **零拷贝实现正确，但当前收益主要是去掉多余存储和复制。** 在前三组同输出轨迹对照中，allocated峰值下降0.679GiB；reserved及设备峰值不变。不能把这0.679GiB直接当作可追加给AR的部署余量。真实固定B3/B4输入对原复制路径的音频逐值精确；零拷贝只覆盖packed条件KV拼装。
-2. **当前不采用深度1。** 吞吐差小、RTF P95略差。它的设备峰值70.321GiB高于首轮58.516GiB，但末轮同源码基线也达到71.817GiB，所以不能把增量全部归因深度1。allocated/reserved差异提示分配/Graph缓存轨迹值得关注；正式没有batch分布或allocator快照，尚不能具体定责。深度1仍只是独立实验；按成本估算的动态提交预算尚未实现或验证。
-3. **你的上游公平性质疑成立。** 同配置实验回答固定部署下实现差异，并不证明双方已调到最佳。后续提高候选AR时，需要给上游相同显存上限、工作负载、搜索范围和重复测量机会，分别报告固定配置对照与调优后对照。本轮不新测上游，不外推“比上游更快/更省”。
-
-保留零拷贝候选及深度1实验副本供复现，原候选和默认配置不替换。NAR算子优化按用户优先级后置；不因不到1%的顺序差值引入动态成本预测器。
-
-## 审计与证据
-
-每个源1860份生产Python/YAML。零拷贝仅3个YuE文件变化、depth1仅1个常量，公共执行一致；本地源码清单核验、远端运行前后及最终核验通过。统一harness/config/输入哈希、64请求+2预热身份、内容TPS/E2EL/RTF/峰值由独立分析脚本重算通过。源码范围见evidence/scope-validation.json，功能见evidence/functional-validation.json，正式见artifacts/analysis.json。
-
-107份文本/JSON/日志/脚本/配置共8,368,361字节回收，SHA256全部一致。没有音频/latent/权重保存下载。11:33远端GPU0MiB、无计算或MPS进程、本轮screen结束；原有dead yue2-wsb screen未动。远端根`/root/autodl-tmp/yue2-kv-inflight-20261010-01`保留。冻结计划evidence/plan.json，回收清单evidence/recovery-manifest.json。
-
-本地系统Python缺numpy，重算改用远端已有验证venv，未安装依赖；此前ruff模块不可用改用仓库缓存precommit，相关日志保留。固定长块probe回收重试1次与正式4组零重试分别记录，不混作性能结论。
-
-未新验WSB/听感、HTTP、CFG≠1、多卡、进行中shutdown、双方AR最优调参或按成本动态提交预算；未commit/push。
+[analysis.json](artifacts/analysis.json) · [plan.json](evidence/plan.json)

@@ -1,69 +1,57 @@
 # YuE2 validation evidence
 
-Companion evidence for [`feat/yue2-feature-enhancements`](https://github.com/lzqlzzq/vllm-omni/tree/feat/yue2-feature-enhancements), implementation commit `15d1c014eab7f4d13a815cf6fd914a8fa993b7b0` on main `2c72dea3aab6a6781ea650798cfdf85748abf0ef`. This branch contains validation material only; its repository root does not include the implementation patch.
+Run the published main/PR performance comparison or CPU regressions against an implementation checkout.
 
 ## Results and scope
 
-[Per-change comparisons and unsuccessful experiments](performance-attribution/README.md) answer the performance-review questions with archived controls, measurements and explicitly qualified explanations. No new benchmark was run.
-
-| Evidence | Source revision | Result |
+| Check | Tested source | Result / evidence |
 | --- | --- | --- |
-| [CPU regressions](test-consolidation) | `15d1c014` (tests-only follow-up) | 247 YuE2 tests passed; earlier 277 shared passes/2 CUDA-only skips at `d413a223` |
-| [Pre-commit](test-consolidation/precommit-final.log) | `15d1c014` | All applicable checks passed for changed tests; prior full checks retained |
-| [Native ABC/CFG/HTTP](performance/artifacts) | `f9143976` + PR | AR1/AR2, 402 paired sampling steps, five HTTP successes/two parameter rejections |
-| [Performance](performance/artifacts/comparison.json) | `f9143976`, main + common loading fix vs PR | Throughput +6.22/+6.38%; E2EL P95 −13.94/−14.10%; RTF P95 −15.75/−15.86% |
-| [WSB PER/SongBench](wsb/scoring/nar1-full-scores-01/summary.json) | `f9143976` + PR | 384 outputs scored; 192 selected by PER |
-| [WSB MuLan/AllMusicCaps](wsb/scoring/nar1-additional-01/summary.json) | Same generated outputs | Same 192 selected outputs scored |
+| Performance | `f9143976` + recorded main/PR patches | Throughput +6.22/+6.38%; E2EL P95 −13.94/−14.10%; RTF P95 −15.75/−15.86%. [Results](performance/artifacts/comparison.json) |
+| ABC / paired CFG / HTTP | `f9143976` + PR | AR1/AR2, 402 paired sampling steps, five HTTP successes/two rejections. [Records](performance/artifacts) |
+| CPU fixes | Exception-chain snapshot; logging at `9b62169b` | 256 YuE2 + 277 shared passes/2 CUDA-only skips; later 40 acoustic passes. [Exact scope and logs](review-regression/README.md) |
+| WildSongBench | `f9143976` + PR, NAR1 | 384 outputs; same 192 PER-selected outputs for all four metrics. [Scores](wsb/scoring/nar1-full-scores-01/summary.json) |
 
-Performance: one RTX4090 24 GiB, driver 595.71.05, Python 3.12.11, PyTorch 2.13.0+cu130, vLLM 0.31.0. Order main → PR → PR → main; each process used two full warmups and 32 measured songs. Both used AR1/KV3 GiB/client2, full CoT/CFG1; PR used NAR1/VAE1, no batching wait/budget. Peak device memory: main 22.6877 GiB, PR 21.3733 GiB. PR output duration was 2.454% shorter. Thermal throttling occurred in both versions. No general concurrency-scaling claim is made.
-
-Selected WSB scores: Musicality **5.903877**, Global Avg **6.729727**, MuLan **0.511322**, AllMusicCaps **0.403524**, PER micro **0.090754**. Generation used RTX4090D 24 GiB, 32 midpoint steps and FP32 tiled legacy VAE. Four metrics completed; Q3O and batched NAR acceptance remain pending. These are not paired quality comparisons against current main.
-
-PER execution removed one redundant parent-process CUDA synchronization after blocking ASR results. [Original/executed function and hashes](wsb/scoring/nar1-full-scores-01/per-worker-execution.json) are retained. Scoring parameters and algorithms were unchanged. ASR reached its output cap for 11/384 outputs (38 repeats), including 3/192 selected outputs; none were excluded. Top-level scorer input rows retain `pending`; each metric's `status` and the completed summary are authoritative.
-
-GPU/WSB evidence predates the rebase. No new-head GPU run or full WSB rerun is claimed. See [submission checks](PRECHECK.md).
+Performance used one RTX4090 24 GiB, AR1/KV3 GiB/client2, full CoT/CFG1, NAR1/VAE1. PR audio was 2.454% shorter; both versions thermally throttled.
+Batched NAR acceptance, Q3O and long-form CFG quality remain pending. [Per-change analysis](performance-attribution/README.md) · [Historical submission check](PRECHECK.md).
 
 ## Verify without a GPU
-
-From this branch's repository root:
 
 ```bash
 python3 validation/yue2/verify.py
 ```
 
-The standard-library verifier checks published file hashes, request/seed coverage, latency/RTF percentiles, TPS, sampled device peaks, WSB selection identity and metric aggregation. `provenance.json` distinguishes byte-identical original records from the numeric WSB extracts. The extracts retain every row and all fields needed for reported score aggregation; lyrics, ASR transcripts and repeated raw scorer payloads are omitted. Audio, latents, model weights, caches and duplicate source tarballs are not included.
-
-Archived filenames and internal labels remain byte-identical: `upstream` means **main**, `candidate` means **PR**. These are historical evidence labels, not model or deployment entry points.
+Checks file hashes and recomputes performance/WSB aggregates using the Python standard library. `provenance.json` and `performance-attribution/sources.json` identify the source records.
 
 ## Reproduce the measured performance
 
-Use a Linux NVIDIA GPU 0 with sufficient memory, a CUDA 13-capable driver/toolkit, and the [recorded dependencies](performance/evidence/environment.json). Activate that Python environment first. Populate the Hugging Face cache with the pinned model/tokenizer snapshots from [assets.json](performance/evidence/assets.json), including the deployment's `gpt2` tokenizer. Choose an idle GPU; disable MPS and leave allocator settings, clocks and power unchanged.
+Use Linux, Bash, Git, tar, an idle NVIDIA GPU 0 with MPS off, a CUDA 13 toolkit/compatible driver, and the [recorded environment](performance/evidence/environment.json): Python 3.12.11, PyTorch 2.13.0+cu130, vLLM 0.31.0. Activate that environment; keep allocator settings, clocks and power unchanged.
+Populate the offline HF cache with the [pinned assets](performance/evidence/assets.json), including the `gpt2` tokenizer. Use a full Git clone containing `f9143976`.
 
 ```bash
 export HF_HOME=/absolute/path/to/populated/hf-cache
 export CUDA_HOME=/usr/local/cuda-13.0
-export YUE2_MODEL=/absolute/path/to/YuE2-3B/snapshot
-export YUE2_VAE=/absolute/path/to/YuE2-Vae-legacy/snapshot
-export YUE2_RUN_DIR=/absolute/path/to/a-new-run-directory
+export YUE2_MODEL=/absolute/path/to/pinned/YuE2-3B
+export YUE2_VAE=/absolute/path/to/pinned/YuE2-Vae-legacy
+export YUE2_RUN_DIR=/absolute/path/to/new-run-directory
 bash validation/yue2/reproduce-performance.sh
 ```
 
-The wrapper reconstructs the two historical sources from `f9143976` and the included patches, verifies all 1875 main / 1879 PR production file hashes and model weight hashes, and runs the original measured harness/configurations. Only local asset paths change. Results go to the new directory. It fails if the directory already exists. Original run scripts, protocols, per-request measurements and environment records remain under `performance/`.
-
-The wrapper was syntax-checked and source reconstruction was verified locally; it has not itself been used for another GPU measurement. For testing current code, use the implementation branch and the commands below rather than treating the historical harness as current-head acceptance.
+The script reconstructs and checks main/PR sources and weights, then runs main → PR → PR → main, each with two full warmups and 32 measured songs. Logs and results go under `$YUE2_RUN_DIR/artifacts`; the directory must be new.
 
 ## Repeat the current CPU regressions
 
-In an implementation checkout at `15d1c014eab7f4d13a815cf6fd914a8fa993b7b0`, with the [recorded dependencies](regression/remote/installed.txt):
+Activate the [recorded CPU environment](regression/remote/installed.txt), with the selected implementation and its test dependencies installed. Select a clean implementation checkout to identify the tested commit; weights and GPU are unnecessary.
 
 ```bash
-CUDA_VISIBLE_DEVICES='' python -m pytest tests/worker/test_yue2_*.py tests/entrypoints/openai_api/test_tts_adapter.py tests/core/sched/test_omni_cfg_ar_scheduler.py -m 'core_model and cpu' --run-level core_model -q
-CUDA_VISIBLE_DEVICES='' python -m pytest tests/worker/test_gpu_ar_model_runner.py tests/core/test_prefix_cache.py tests/engine/test_output_processor.py tests/core/sched/test_omni_ar_scheduler_logprobs.py -m 'core_model and cpu' --run-level core_model -q
-pre-commit run --from-ref 2c72dea3aab6a6781ea650798cfdf85748abf0ef --to-ref HEAD --show-diff-on-failure
+bash validation/yue2/reproduce-cpu.sh /absolute/path/to/implementation /absolute/path/to/new-cpu-results
 ```
+
+Runs the YuE2/adapter/CFG suite, then shared runner/cache/output/scheduler contracts; stops on failure. Uses the active Python and a new output directory, recording source identity, environment, logs and exit codes.
 
 ## WSB protocol and scripts
 
-WSB is pinned to [`e361b85a`](https://huggingface.co/datasets/m-a-p/WildSongBench/tree/e361b85a8d7365d3079fa9647641a87ce3c8c5b5). Models: YuE2-3B `1a96eca688d6ae5d7f0feb88573fec89920fcd19`; legacy VAE `b54118f0fc462f08999d1ec07e88817f4ee3f770`. The [generation scripts/configs](wsb/generation), [scoring scripts](wsb/scoring/scripts), evaluator asset lock and environment records preserve the executed protocol.
+[Generation](wsb/generation) · [Scoring](wsb/scoring/scripts) · [Additional scores](wsb/scoring/nar1-additional-01/summary.json). These archived launchers retain their original machine paths.
+Selected 192: PER micro **0.090754**, SongBench Global Avg **6.729727**, Musicality **5.903877**, MuLan **0.511322**, AllMusicCaps **0.403524**. Scores cover the NAR1 PR outputs.
+PER removed one redundant parent CUDA synchronization; [original/executed function](wsb/scoring/nar1-full-scores-01/per-worker-execution.json) is retained. ASR hit its cap for 11/384 outputs, including 3/192 selected; none were excluded.
 
-These archived WSB shell scripts retain the original machine paths and require the matching frozen source, official evaluator package and generated artifacts. They are execution records, not a portable installer. Obtain the official evaluator from the pinned WSB repository and apply the recorded PER override if reproducing that execution. No WSB generation or scoring is triggered by `verify.py`.
+Archived internal labels `upstream` / `candidate` mean main / PR. Source hashes cover the original logs, configs, patches and numeric data. Model weights and generated media are stored separately.

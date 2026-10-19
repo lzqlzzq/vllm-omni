@@ -1,78 +1,31 @@
-# FlashInfer NAR kernel screening — 2026-10-10
+# FlashInfer NAR kernel screening
 
-目标：核查当前 H800 上 FlashInfer 是否能改善已定位的 NAR 算子热点。当前零拷贝候选及公共执行源码保持不变；所有替换仅在外置实验进程内发生。无依赖安装、精度修改、权重/音频/latent 保存。
+## Setup
 
-## 方法
+H800, 2026-10-10, FlashInfer 0.7.0.post 1, BF16, MPS off, OMP/MKL 1. Five shapes: B1 1024/6144, B2 4096+4096/6144+1024, B4 1024×4; prefix 2529, Q/KV heads 16/8, head_dim128. Operator tests: three warmups, five rotating-order rounds, 32 graph replays per round. Full NAR: current→FlashInfer→FlashInfer→current; three velocity warmups, one full ODE warmup and two measured solves per arm.
 
-SSH36665，FlashInfer 0.7.0.post1，现有 torch/vLLM/CUDA 环境，MPS off、OMP/MKL1、原功率时钟。固定 seed 20261010、BF16，NAR 真实形状：B1 1024/6144 帧，B2 4096+4096/6144+1024，B4 1024×4。前缀2529；Q=帧+2，K=2529+2×帧+3，Q/KV heads=16/8、head_dim128。
+## Results
 
-算子筛选使用合成固定输入，3次预热后CUDA Graph捕获，五轮轮换 backend 顺序、每轮32 replay，以CUDA event中位数计时，最终attention workspace均256MiB。它不含模型权重、plan/JIT/Graph构建成本，不是完整NAR或E2E。GEMM用torch.mm/addmm作形状代理，不能代替生产编译子图验收。SiLU参考表达式按生产compile options编译。
+| Shape | SiLU current→FI (µs) | Full ODE current→FI (s) | NAR throughput change |
+| --- | ---: | ---: | ---: |
+| B1 short | 31.98→12.07 | 0.851101→0.826964 | +2.92% |
+| B1 long | 177.51→118.90 | 6.461326→6.311196 | +2.38% |
+| B2 equal | 235.39→158.62 | 7.638140→7.452591 | +2.49% |
+| B2 mixed | 206.70→139.08 | 7.246669→7.074621 | +2.43% |
+| B4 short | 119.87→79.59 | 2.997622→2.894144 | +3.58% |
 
-Attention比较当前vLLM FA3与FlashInfer ragged wrapper FA3/FA2/cuDNN；plan在计时外，非因果、无新RoPE。cuDNN的indptr使用元素单位及显式seq lengths，其余backend为token单位。GEMM仅测本机可用的cuDNN/cuBLASLt BF16路径；未测试SM100专用路径、FP8/FP4、cuTile或PDL。
+All five SiLU outputs were exact against the compiled reference. Complete velocity/latent comparisons were exact for all tested shapes; 40 measured and 20 warmup ODE solves completed, each with 32 steps/64 evaluations. All ten adjacent throughput comparisons were positive. Attention alternatives had BF16 differences and mixed/slower timings; GEMM proxies had no consistent cross-shape benefit. Retain FA3/GEMM and the narrow SiLU replacement.
 
-完整NAR对照复用此前真实模型/fixture/生产CachedNAR、BatchedCachedNAR及Graph pool。仅外置替换 `_nar_post_attention` 中SiLU×gate为FlashInfer；保留两侧norm/投影/residual的torch.compile及原FA3、ODE、packed KV。每种形状按 current→FlashInfer→FlashInfer→current 顺序，各臂3次velocity预热、1次完整ODE预热、2次完整ODE计时。比较完整velocity及latent，检查重复精确和有限值。没有AR/VAE共跑，不生成音频；frames/s不是内容TPS，不能直接推出E2EL/RTF/音频吞吐。
+The successful implementation used a torch.library custom op/fake shape to preserve fullgraph compilation. Failed wrapper/JIT attempts and workspace failures were excluded; the final attention screen used 256 MiB workspace throughout.
 
-## 运行记录
+## Scope
 
-首轮筛选完成但部分backend未覆盖：cuBLASLt缺少链接名，cuDNN调用传入了token offsets。原始日志/结果/脚本保留于evidence/first-pass，不作为最终数据。只在实验lib目录为环境已有cuBLAS库增加链接名并设置LIBRARY_PATH，未修改安装包；cuDNN指定已有libcudart.so.13。外置脚本补充初始stream依赖，修正cuDNN参数后重新筛选。
+Each shape used one fixed input in isolated NAR, excluding AR and VAE. Both SiLU implementations were already fused. Hardware-counter attribution and E2E effects were left for subsequent experiments; full operator tables and failed attempts are in the original report.
 
-第二轮B2等长FA2 plan的128MiB workspace不足，明确失败并保留整轮证据于evidence/second-pass。最终统一使用256MiB workspace重跑所有算子；不把内存不足记为FA2性能结果。
+## Reproduction and evidence
 
-完整NAR前两次运行直接调用FlashInfer Python wrapper均触发fullgraph编译错误（惰性JIT的文件操作；预初始化仍未绕过）。随后试验torch.ops入口发现本机FlashInfer的register_custom_op/register_fake_op实现为no-op，没有实际注册；该smoke错误同样保留。最终外置fi_op.py使用torch.library.custom_op及fake shape包住同一FlashInfer kernel，完整post子图compile smoke输出精确。没有修改安装包或生产源码，也没有通过关fullgraph/退回eager规避错误。
+Original `scripts/env.sh`, `scripts/run-final.sh` and `scripts/analyze.py`; use the recorded environment and fixed fixture.
 
-完整NAR结果见文末。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/flashinfer/report.txt). Commands use the archived experiment layout.
 
-API参考：[FlashInfer BF16 GEMM](https://docs.flashinfer.ai/generated/flashinfer.gemm.mm_bf16.html)、[FlashInfer attention](https://docs.flashinfer.ai/api/attention.html)。实际支持及参数以本机0.7.0.post1源码核对；FlashInfer wrapper本身不保证比现有FA3快。
-
-## 最终算子筛选
-
-数值为 CUDA event 中位耗时（μs）；同一行比较，越低越好。
-
-| 形状 | SiLU 当前→FI | attention 当前→FI FA3 / FA2 / cuDNN |
-|---|---:|---:|
-| b1-short | 31.98→12.07 | 133.08→130.28 / 236.84 / 165.97 |
-| b1-long | 177.51→118.90 | 1629.96→1758.33 / 3131.00 / 1919.44 |
-| b2-equal | 235.39→158.62 | 1711.52→1751.99 / 3216.05 / 1908.92 |
-| b2-mixed | 206.70→139.08 | 1743.17→1916.70 / 3455.71 / 1964.10 |
-| b4-short | 119.87→79.59 | 364.25→439.49 / 759.21 / 517.97 |
-
-五种SiLU输出与编译参考逐值精确；速度倍率 2.649/1.493/1.484/1.486/1.506。Attention各替代均有BF16数值差异，不能当作精确替换。
-
-| 形状/投影 | 当前 μs | FI cuDNN μs | FI cuBLASLt μs |
-|---|---:|---:|---:|
-| b1-short / gate_up | 104.61 | 104.61 | 104.50 |
-| b1-short / down_residual | 56.69 | 56.85 | 56.93 |
-| b1-long / gate_up | 686.35 | 686.24 | 686.30 |
-| b1-long / down_residual | 359.39 | 369.92 | 369.90 |
-| b2-equal / gate_up | 896.21 | 898.24 | 898.69 |
-| b2-equal / down_residual | 469.05 | 482.55 | 482.16 |
-| b2-mixed / gate_up | 763.10 | 799.13 | 799.10 |
-| b2-mixed / down_residual | 430.02 | 410.52 | 414.72 |
-| b4-short / gate_up | 450.63 | 449.17 | 449.23 |
-| b4-short / down_residual | 230.43 | 245.49 | 224.60 |
-
-GEMM代理未体现跨形状一致收益；本批输出精确，不外推生产投影融合或任意输入。全部结果、逐轮值和误差见artifacts/results.json。
-
-## 完整 NAR：仅替换 SiLU×gate
-
-| 形状 | 当前→FI 完整ODE中位秒 | NAR吞吐提升 | 两个配对提升 |
-|---|---:|---:|---:|
-| b1-short | 0.851101→0.826964 | +2.92% | +2.32% / +3.47% |
-| b1-long | 6.461326→6.311196 | +2.38% | +2.00% / +2.66% |
-| b2-equal | 7.638140→7.452591 | +2.49% | +2.46% / +2.56% |
-| b2-mixed | 7.246669→7.074621 | +2.43% | +2.50% / +2.33% |
-| b4-short | 2.997622→2.894144 | +3.58% | +3.54% / +3.60% |
-
-40次完整ODE计时、20次完整ODE预热；每次32ODE步/64velocity。五形状两次候选的velocity和完整latent均对同进程基线逐值精确，重复基线/候选各自hash一致，所有重复和有限值断言通过。10个配对均正，但每形状仅一组ABBA、同一固定输入；不是跨进程、多输入稳定性或完整E2E结果。
-
-NAR frames/s中位（当前→FI）：b1-short 1203.17→1238.26；b1-long 950.89→973.51；b2-equal 1072.51→1099.22；b2-mixed 989.14→1013.20；b4-short 1366.42→1415.27。此处按每次测量frames/s再取中位；吞吐提升按wall时间中位数比值重算。
-
-结论：本机实测支持继续采用FlashInfer SiLU×gate作为小范围候选，保留当前FA3及GEMM。两种SiLU实现本来都已融合，不能把收益归因于“首次融合”，也没有NCU证据定责访存/向量化。单算子倍率不是完整NAR倍率。此次没有更换当前候选或默认设置。
-
-筛选温度35–48°C，完整NAR36–67°C，均无thermal slowdown采样；未锁频，设备日志含初始化/空闲段。两项运行allocator retry/OOM均0，完整NAR最终状态空。1860生产文件本地/远端/运行前后一致。完整NAR RPC嵌套complete及case数量已校验，失败RPC不当作成功。
-
-未测新E2EL、内容TPS、音频吞吐、RTF、部署显存上限、VAE音频、WSB/听感、其它GPU或CFG≠1；不把固定输入latent精确外推为这些验收。未commit/push，无模型或生成产物下载。
-
-复算：`python3 docs/validation/2026-10-10-yue2-flashinfer-kernels/scripts/analyze.py`；环境与入口见scripts/env.sh/run-final.sh，失败记录完整保留。实验lib/libcublas.so、libcublasLt.so分别链接已安装的nvidia/cu13/lib/libcublas.so.13、libcublasLt.so.13，仅作链接器搜索入口。
-
-最终GPU0MiB、无计算进程，本轮screen结束；既有dead WSB screen保留。回收55份远端文本记录、3303169字节（不含__pycache__），逐文件SHA256/大小全匹配。验证清单见evidence/recovery-validation.json与remote-records-sha256.json。
+[analysis.json](artifacts/analysis.json)

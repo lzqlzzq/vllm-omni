@@ -1,25 +1,28 @@
-# 捕获前缓存准备：单变量诊断
+# Pre-capture cache preparation: single-variable diagnosis
 
-控制器 `EXIT 0 2026-10-13T14:20:39+08:00`；计时请求完整返回 32/32，预热 2/2。
+## Setup
 
-独立副本仅在 CachedNAR side-stream capture_begin 前增加 synchronize(device) 与 empty_cache()。
-原AR1/KV3GiB/client2/NAR1/VAE1/window0/token-budget0/fullCoT/CFG1；原32提示种子与预算不变。
-沿用阶段/allocator探针，额外记录两次准备调用wall时间；不是正式无探针性能结果。
+2026-10-13. An isolated copy adds only device synchronization and empty_cache before side-stream capture_begin. Same failing 32 prompt/seed load, two full warmups; AR1/KV3 GiB/client 2/NAR1/VAE1/window 0/token-budget 0/fullCoT/CFG1. Existing stage/allocator probes remain; preparation wall times are additionally recorded.
 
-| 捕获前操作（含预热） | 次数 | 累计秒 | P50毫秒 | P95毫秒 | 最大毫秒 | 最大reserved下降GiB |
-|---|---:|---:|---:|---:|---:|---:|
-| capture-prep-synchronize | 34 | 6.6120 | 184.542 | 284.346 | 369.115 | 0.0000 |
-| capture-prep-empty-cache | 34 | 0.7661 | 23.312 | 26.721 | 29.740 | 6.2012 |
+## Results
 
-与旧失败运行共有17首，匹配数：{'abc_sha256': 17, 'semantic_sha256': 17, 'frames': 17}。未保存音频，不声称音频精确parity。
-原失败请求完整返回：True；原失败形状捕获准备事件数：2。
+All 32/32 measured requests and 2/2 warmups completed; zero allocator retries/OOM. The formerly failing request returned fully, and all 17 requests shared with the failed run matched ABC hashes, semantic hashes and frame counts. The retained-change summary records reserved memory at that capture falling 19.633→13.502 GiB.
 
-准备调用wall时间含原本需完成的GPU工作等待，不能直接相加当作相对基线的E2E损失。
-本轮无同配置新鲜无准备对照；机制干预通过也不等于性能回归已排除。
+| Preparation, including warmup | Calls | Total(s) | P50(ms) | P95(ms) | Maximum(ms) | Largest reserved drop(GiB) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Synchronize | 34 | 6.6120 | 184.542 | 284.346 | 369.115 | 0.0000 |
+| Empty cache | 34 | 0.7661 | 23.312 | 26.721 | 29.740 | 6.2012 |
 
-诊断吞吐 3.68769 音频秒/秒；E2EL P50/P95 120.003/144.554秒；RTF P50/P95 0.5399/0.6289。
-内容TPS：semantic 92.193，ABC 32.950，合计 125.143；分母为同一完整E2E窗口。
-设备采样峰值 21.3733GiB；ABC/semantic预算截断 0/0，全部保留。
+Diagnostic throughput 3.68769 audio-s/s; E2EL P50/P95 120.003/144.554 s, RTF 0.5399/0.6289. Content TPS 125.143=semantic 92.193+ABC 32.950. Device peak 21.3733 GiB; no ABC/semantic budget truncation.
 
-[逐项分析与完整summary](artifacts/intervention-analysis.json)、[原始阶段事件](artifacts/capture-prep/probe/events.jsonl)、[两行diff](evidence/source.patch)。
-回收33份证据，SHA全匹配；主目录1856生产文件不变。未合入主路径、未WSB、未commit/push。
+## Scope
+
+The intervention resolved the recorded failing load. Synchronization time includes pending GPU work. This diagnostic run retained probes and omitted a fresh no-preparation control and saved audio; the later ABBA supplies the performance comparison.
+
+## Reproduction and evidence
+
+Original capture-preparation launcher and intervention analysis, with unchanged prompt/seed/budget and the two-line archived patch.
+
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/capture-prep/report.txt). Commands use the archived experiment layout.
+
+[intervention-analysis.json](artifacts/intervention-analysis.json) · [source.patch](evidence/source.patch)

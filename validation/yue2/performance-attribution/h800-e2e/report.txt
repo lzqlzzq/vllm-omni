@@ -1,80 +1,30 @@
-# FlashInfer当前候选对冻结上游：ABBA E2E
+# H800 end-to-end comparison after packed KV and FlashInfer
 
-2026-10-10，用户要求应用FlashInfer后再次和上游比较。四组完整运行及独立重算完成。
+## Setup
 
-## 冻结口径
+2026-10-10, H800 PCIe 80 GB/580.82.07, MPS off, OMP/MKL 1, unchanged 350 W limit. main=`c548a110` plus shared loading fix `631f5573`; PR is the intermediate packed-KV/FlashInfer snapshot. main→PR→PR→main, 64 matched prompts/seeds plus two complete warmups per process. AR32/KV24 GiB/client 64/fullCoT/CFG1/ABC 4096/semantic 9000; PR NAR≤4/token 32768/window 200 ms/VAE1. No batch/step/Nsight probes.
 
-SSH36665 H800 PCIe80GB/580.82.07，同一现有torch/vLLM/CUDA/FlashInfer环境，MPS off，OMP/MKL1，不改350W功率上限或时钟。上游为c548a110+双方共享的HF/VAE加载修复631f5573；不是追踪最新上游分支。候选为刚采用的packed KV零拷贝+FlashInfer BF16 SiLU版本，生产源码本轮不改。
+## Results
 
-顺序：上游01→候选01→候选02→上游02。每组新进程、同64提示/种子，2首完整预热后计时。AR32、KV24GiB、客户端64，BF16、full CoT、CFG1、ABC4096/semantic9000预算、同Graph buckets/legacy VAE/模型revision。候选使用NAR≤4、32768 token预算、200ms窗口、VAE1；这仍是外置测速配置，没有替换生产默认。
+| Run | Audio/s | Content TPS | E2EL P50/P95 (s) | RTF P50/P95 | Device peak (GiB) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| main 1 | 22.29835 | 758.86 | 355.068/601.955 | 1.58597/2.42929 | 57.606 |
+| PR 1 | 22.46311 | 764.07 | 340.014/583.782 | 1.42092/2.38125 | 61.606 |
+| PR 2 | 22.46046 | 763.00 | 348.578/587.569 | 1.42258/2.51523 | 65.948 |
+| main 2 | 22.66122 | 769.99 | 354.394/597.944 | 1.58104/2.42208 | 53.509 |
 
-上游原生ABC→semantic两次调用，候选同请求自动ABC；E2EL从ABC开始到完整音频。比较整个当前候选，不把差值单独归因于FlashInfer。两边固定AR/KV和相同显存上限，未单边增加AR或宣称各自部署最优。
+Paired throughput: +0.739%/−0.886%; content TPS: +0.687%/−0.907%; E2EL P95: −3.019%/−1.735%; RTF P95: −1.978%/+3.846%. Device peaks increased 4.000/12.439 GiB; allocated peaks increased 0.693/1.393 GiB. Audio durations differed −0.637%/+0.530%.
 
-正式关闭batch/step/Nsight观察，只记录请求结果、边界RPC、100ms设备采样。指标为E2EL/RTF P50/P95、音频吞吐/请求吞吐、semantic/ABC内容/合计TPS、设备峰值及allocated/reserved峰值。TPS分母为完整E2E计时窗，排除prompt/控制token/负CFG/NAR评估。
+All 256 measured requests and eight warmups passed, with zero allocator retries/OOM and empty final states. SM median 1245 MHz, no sampled thermal slowdown. This snapshot approximately tied main in throughput, with lower completion latency but no consistent tail-RTF improvement.
 
-生成长度随调度可能分叉，保留全部预算截断；并列音频总长、请求吞吐。返回token哈希可能包含控制token，不冒充semantic精确parity。没有音频/latent/权重保存下载，未WSB评分。
+## Scope
 
-预检核对1852上游/1860候选生产文件、共同YAML字段相同且GPU空闲。plan.json冻结harness/config/env及运行顺序，提示与种子沿用前轮已核验manifest。边界RPC额外断言实际worker成功、FlashInfer标记仅候选true、最终状态空、allocator retry/OOM0；生产计算及计时中无新增hook。
+This version predates single-element cat removal, unified entry/CFG scheduling, capture preparation and upstream migration. The comparison covers the combined changes at the recorded recipes; deployment tuning and paired audio/WSB evaluation remained open.
 
-远端 `/root/autodl-tmp/yue2-flashinfer-upstream-20261010-01`，screen `yue2-flashinfer-upstream`。计时采用正常完整预热，不使用此前温控卡的83°C加热条件。
+## Reproduction and evidence
 
-## 完整结果
+Original frozen harness/configs and `scripts/analyze.py`, `scripts/pairs.py`; preserve the four-process order.
 
-**当前候选吞吐与冻结上游基本打平；E2EL有所降低，RTF尾部没有一致改善，显存峰值更高。**
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/h800-e2e/report.txt). Commands use the archived experiment layout.
 
-| 顺序 | 音频吞吐 s/s | 合计内容TPS | E2EL P50/P95 秒 | RTF P50/P95 | 设备峰值 GiB | 音频总秒 |
-|---|---:|---:|---:|---:|---:|---:|
-| upstream-01 | 22.29835 | 758.86 | 355.068 / 601.955 | 1.58597 / 2.42929 | 57.606 | 14493.155 |
-| candidate-01 | 22.46311 | 764.07 | 340.014 / 583.782 | 1.42092 / 2.38125 | 61.606 | 14400.835 |
-| candidate-02 | 22.46046 | 763.00 | 348.578 / 587.569 | 1.42258 / 2.51523 | 65.948 | 14422.155 |
-| upstream-02 | 22.66122 | 769.99 | 354.394 / 597.944 | 1.58104 / 2.42208 | 53.509 | 14346.155 |
-
-候选相对相邻上游，两次相反顺序配对：
-
-| 指标 | 上游01→候选01 | 候选02→上游02（仍按候选相对上游） |
-|---|---:|---:|
-| 音频吞吐 | +0.739% | -0.886% |
-| 合计内容TPS | +0.687% | -0.907% |
-| semantic TPS | +0.739% | -0.886% |
-| ABC内容TPS | +0.544% | -0.965% |
-| 请求吞吐 | +1.385% | -1.408% |
-| E2EL P50 | -4.240% | -1.641% |
-| E2EL P95 | -3.019% | -1.735% |
-| RTF P50 | -10.407% | -10.023% |
-| RTF P95 | -1.978% | +3.846% |
-| 音频总时长 | -0.637% | +0.530% |
-
-两组音频吞吐配对变化中位数−0.0735%，合计TPS−0.1098%；仅两个配对，不宣称统计显著或普遍退化。候选两轮吞吐22.46311/22.46046非常接近，但上游自身22.29835→22.66122（约+1.63%），与观察到的小差值相比不可忽略。
-
-E2EL P50两次分别−4.24%/−1.64%，P95−3.02%/−1.74%；RTF P50约−10%，P95则−1.98%/+3.85%。本轮支持该负载下完成延迟较低，不支持更高稳定吞吐或全面尾延迟改善。两轮指标中位汇总见artifacts/pairs.json；其中P50/P95为各轮统计量再取中位，不是混池分位数。
-
-## 显存
-
-| 轮次 | allocated峰值 GiB | reserved峰值 GiB | 设备采样峰值 GiB |
-|---|---:|---:|---:|
-| upstream-01 | 36.396 | 56.420 | 57.606 |
-| candidate-01 | 37.089 | 60.420 | 61.606 |
-| candidate-02 | 37.431 | 64.762 | 65.948 |
-| upstream-02 | 36.038 | 52.322 | 53.509 |
-
-配对设备峰值多4.000/12.439GiB，reserved峰值差同为4.000/12.439GiB；allocated峰值多0.693/1.393GiB。峰值不是同一时刻的内存分解，不能据此把全部差值归为碎片或证明缓存均可供AR重用。没有新增allocator快照/合批探针，本轮不进一步定责时序或Graph池分配。
-
-候选观测峰值61.61–65.95GiB，上游53.51–57.61GiB；这仍不是其它长负载的显存上限保证。没有通过单边增加AR消耗余量来改变比较，也未证明固定AR32/KV24是双方最优部署。
-
-## 有效性与限制
-
-256计时+8完整预热均通过音频完整形状、有限值和错误标记检查。上游01、候选01、候选02各1ABC/1semantic预算截断；上游02为0/0，全保留。所有worker最终状态空、allocator retry/OOM0，源码前后一致，四进程正常退出。
-
-四组计时温度50–67/51–67/51–67/51–67°C，中位SM均1245MHz，温控标志采样占比均0；未锁频。无新batch/step/Nsight探针，不能从吞吐或显存推断实际B4覆盖率。
-
-两配对总音频长度差−0.637%/+0.530%，自由生成轨迹有差异；请求吞吐+1.385%/−1.408%不是固定工作量计算提速。ABC及返回token哈希也有分叉，返回hash含潜在控制token差异，不能冒称semantic或音频精确parity。
-
-这是完整新候选对冻结上游，不是只开关FlashInfer的E2E消融。前轮孤立NAR +2.38–3.58%在本轮没有表现为稳定整链路吞吐优势；本轮不能孤立否定或量化FlashInfer自身的E2E贡献。
-
-未改生产源码或默认配置，未新增上游版本迁移/双方最优调参/WSB/听感/其它GPU/多卡验证；未commit/push。没有保存或下载音频、latent、权重。
-
-## 复算与证据
-
-scripts/analyze.py独立核验四轮身份/种子、runtime/config/source哈希、完整窗口、吞吐/TPS/E2EL/RTF、设备峰值、worker MPS/stream/MAX_INFLIGHT/FlashInfer启用状态与最终清理；controller记录ABBA_COMPLETE。scripts/pairs.py汇总两个配对，不改冻结测量代码。本地1852上游/1860候选及模型配置、manifest均再次核验。
-
-最终回收artifacts/evidence/configs/scripts共70份记录、6,369,003字节，逐文件大小及SHA256全部一致，见evidence/remote-records-sha256.json和recovery-validation.json。收尾再次核验远端1852/1860源码匹配冻结manifest；GPU 0MiB/0%、无compute进程，本轮screen已结束。既有无关Dead WSB screen保留未动，见evidence/final-status.txt。
+[plan.json](evidence/plan.json) · [pairs.json](artifacts/pairs.json)

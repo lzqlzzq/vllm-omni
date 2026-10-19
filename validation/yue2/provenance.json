@@ -910,5 +910,55 @@
     "source": "docs/validation/2026-10-19-yue2-wsb-acceptance/collection-result.json",
     "sha256": "d0b129c4aae66543a5bcd6c84f77fb5ef469d8fd078b8060b294d767af75e72d",
     "transformation": "none"
+  },
+  "review-regression/chain/yue2-cpu.log": {
+    "source": "publication/yue2-review-chain-39268/remote-evidence/yue2-cpu.log",
+    "sha256": "4d5aa61f01e8404921e94b486b55d8b9f2872fc3563fe144c2bf38a0f7d73b0a",
+    "transformation": "none"
+  },
+  "review-regression/chain/shared-cpu.log": {
+    "source": "publication/yue2-review-chain-39268/remote-evidence/shared-cpu.log",
+    "sha256": "640b823bf629284a80935f9a8230d40dc2f5fcbb5e6a4c77fd4da81681cc10c3",
+    "transformation": "none"
+  },
+  "review-regression/chain/regress.exit": {
+    "source": "publication/yue2-review-chain-39268/remote-evidence/regress.exit",
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "transformation": "none"
+  },
+  "review-regression/chain/source-final.json": {
+    "source": "publication/yue2-review-chain-39268/source-final.json",
+    "sha256": "30f33d09c1d663c9e64e3060ac758fb508e7992e884e767d06e49885afdfc8a1",
+    "transformation": "none"
+  },
+  "review-regression/chain/source-verification.json": {
+    "source": "publication/yue2-review-chain-39268/remote-evidence/source-verification-final.json",
+    "sha256": "d1b2cee930575fbba837be64c2dd7288a3f726e2e4367b941e536d3b0d1e8ba0",
+    "transformation": "none"
+  },
+  "review-regression/chain/final.patch": {
+    "source": "publication/yue2-review-chain-39268/final.patch",
+    "sha256": "17ae0d04aedbca25d15360d154281bc42b21667b1d10273820263dabdc7e41cf",
+    "transformation": "none"
+  },
+  "review-regression/logging/after.log": {
+    "source": "publication/yue2-review-log-39268/after.log",
+    "sha256": "6102c860285aa465d357c1a1504b1f8df4cc2ea675b911a0cdf952c6be5f15b1",
+    "transformation": "none"
+  },
+  "review-regression/logging/regress.exit": {
+    "source": "publication/yue2-review-log-39268/regress.exit",
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "transformation": "none"
+  },
+  "review-regression/logging/SHA256SUMS": {
+    "source": "publication/yue2-review-log-39268/SHA256SUMS",
+    "sha256": "7a0462143b51a1a101210253da9dd6f61347fb0ceba008d4dabfc4aa5e5fc703",
+    "transformation": "none"
+  },
+  "review-regression/logging/final.patch": {
+    "source": "publication/yue2-review-log-39268/final.patch",
+    "sha256": "ded6fb56df7a8d83a97e454c6c4b53fa5624382b82ba4857e51a42c24e9bfbd2",
+    "transformation": "none"
   }
 }

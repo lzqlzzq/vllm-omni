@@ -1,133 +1,29 @@
-# 双 3090：独立单阶段副本 vs AR/声学跨卡（2026-10-04）
+# Two RTX 3090 s: replicas versus AR/acoustic splitting
 
-已完成。以 E2EL / Throughput / RTF 为主：并发8及连续负载下，双独立单阶段实例均更好。当前1:1跨卡分工没有表现出双卡吞吐优势。生产代码未改动，未commit/push。
+## Setup
 
-## 设备与实验边界
+2026-10-04, two RTX 3090 s/595.71.05, PXB, no NVLink or bidirectional P2P access. Replicas: two native instances, AR4/KV4 GiB each. Split: AR GPU 0 with four slots, acoustic GPU 1 with one execution slot/receiver capacity 4. Explicit GPU→CPU shared-memory→GPU transfer, ACK only after destination copy completion. MPS off; same 512/768/1024/1280 frame requests, shape warmup and three rounds per concurrent load. Replica routing balances total frames.
 
-用户提供同一主机两张 RTX 3090，驱动 595.71.05；GPU0 为前轮同一张卡，GPU1 为新增卡。
-拓扑为 PXB，无 NVLink；`nvidia-smi topo -p2p r` 双向 CNS，PyTorch
-`can_device_access_peer(0,1)` / `(1,0)` 均为 false。
+## Results
 
-因此本轮**不是 GPU P2P KV transfer 验收**。跨卡实验在独立源码副本中，只将
-`kv_transfer.py` 改为显式 CPU staging：源卡 gather → /dev/shm 匿名共享内存 → 目标卡 KV。
-源端通过 AF_UNIX 传递文件描述符，不通过 socket 复制完整 KV 字节，不写数据盘；
-目标卡复制完成并 synchronize 后才 ACK。容量 Prepare、discard、源 blocks 保护、
-声学完成后释放引用等接口保持；无 IPC reductions，没有跨卡 GPU storage 导入。
-不是零拷贝，没有伪装为原来的同卡 GPU-only 传输，也没有加入自动 fallback。
+| Load | Replica audio/s | Split audio/s | E2EL P95 replicas→split(s) | RTF P95 replicas→split |
+| --- | ---: | ---: | ---: | ---: |
+| Concurrent 4 | 8.705 | 7.420 | 16.465→19.347 | 0.353→0.378 |
+| Concurrent 8 | 12.059 | 8.128 | 23.737→35.236 | 0.464→0.821 |
+| Continuous 16/cap 8 | 12.195 | 8.517 | 27.129→48.876 | 0.695→1.308 |
 
-主工作区 `vllm-omni/` 原来的 12 项哈希保持不变。远端基准使用原源码，跨卡组使用
-`/root/autodl-tmp/yue2-dual-gpu-20261004-01/source`；完整生产 Python 对比仅传输文件不同。
-修改后的文件与 unified diff 在 `experiment-source/`，不得当作已合入生产的能力。
+Continuous throughput fell 30.16%, E2EL P95 rose about 80.16%. Split-device sampled utilization was 45.36% AR/93.80% acoustic, versus 90.02%/94.76% for replicas. Transfers averaged 1.945790 s per 16 requests (about 0.122 s each), excluding pre-Prepare waits; those durations overlap acoustic work and cannot simply be subtracted to predict P2P gains.
 
-## 公平对照
+All 182 outputs passed length/finite/error checks. Four transport fixtures passed exactness, source-reuse-after-ACK, capacity/discard/reuse checks. A single 1024 frame split trial was 10.979461 s versus 11.182929 s with one replica active; no stable latency claim.
 
-- `replicas`：两个独立 AsyncOmni 单阶段实例，各占一张 GPU，每实例 max_num_seqs=4、AR KV 4 GiB。
-- `split`：一个 AsyncOmni，两阶段，AR GPU0 / NAR+VAE GPU1；AR max_num_seqs=4、KV 4 GiB，声学执行槽为1，接收容量跟随AR=4。
-- 两组均不启用 MPS；AR/声学使用不同物理GPU时不需要用 MPS 解决彼此同卡争用。
-- 保留相同上游采样、AR/NAR compile、velocity Graph、VAE、条件 prefill 和 ACK 结束边界。
-- 固定四种帧数 512/768/1024/1280，提示、seed 相同，输出由预算结束；不是自然 EOS 或整体数值 parity。
-- 完整形状预热后，单请求1024帧一次；c4、c8 各三轮；s16 为总16请求、最多8个客户端请求同时在途，各三轮。
-- 双副本路由按帧数平衡：每四首 `[GPU0,GPU1,GPU1,GPU0]`，下一组互换，各卡总帧数相同。
-  c4 每副本2请求；c8每副本4请求。split仍保持原AR容量4，其余由原生等待队列接纳。
-- 主计时包含请求生成、跨卡交接（split）、NAR/VAE、结果返回；不包括初始化、预热及返回后音频hash计算。
-- `run.py` 外置200ms采样两卡memory/util/power/clock/temp；无worker hook、无Nsight。
-- 没有为双副本增加新的生产负载均衡器；请求路由只在实验脚本中。
+## Scope
 
-## 主要指标口径
+The split uses CPU staging, with four AR slots versus eight across the replicas. The tested 1: 1 split showed no throughput advantage. Role allocation, resource-ratio tuning, natural-EOS quality and in-flight cancellation/shutdown remained open.
 
-按用户要求，主指标为 E2EL / Throughput / RTF：
+## Reproduction and evidence
 
-- E2EL：每个请求调用原生 generate 至完整音频返回的时间，含框架内排队；不包含输入准备、
-  HTTP/网络、负载生成器 semaphore 外等待、以及本条结果返回后的校验/hash。
-  客户端逐条校验使用同一事件循环，对其它请求回调可能产生小额开销，两组方式相同。
-- Throughput：一轮所有完成音频的总秒数 / 该轮墙钟时间，附 requests/s；三轮取中位。
-- RTF：逐请求 E2EL / 该请求音频秒数，越低越好；不是批次墙钟 / 总音频秒数。
-- E2EL 和 RTF 按每种负载合并三轮请求报告 P50/P95（线性插值）；c4共12、c8共24、s16共48请求。
-  这些分位数仅描述本次有限样本，不作为生产尾延迟承诺。
-- 批次 makespan 作为辅助数据，与单请求 E2EL 明确区分。
+Original `scripts/cross_gpu_transport.py`, then `scripts/run.py --arm split` / `--arm replicas` with new labels and the explicit transport patch.
 
-## 传输检查
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/two-gpu/report.txt). Commands use the archived experiment layout.
 
-`cross_gpu_transport.py` 在真实 spawned 进程验证 GPU0→GPU1：4组KV完整精确，包含稀疏/部分
-blocks、nonzero storage offset、非连续stride、共享storage视图；ACK后源数据立即清零仍读取精确；
-错误容量、满槽、错误ticket discard、不占用ticket的discard后复用以及抽象socket退出后复用通过。
-第一轮因该Python构建没有 `os.memfd_create` 在publish前失败，保留 attempt1 日志；
-之后使用 `/dev/shm` 的临时文件立即unlink，再通过fd传递相同共享内存语义。
-
-## 复现与证据
-
-远端根目录 `/root/autodl-tmp/yue2-dual-gpu-20261004-01`；venv/HF缓存复用前轮的固定版本，
-生产源码副本只替换 `experiment-source/kv_transfer.py`。从源码目录运行：
-
-```bash
-PYTHONPATH="$PWD" ../venv/bin/python ../scripts/cross_gpu_transport.py
-```
-
-正式测试从实验根目录运行：
-
-```bash
-export PATH="$PWD/venv/bin:$PATH"
-python scripts/run.py --arm split
-python scripts/run.py --arm replicas
-```
-
-label目录拒绝覆盖，重跑使用 `--label 02`。保留所有失败证据，不终止无关进程。
-
-## 主要结果
-
-| 负载 | 方案 | E2EL P50 / P95（秒） | Throughput（音频秒/秒） | RTF P50 / P95 |
-|---|---|---:|---:|---:|
-| 并发4 | 双独立单阶段 | 11.952 / 16.465 | 8.705 | 0.314 / 0.353 |
-| 并发4 | AR/声学跨卡，CPU中转 | 11.567 / 19.347 | 7.420 | 0.321 / 0.378 |
-| 并发8 | 双独立单阶段 | 14.071 / 23.737 | 12.059 | 0.391 / 0.464 |
-| 并发8 | AR/声学跨卡，CPU中转 | 18.789 / 35.236 | 8.128 | 0.555 / 0.821 |
-| 连续16、并发上限8 | 双独立单阶段 | 16.815 / 27.129 | 12.195 | 0.479 / 0.695 |
-| 连续16、并发上限8 | AR/声学跨卡，CPU中转 | 25.919 / 48.876 | 8.517 | 0.756 / 1.308 |
-
-连续负载下，跨卡组比双副本吞吐低 **30.16%**、E2EL P95 高约 **80.16%**；RTF P95
-从 0.695 上升至 1.308，表示该排队负载下部分请求的等待加生成时间超过其音频时长，
-不能解释成纯 NAR 算子计算 RTF。并发4时跨卡组 P50 E2EL 略低，但 P95、吞吐及 RTF 并未胜出。
-
-单请求1024帧仅一轮：跨卡 E2EL 10.979461 秒、RTF 0.268062；单阶段 GPU0 E2EL
-11.182929 秒、RTF 0.273030。此时第二个单阶段副本空闲。不能把单轮约1.82%的差异
-当作稳定低延迟优势。
-
-## 批次与传输辅助数据
-
-| 负载 | 双副本三轮makespan（秒） | 跨卡三轮makespan（秒） |
-|---|---|---|
-| c4 | 16.468929 / 16.479461 / 16.379670 | 19.202987 / 19.320934 / 19.398538 |
-| c8 | 23.568620 / 23.775520 / 23.948929 | 35.073457 / 35.276378 / 35.613394 |
-| s16 | 47.041832 / 47.021404 / 46.904720 | 67.082231 / 67.325168 / 67.374515 |
-
-完整 request/s、均值、逐请求数据、三轮数字在 `summary.json` 和 `artifacts/`。
-GPU telemetry 根据同机 wall/monotonic 校准映射到测量区间，是 NVML 利用率采样，
-不是 SM occupancy 或 Nsight kernel 执行占比。
-
-连续16请求测量区间：跨卡 AR GPU0 平均45.36%、声学GPU1平均93.80%；
-双副本分别90.02%和94.76%。这支持当前1:1分工负载不均、声学侧繁忙的判断。
-它不是多种AR/NAR资源配比或P2P实现的因果隔离实验。
-
-跨卡记录的16次交接耗时合计每轮平均1.945790秒；每次平均约0.122秒。
-计时从 Prepare 成功后开始，包含源端 gather+CPU staging、接收端H2D及ACK，
-不包括 Prepare 前的等待和初始stream同步；不能称为完整publish耗时。
-这些交接会与另一张卡的声学工作重叠，不能直接从总耗时扣除以预测P2P收益。
-即使缺少P2P，这组差距也不能简单全部归咎CPU中转，声学卡已接近持续繁忙。
-
-## 验证与限制
-
-- 两组各9个正式并发批次、84个正式并发请求，加各1次单请求；含预热共182次完整音频输出。
-  全部长度、finite、error=0检查通过，固定预算truncated=1。
-- 真实跨卡传输4组精确与ACK/失败/discard复用通过；两组engine正常退出，GPU进程清空。
-- 跨卡单请求1024帧完整FP32音频SHA-256与前轮同卡普通两阶段、同卡MPS两阶段均相同。
-  这是一个完整固定长度案例的hash对照，不是整体或并发parity验收。
-- 没有新增自动ABC/CFG，没有更改采样/NAR/VAE、接收容量、全局admission策略或生产默认值。
-- 没有在此CPU中转变体新验自然EOS、服务HTTP、声学进行中取消、ACK边界取消或进行中shutdown。
-- 未交换两卡角色、未调大AR容量、未增加声学并行槽，也没有其它stage配比实验。
-  双副本总AR槽为8，跨卡AR槽为4；全局客户端并发相同。当前结论针对保留原设置的两种部署。
-- 未测真正的跨卡P2P/NVLink，不能把此结果作为这些互联环境的最终结论。
-- 主工作区12项hash不变；远端1690个生产Python文件对比，跨卡副本仅kv_transfer.py不同。
-  所有改动位于本报告的实验副本/脚本/配置/证据和工作约定记录，未commit/push。
-
-这组证据支持保留两阶段的功能组织和独立部署价值，但**当前不能以“双卡比两个单阶段副本更快”
-作为提案论据**。如以吞吐为目标，后续问题应是如何匹配AR与声学处理能力，而不是仅把两个stage各放一张卡。
+[summary.json](summary.json)

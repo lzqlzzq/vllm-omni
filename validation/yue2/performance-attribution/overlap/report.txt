@@ -1,67 +1,28 @@
-# 固定 AR/NAR 工作量重叠对照
+# Fixed-work AR/NAR overlap versus serial execution
 
-2026-10-09 完成。**当前同卡提交方式下，计算重叠确有小幅收益，但没有接近两条链路各自全速并行。** 混批四轮配对耗时减少中位数 3.50%，纯 semantic 为 3.62%。这支持暂缓增加复杂的阶段准入策略：把 NAR 空档填满，并不意味着能等比例缩短总耗时。
+## Setup
 
-这是固定位置的计算对照，不是完整歌曲 E2E，不换算服务 Throughput/E2EL/RTF，也不代表任意实现下的硬件并行上限。生产代码未改，未 commit/push。
+2026-10-09, H800 PCIe 80 GB/580.82.07, MPS off, 350 W unchanged. Same worker/weights, AR32/KV32 GiB, NAR B1/highest-priority stream, MAX_INFLIGHT2. Freeze decode tokens/positions/KV and replay native AR graphs plus logits; contexts do not grow. NAR uses the same 6144-frame fixture and 32-step/64-evaluation solve. Four rotated-order rounds of AR-only/NAR-only/serial/overlap; setup and warmup excluded.
 
-## 结果
+## Results
 
-时间为四轮中位数；减少比例是每轮 `(serial-overlap)/serial` 的中位数，与“两个中位数相除”略有不同。
-
-| 固定 AR 组成 | AR 单独 | NAR 单独 | 实际串行 AR→NAR | 重叠 | 配对耗时减少 |
+| AR composition | AR alone | NAR alone | Measured serial | Overlap | Median paired reduction |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 6 ABC + 26 semantic，448 步 | 6.372s | 6.586s | 12.979s | 12.549s | **3.50%** |
-| 32 semantic，416 步 | 6.622s | 6.571s | 13.214s | 12.735s | **3.62%** |
+| 6 ABC+26 semantic, 448 steps | 6.372 s | 6.586 s | 12.979 s | 12.549 s | 3.50% |
+| 32 semantic, 416 steps | 6.622 s | 6.571 s | 13.214 s | 12.735 s | 3.62% |
 
-混批四轮减少 2.97–3.64%；纯 semantic 减少 3.54–3.65%，八个配对均为正。实际串行接近 AR、NAR 单独时长之和，排除了仅凭相加估计串行基准的偏差。
+All eight paired reductions were positive: mixed 2.97–3.64%, semantic 3.54–3.65%. During overlap, AR completion took 1.969×/1.923× its isolated time; NAR stream span took 1.333×/1.309×. Both paths slow each other, including pure semantic AR.
 
-| 重叠时相对单独运行 | 混批 | 纯 semantic |
-| --- | ---: | ---: |
-| AR 完成时间倍数（配对中位数） | 1.969× | 1.923× |
-| NAR stream 起止跨度倍数（配对中位数） | 1.333× | 1.309× |
+All 32 formal and two independent trace measurements had exact AR logits/NAR latents. No sampled thermal slowdown; isolated AR median SM1590–1665 MHz versus overlap 1215–1245 MHz. Separate trace confirmed serial versus overlapping activity envelopes, not simultaneous per-kernel SM occupancy.
 
-NAR 的跨度含提交间隙和资源等待，不是纯 kernel 执行时间。结果表明两条链路互相拖慢；纯 semantic 也如此，因此不能只用 ABC/semantic 混批解释这个现象。假设两者能保持单跑速度，等量级工作本可在约 6.6 秒完成；实际约 12.5–12.7 秒，这个理想值只是参照，不能当可实现优化目标。
+## Scope
 
-## 固定了什么
+Fixed-position AR/NAR compute replay, excluding sampling, scheduling, token return, prefill, VAE and audio delivery. Power, resource contention and submission timing remain combined in the measured result.
 
-SSH36665，H800 PCIe 80GB / 驱动 580.82.07，350W，MPS off，OMP/MKL=1，不调功率或时钟。独立远端根 `/root/autodl-tmp/yue2-fixed-overlap-20261009-01`，screen `yue2-fixed-overlap` 已正常结束。
+## Reproduction and evidence
 
-同一 worker、同一份模型权重，冻结 `experiments/yue2-queue-output-20261008/source`，AR32/KV32GiB。NAR B1、最高优先级 stream（−3），AR priority 0；不改公共执行、采样、调度、自动 ABC 或默认配置。
+Original frozen plan and worker/launcher; `scripts/analyze.py` recomputes fixed-work rounds and separate trace records.
 
-- 用固定 WSB 提示的真实 ABC 与 6144 个 semantic token 构造输入。两种组成的 NAR conditioning 与噪声 hash 完全相同；[fixture](evidence/fixture.json) 只保存 token。
-- 在原生 32 行 decode 快照暂停推进，重放 vLLM FULL CUDA Graph，加原有 logits 投影。混批 ABC context 1666–1668，semantic 6627–6635；纯 semantic context 6627–6638。每个 case 内四种模式的 token、位置、KV、行组成及重复次数固定。**上下文不随重放增长。**
-- NAR 复用原 `CachedNAR.solve_iter`，每次从同一初始噪声执行完整 32 步 / 64 次 velocity 评估，6144 帧。conditioning prefill、首次 eager/capture 和预热在计时外；各模式都保留相同 resident buffers。
-- AR 每步用事件等本步完成；同一 CPU 线程在步边界推进 NAR，最多提前两个工作单元。NAR 使用独立 graph pool 和 conditioning KV，AR 使用原生 paged KV；共享权重。
-- AR 次数由计时前 pilot 选到与 NAR 时长接近，然后冻结。四轮循环顺序分别为 AR/NAR/serial/overlap、NAR/serial/overlap/AR、serial/overlap/AR/NAR、overlap/AR/NAR/serial，每个模式在各位置恰好一次。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/overlap/report.txt). Commands use the archived experiment layout.
 
-不计 AR sampler/token 回传/scheduler、prefill/setup、VAE 和音频回传。NAR B2、其它 AR 批大小/上下文、不同优先级或提交深度不在本次范围。
-
-## 设备与独立 trace
-
-正式测量没有 Nsight；NVML 每 100ms 记录设备状态。计时样本 50–64°C，温控标志均 0。功率中位数约 346W；AR 单独的每轮 SM 中位数 1590–1665MHz，NAR 单独 1200–1215MHz，重叠 1215–1245MHz。**本轮未分离功率约束、算力/带宽竞争与提交节奏各自的贡献。** 不能把全部变慢归因于某一项。
-
-正式混批/纯 semantic 计时采样显存峰值 46.913/49.831GiB；对应最大 allocated 41.265/41.262GiB、reserved 45.738/48.656GiB。后一个 case 在同进程后运行，allocator 保留量不同，不能据此断言纯 semantic 需要更多显存，也不是完整部署预算。
-
-另起独立进程，只对混批的 serial/overlap 各采一段 Nsight，诊断时间不并入正式结果：
-
-| 诊断范围 | 墙钟 | 两 stream 活动包络交集 | 活动包络并集 |
-| --- | ---: | ---: | ---: |
-| serial | 12.940s | 0s | 12.912s |
-| overlap | 12.498s | 8.599s | 12.476s |
-
-确认串行与重叠模式实际执行不同。Graph 级活动包络有交集不等于每个 kernel 同时占用 SM；并集也不是 SM 利用率。trace 的 `complete.json` 中 `rounds=4` 是 CLI 默认元数据，实际 trace 路径传给 worker 的正式轮数为 0，仅执行两条 `diagnostic=true` 记录，分析按实际记录核验。
-
-## 验证与证据
-
-32 条正式测量和 2 条独立诊断测量的 AR logits / NAR latent 与固定参考逐值一致，最大绝对误差和相对 L2 都为 0，有限值/有效列 mask 检查通过。AR 步数、NAR 64 次评估、输入 hash、行组成及输出长度重算通过。用于建立快照的正式 64 个请求及诊断 32 个请求完成后，模型请求状态均为 0。
-
-1860 份生产 Python/YAML 文件在两个进程运行前后以及本地冻结副本完全一致；运行脚本/config 与冻结计划 hash 相符。两个进程正常关闭，最终 GPU 0MiB/无进程、MPS 无进程，本轮 screen 退出。未保存或下载音频、latent、tensor、权重。
-
-36 份记录共 4,347,676 字节回收 SHA256 一致，包含小型原始 `.nsys-rep` 与 SQLite。报告和本地回收核查本身不计入这个数字。
-
-- [重算汇总](artifacts/analysis.json)、[分析脚本](scripts/analyze.py)
-- [正式 mixed32](artifacts/formal/mixed32.json)、[正式 semantic32](artifacts/formal/semantic32.json)
-- [独立 trace](artifacts/overlap-trace.nsys-rep)、[SQLite](artifacts/overlap-trace.sqlite)
-- [冻结计划](evidence/plan.json)、[回收清单](evidence/recovery-manifest.json)、[本地核查](evidence/local-recovery.json)
-
-本轮没有新的完整歌曲 E2E、WSB/听感、CFG≠1、HTTP/取消/多卡验收。结果仅覆盖一个真实样本构造的固定计算快照、当前卡及当前提交方式；不支持宣称复杂准入必然无效，也不支持直接切换为串行生产执行。
+[analysis.json](artifacts/analysis.json) · [plan.json](evidence/plan.json)

@@ -74,4 +74,4 @@ PR audio was 2.454% shorter; both arms thermally throttled. [Sources, recipes an
 
 ## Evidence provenance
 
-`sources.json` records original workspace paths and SHA256. Archived reports and numeric records preserve their original bytes and labels; references inside the reports refer to their original experiment directories. The parent `SHA256.json` covers the published files.
+`sources.json` records original workspace paths and SHA256. The 24 linked reports are concise English rewrites; each links to its unchanged Chinese original at the fixed pre-edit commit. The source manifest records that commit, original hash and published rewrite hash. Numeric records, logs, configurations and patches preserve their original bytes and labels. The parent `SHA256.json` covers the published files.

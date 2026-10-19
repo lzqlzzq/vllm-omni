@@ -1,69 +1,27 @@
-# 单元素拼接消除与显存池诊断
+# Single-element concatenation removal and memory-pool diagnosis
 
-2026-10-10，用户批准先做小范围复制优化，再定位 Graph 池与分配时序。独立候选 `experiments/yue2-copy-memory-20261010/source` 继承当前 FlashInfer+packed KV 零拷贝实现；旧源码和冻结性能结果不覆盖。
+## Setup
 
-## 实现与精确验收
+2026-10-10, H800 PCIe 80 GB/580.82.07, MPS off. Three single-element branches reuse one VAE tile, one latent chunk or one waveform; multi-element concatenation and the owned CPU output clone remain. Fixed-input tests compare the frozen FlashInfer/direct-KV implementation. Separate allocator profiling compares main `c548a110`+shared loading fix against the modified PR, 64 requests/two warmups each, AR32/KV24 GiB/client 64; PR NAR≤4/token 32768/window 200 ms/VAE1.
 
-唯一生产改动为 YuE `batched_synthesis.py` 三个单元素分支：单个 VAE tile 直接传入 decoder；packed 某首只有一个 chunk 时复用该 latent；只有一首 waveform 时直接返回。多元素仍使用原拼接，输出交接的独立 CPU clone 保留。采样/RNG/ODE/FA3/FlashInfer/队列准入、默认 YAML 与公共执行不改。
+## Results
 
-单 tile 视图的 stride 与此前拼接输出可能不同，因此不能仅凭“删除复制”假定数值相同。相关 CPU VAE 测试增加 batch1/2、取消及输入未被改写检查。35 项 CPU 测试、12 项适用统一 hooks 全部通过。
+35 CPU checks passed. All 15 fixed-input FP32 audio pairs were exact, covering 2048 frames, 13000+1024 cross-chunk, short B4, mixed B3+B1 and long B4; cancellation/reuse passed. Eight short E2E requests plus one warmup executed two B4 jobs with no retry/OOM.
 
-真实 H800 固定条件/codec/逐请求噪声对照，旧队列模块作为 oracle，调用同一已冻结 FlashInfer 模型计算：单首2048、跨chunk13000+1024、短B4、混合B3+B1、长B4，共15首旧/新完整FP32音频逐值精确，最大绝对误差0。prefill全取消、solve全取消、solve单取消后存活请求精确及复用通过；所有临时队列最终空。没有保存或下载音频/latent。
+At the end of the PR profile, the default pool reserved 57.221 GiB and allocated 31.603 GiB: 25.000 GiB was wholly inactive segments and approximately 0.617 GiB inactive space inside live segments. Exit-time empty_cache released 25.000 GiB; the 2.496 GiB NAR pool released only after its graph anchor was dropped.
 
-同一进程多形状连续运行出现一次allocator回收重试，最终num_ooms=0，原始警告保留；该进程不用于显存峰值或性能对比，也未记录每臂的重试归属。另起进程8并发+1预热短E2E通过，真实两个B4，allocator retry/OOM0、最终model_states0。ABC128/semantic256均为预算截断，仅作功能验收。
+Both 64 request runs/two warmups completed, with zero retry/OOM and empty final states. The end-state reserved-memory gap 7.502 GiB comprised ordinary whole-segment cache 6.025 GiB, NAR pool 1.311 GiB, about 0.166 GiB ordinary internal inactive space and a small active difference. This is a synchronized end-state decomposition, not subtraction of unrelated peaks.
 
-## 显存诊断口径
+The three explicit single-element cats were removed. The memory investigation did not add allocator tuning or per-request cache clearing.
 
-SSH36665 H800 PCIe80GB/580.82.07，独立远端 `/root/autodl-tmp/yue2-copy-memory-20261010-01`，screen `yue2-copy-memory`。同已有环境、MPSoff、OMP/MKL1、350W，不锁频或改功率。
+## Scope
 
-先4请求短canary验证探针，再候选/冻结上游分别64请求+2完整预热。沿用同提示种子、AR32/KV24GiB/client64/full CoT/CFG1/ABC4096/semantic9000预算；候选NAR≤4/token32768/window200ms/VAE1。上游c548a110+共同HF/VAE加载修复631f5573。
+Allocator snapshots paused the host for 70.917 s (PR) / 57.278 s (main), so timings include instrumentation. Individual cat-removal speedups were not measured. Tile views can still require internal contiguous copies, and exit-time cache release differs from memory available during requests.
 
-外置worker在设备初始化后开启PyTorch allocator Python栈记录（环形历史20000项）；预热后、新reserved高水位每增≥1GiB、负载完成时保存快照。按快照实际segment_pool_id拆分NAR、sampler、其它private和default池，区分active_allocated、active_awaiting_free、inactive及整段inactive。快照写入会暂停host推进，因此本轮是带探针诊断，不作为无探针性能对照。
+## Reproduction and evidence
 
-所有请求完成且GPU同步后，在退出前依次观测empty_cache和释放NAR Graph池anchor后的变化。释放anchor仅外置探针执行，不写入生产或在活动请求中调用；不能把退出时释放量直接当作运行中安全可回收预算。
+Original fixed-input checks, allocator profile launcher, `verify.py` and `analyze_memory.py`; preserve pool IDs and distinguish segment origins from current block stacks.
 
-本轮暂不做MLP融合、time embedding改写、默认配置调整或上游PR发布。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/single-cat/report.txt). Commands use the archived experiment layout.
 
-## 完整显存诊断结果
-
-完整候选64首通过，allocator retry/OOM均0，最终model_states0；2首ABC、2首semantic预算截断保留。快照写入总开销70.917秒，不从总耗时中简单减去它来估计无探针速度，因为host停顿也会改变准入/合批/生成轨迹。
-
-结束快照中，default池reserved约57.221GiB、allocated约31.603GiB；其中25.000GiB为整段inactive，约0.617GiB是仍含活跃分配的段内inactive。退出前empty_cache实际释放25.000GiB；NAR池2.496GiB直到释放anchor才释放。因此本轮主要余量属于可回收的普通缓存，不能把它全部称为不可回收碎片、Graph泄漏或额外活跃KV。
-
-多次新高水位时出现成对且逐渐增大的段：1316/1342/1412/1444/1478/1582MiB。1316、1478、1582MiB三对在当时快照中有明确batched_nar.py创建K/V的segment分配栈；其它三对栈缺失，不能补造归属。segment初始分配栈也不等于该段每次复用后的张量来源。完整原始快照与分配事件保留，分析同时分列segment origin与活跃block stack。
-
-后续优先考虑同卡、同配置的allocator大块复用对照，双方获得相同调参范围；先检查分配尺寸分桶，再考虑可扩展segment，不在生产每首结束后调用empty_cache。PyTorch官方文档说明尺寸分桶用于改善相近大块的复用，expandable_segments面向变化尺寸且仍标为实验性；实际环境配置须按已安装torch2.13验证，本轮没有启用任何新allocator参数。[官方分配器说明（2.14文档）](https://docs.pytorch.org/docs/2.14/notes/cuda.html#optimizing-memory-usage-with-pytorch-alloc-conf)
-
-上述诊断不能精确归因此前无探针两轮4–12GiB峰值差，也不能把退出时释放的缓存量直接追加到运行中的AR KV预算。
-
-两组完整64首+各2预热均通过，正常退出、最终GPU清空。候选2ABC/2semantic、上游2ABC/3semantic预算截断全部保留；最终状态空、allocator retry/OOM0。计时区间温度候选46–67°C/上游47–67°C、中位SM1260/1245MHz、温控采样0。两组输入/种子/共同配置相同，自由生成轨迹与快照停顿不同，不作质量或性能配对结论。
-
-| 同一检查阶段/指标（GiB） | 冻结上游 | 新候选 |
-|---|---:|---:|
-| 全程allocated峰值 | 36.394 | 37.084 |
-| 全程reserved峰值 | 53.367 | 60.869 |
-| 设备采样峰值 | 54.553 | 62.055 |
-| 所有请求结束后的allocated | 31.603 | 31.604 |
-| 结束时普通池整段inactive | 18.975 | 25.000 |
-| 结束时普通池段内inactive | 0.451 | 0.617 |
-| 结束时NAR Graph池reserved | 1.186 | 2.496 |
-| empty_cache后总reserved | 34.393 | 35.869 |
-| 再释放NAR anchor后总reserved | 33.207 | 33.373 |
-
-本轮两组reserved高水位都保持到结束。**结束时**7.502GiB差值可分解为：可释放普通整段缓存6.025GiB、NAR池1.311GiB、普通池段内inactive约0.166GiB及极小活跃差；这是同一生命周期检查点的分解，没有相减不同时间的allocated/reserved峰值。上游也有同类缓存累积，候选本轮packed变长形状下累积更多。
-
-NAR池并非无限泄漏：结束后的anchor释放实验能归还对应池，但运行中仍可能有Graph引用其地址，不能照搬成每首结束后清池。普通池的整段inactive虽可释放，清缓存也可能引入同步/重新分配成本；本轮没有修改默认allocator、添加预分配池或在生产中empty_cache。
-
-快照保存开销候选70.917秒、上游57.278秒；原始summary仍记录E2EL/吞吐/RTF/内容TPS供复算，但不比较带探针耗时、不减去开销伪造无探针指标。未新跑复制改动的正式E2E性能消融。
-
-## 采用与边界
-
-三处显式单元素拼接已采用。当前本地`experiments/yue2-current`指向`yue2-copy-memory-20261010/source`；SSH36665同名入口指向本轮`source`。15对固定音频逐值精确、取消复用、8首短并发+4首探针canary及128首完整负载通过；短负载另有2预热、完整负载4预热。旧FlashInfer源码和此前正式ABBA证据冻结保留。
-
-单tile直接传入视图可能由底层算子自行连续化，本轮不声称该位置完全没有设备复制，也未量化每处收益；单wave及单chunk的显式cat已移除。输出独立CPU clone保持。显存快照与退出前清理均在外置脚本，生产只有batched_synthesis.py变更。
-
-`verify.py`独立核验身份/种子/模型资产/源码/运行脚本与配置、完整窗口指标重算、worker配置及最终清理。1852上游/1860候选/1860旧FlashInfer本地远端均匹配冻结清单，运行前后不变。`analyze_memory.py`核验segment/block总量与reserved，并分池记录原始分配栈与block状态；环形历史可能丢失较早分配栈，缺失记录明确保留为unknown。
-
-未新WSB/听感/CFG≠1/HTTP/多卡验收；未实现MLP融合或allocator调参，未commit/push或发布PR。没有音频、latent、权重下载。
-
-最终回收112份记录35,376,070字节，大小及SHA256逐文件一致，包含压缩allocator快照、源码清单、配置、脚本和日志；见evidence/remote-records-sha256.json及recovery-validation.json。GPU无计算进程、本轮screens结束，既有无关dead WSB screen保留。源码入口更新及清理状态分别记录于adoption-local.json、adoption-remote.json与final-status.txt。
+[validation.json](evidence/validation.json)

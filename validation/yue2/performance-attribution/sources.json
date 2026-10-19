@@ -2,7 +2,10 @@
   "cosmos/report.txt": {
     "source": "docs/validation/2026-10-09-cosmos3-recheck/README.md",
     "sha256": "47ffba4e644fcac9f208c28ff1af25e2da8abfd6e81b4ae6e4f0f3bd6159c388",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/cosmos/report.txt",
+    "published_sha256": "550c11b19e907d5cbbd9549890130ceab1e1bf4018a2adc01be802b349b295b1"
   },
   "cosmos/revision.json": {
     "source": "docs/validation/2026-10-09-cosmos3-recheck/revision.json",
@@ -17,7 +20,10 @@
   "separate-workers/report.txt": {
     "source": "docs/validation/2026-10-03-yue2-architecture-probe/README.md",
     "sha256": "8c55f8f617bc1dc9ec38665757f975fa6993453d059cdff4d0cf849794e2e61f",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/separate-workers/report.txt",
+    "published_sha256": "9c87c0a3798744bcb5730294735f1b7559995850675bdb879dfa1a5aefffd5eb"
   },
   "separate-workers/evidence/timing-summary.json": {
     "source": "docs/validation/2026-10-03-yue2-architecture-probe/evidence/timing-summary.json",
@@ -37,7 +43,10 @@
   "nar-isolation/report.txt": {
     "source": "docs/validation/2026-10-04-yue2-nar-isolation/README.md",
     "sha256": "f5e534d0d88ae197d752da9081cb0fe4453ae18f6ceac02e116f1484ab58e2ca",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/nar-isolation/report.txt",
+    "published_sha256": "daf25fe8274d02930f346600200929af8546cae9b963d5f65d22011a4d681bce"
   },
   "nar-isolation/evidence/comparison.json": {
     "source": "docs/validation/2026-10-04-yue2-nar-isolation/evidence/comparison.json",
@@ -52,7 +61,10 @@
   "two-gpu/report.txt": {
     "source": "docs/validation/2026-10-04-yue2-dual-gpu/README.md",
     "sha256": "39ca250a9d281e1aa2ee69ab13346402e65904c8bdf0edca3b01ae73b8d34953",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/two-gpu/report.txt",
+    "published_sha256": "95fc2bbae39d62812cc908323ce1ce195febf81d2003a60df103e3c4416301cc"
   },
   "two-gpu/summary.json": {
     "source": "docs/validation/2026-10-04-yue2-dual-gpu/summary.json",
@@ -62,7 +74,10 @@
   "direct-generation/report.txt": {
     "source": "docs/validation/2026-10-04-yue2-cosmos-colocated/README.md",
     "sha256": "82cf4c556f53a4633256d50d49f602983ab43cbd89211438121e6ee0cca7d580",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/direct-generation/report.txt",
+    "published_sha256": "4163a4b2b6fee80a5472940957e8922148b3344defeea47e2fc7d064fe187001"
   },
   "direct-generation/summary.json": {
     "source": "docs/validation/2026-10-04-yue2-cosmos-colocated/summary.json",
@@ -77,7 +92,10 @@
   "queue/report.txt": {
     "source": "docs/validation/2026-10-06-yue2-upstream-queue/README.md",
     "sha256": "8fcac5a0b4438da1920b5dec48b84f92c449c173135575d4788770bbfe7a8e30",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/queue/report.txt",
+    "published_sha256": "cadea087e1a51c617f12406ff76a15c3773e3cf2140b162bd57d8dc2281b069c"
   },
   "queue/evidence/summary.json": {
     "source": "docs/validation/2026-10-06-yue2-upstream-queue/evidence/summary.json",
@@ -102,7 +120,10 @@
   "nar-batch/report.txt": {
     "source": "docs/validation/2026-10-07-yue2-nar-stability/README.md",
     "sha256": "3069b4d527d5066ba4748e3a3f6011e0563e18b2f8a1b0e78799181bc94c3053",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/nar-batch/report.txt",
+    "published_sha256": "52ac3c70435d5d489a4dc29f0f5e2604b8785f2cf3586636e95324df12f36264"
   },
   "nar-batch/evidence/summary.json": {
     "source": "docs/validation/2026-10-07-yue2-nar-stability/evidence/summary.json",
@@ -117,7 +138,10 @@
   "vae-batch/report.txt": {
     "source": "docs/validation/2026-10-07-yue2-nar-only/README.md",
     "sha256": "c337225e58de4c0ac57ba24bb985324d3b2983e945684f6828fc9615f30f92a4",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/vae-batch/report.txt",
+    "published_sha256": "2b5c445ced206f87b3da3a0be6b6b4361a3c3c46cb917471b27c4b2d5657250f"
   },
   "vae-batch/evidence/summary.json": {
     "source": "docs/validation/2026-10-07-yue2-nar-only/evidence/summary.json",
@@ -127,7 +151,10 @@
   "wait-window/report.txt": {
     "source": "docs/validation/2026-10-08-yue2-batch-window/README.md",
     "sha256": "dac153fbf63d038a8580e5bf3961f1ab40d69f25e16db0eff84eb5cb0448459a",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/wait-window/report.txt",
+    "published_sha256": "1dc1df7c52e00bd8d2799ba8056d41d7c1f5967723d02525b4334c107a16e8e2"
   },
   "wait-window/evidence/results.json": {
     "source": "docs/validation/2026-10-08-yue2-batch-window/evidence/results.json",
@@ -137,7 +164,10 @@
   "abc/report.txt": {
     "source": "docs/validation/2026-10-08-yue2-phase-profile/README.md",
     "sha256": "74e30d7eed9653320831f96071a1802a5ead83132ce73181131a4b07d64453ed",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/abc/report.txt",
+    "published_sha256": "6ee19d1a45fd15a942c0f633ab0f841ef4841a25912a5947e2027d496a324a07"
   },
   "abc/evidence/analysis.json": {
     "source": "docs/validation/2026-10-08-yue2-phase-profile/evidence/analysis.json",
@@ -152,7 +182,10 @@
   "phase-logits/report.txt": {
     "source": "docs/validation/2026-10-08-yue2-phase-logits/README.md",
     "sha256": "898be6de7a556865ce4c93248f60f05737bd2e232cbd4dc34d4e60e72f660d88",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/phase-logits/report.txt",
+    "published_sha256": "2e13f8bf6adeb99af712869887675c10c83b94e3669814037ede6410ccfdf162"
   },
   "phase-logits/evidence/projection-probe.json": {
     "source": "docs/validation/2026-10-08-yue2-phase-logits/evidence/projection-probe.json",
@@ -162,7 +195,10 @@
   "phase-queue/report.txt": {
     "source": "docs/validation/2026-10-08-yue2-phase-queue/README.md",
     "sha256": "27c9787ebe91a5767f6d51fe028c9004e97782d44033a0ca14a696ba52562075",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/phase-queue/report.txt",
+    "published_sha256": "253bbf2b9948cc15b2fbd4ede397ed869ea2f1dd6cbd5350164b6bfb2e6fa2c2"
   },
   "phase-queue/evidence/analysis.json": {
     "source": "docs/validation/2026-10-08-yue2-phase-queue/evidence/analysis.json",
@@ -177,7 +213,10 @@
   "mps/report.txt": {
     "source": "docs/validation/2026-10-09-yue2-context-validation/README.md",
     "sha256": "d522b06fd88f0db23d0aff7525f8b80e9cbe1335a8609e4a189f0d7242542d46",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/mps/report.txt",
+    "published_sha256": "beae4328776f88882c5a55b634fdb16cc752c1d7a58208f4c21768c619f725a2"
   },
   "mps/evidence/analysis.json": {
     "source": "docs/validation/2026-10-09-yue2-context-validation/evidence/analysis.json",
@@ -192,7 +231,10 @@
   "profile/report.txt": {
     "source": "docs/validation/2026-10-09-yue2-e2e-profile/README.md",
     "sha256": "f87be15f31306d16ba63ebe8e803e233fc1c2365f08a79fdaf8582509c5175f0",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/profile/report.txt",
+    "published_sha256": "4ae9998706f49221d28f3374a25b383cebf3db031d2270b8511408b4bc406988"
   },
   "profile/artifacts/profile-full-01/analysis.json": {
     "source": "docs/validation/2026-10-09-yue2-e2e-profile/artifacts/profile-full-01/analysis.json",
@@ -212,7 +254,10 @@
   "overlap/report.txt": {
     "source": "docs/validation/2026-10-09-yue2-fixed-overlap/README.md",
     "sha256": "2f7202c826c92d77330d8d20babcf2c27f5ad649866d6a7e2d6f50a269b08f60",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/overlap/report.txt",
+    "published_sha256": "4abfd376dd05f5f955f991eac34740615696db1583380c0094d46a790e300918"
   },
   "overlap/artifacts/analysis.json": {
     "source": "docs/validation/2026-10-09-yue2-fixed-overlap/artifacts/analysis.json",
@@ -227,7 +272,10 @@
   "priority/report.txt": {
     "source": "docs/validation/2026-10-09-yue2-stream-priority/README.md",
     "sha256": "394e8ed9265023540120d01d57e4ca6c139d30fb9617d053699dde00b77c4466",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/priority/report.txt",
+    "published_sha256": "146e0fcee42704073bd57a3bc7d78fc18825a7111e0c48262426dc7bfe4c52fd"
   },
   "priority/artifacts/comparison.json": {
     "source": "docs/validation/2026-10-09-yue2-stream-priority/artifacts/comparison.json",
@@ -242,7 +290,10 @@
   "token-budget/report.txt": {
     "source": "docs/validation/2026-10-09-yue2-token-batch/README.md",
     "sha256": "6427fa2377106a4096be04f596d4b0a2649ffbbe8e827fc342559788e3078f6c",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/token-budget/report.txt",
+    "published_sha256": "f3348a864a5a93af6c98c3ce92b5505ff46195cb712b6a24c902ea641787d68d"
   },
   "token-budget/artifacts/analysis.json": {
     "source": "docs/validation/2026-10-09-yue2-token-batch/artifacts/analysis.json",
@@ -257,7 +308,10 @@
   "kv-and-depth/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-kv-inflight/README.md",
     "sha256": "731561db6a7dc2824742ebe4d7579f136c2c389eeeb50f8749625752e78ffd19",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/kv-and-depth/report.txt",
+    "published_sha256": "08eb4d6d506e2e40fd6758248211344deb0ad34812fd9acbf4030262f5ab2af6"
   },
   "kv-and-depth/artifacts/analysis.json": {
     "source": "docs/validation/2026-10-10-yue2-kv-inflight/artifacts/analysis.json",
@@ -272,12 +326,18 @@
   "nar-hotspots/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-nar-hotspots/README.md",
     "sha256": "f0fd684708c22c48bc4cbdf0527c6bd56f42f8d13b0c8ffea267fd7e1dee1f26",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/nar-hotspots/report.txt",
+    "published_sha256": "a2b0fbb187bb6a9e179e99f9ce41015c56c91a0cd4a536a650d5d1251ab55caa"
   },
   "flashinfer/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-flashinfer-kernels/README.md",
     "sha256": "3665f3311f32c9215253bd31a0c77917b28f630b426358f3dee6922ace145b07",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/flashinfer/report.txt",
+    "published_sha256": "474e82d269a0a80f2ceef7c81cf9d0159c39c8484ae67cf7807cf4eab6d06d18"
   },
   "flashinfer/artifacts/analysis.json": {
     "source": "docs/validation/2026-10-10-yue2-flashinfer-kernels/artifacts/analysis.json",
@@ -287,7 +347,10 @@
   "h800-e2e/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-flashinfer-upstream/README.md",
     "sha256": "c3a1868aade198ab2c188b38855eaa56f797c9e8ff9af849b5c9e4460bd80266",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/h800-e2e/report.txt",
+    "published_sha256": "6d75549fd75ff424a27f0ac4a6b39dbb5c9d8e8cdb6952b3fd60ba22890a8d73"
   },
   "h800-e2e/artifacts/pairs.json": {
     "source": "docs/validation/2026-10-10-yue2-flashinfer-upstream/artifacts/pairs.json",
@@ -302,12 +365,18 @@
   "unified-entry/report.txt": {
     "source": "docs/validation/2026-10-12-yue2-unified-entry/README.md",
     "sha256": "ca37da12dfb117e3c96fe612a889d894b5b630bdb688a13ea76cb07b1e3251b7",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/unified-entry/report.txt",
+    "published_sha256": "925e6264c76c9437c953de682eb62db6e94ab8217653de4db67fd72134257ebf"
   },
   "single-cat/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-copy-memory/README.md",
     "sha256": "c2a180d9177e413afb404b19538b51bc8eacf3104026286550aa1bd0006530bc",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/single-cat/report.txt",
+    "published_sha256": "97c4dbd62760d31e3d94e5c6d6bfa69b7dbeff295e25d496e2b7c7462daf4c5b"
   },
   "single-cat/evidence/validation.json": {
     "source": "docs/validation/2026-10-10-yue2-copy-memory/evidence/validation.json",
@@ -317,7 +386,10 @@
   "capture-prep/report.txt": {
     "source": "docs/validation/2026-10-13-yue2-capture-prep/README.md",
     "sha256": "d16103742fe36844a1273dc62f79c360b1a7063045ab5d51fc5b3e4b3fe346b5",
-    "transformation": "none"
+    "transformation": "concise English rewrite; measurements and conclusions retained; operational chronology condensed",
+    "original_commit": "d5af9577e5ae887208bbccd8e7ed3ff52e743e96",
+    "original_url": "https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/capture-prep/report.txt",
+    "published_sha256": "32d9483a4b632f817d9912978948a80051e4ffa77af3151461122fb9b8b9b1d9"
   },
   "capture-prep/artifacts/intervention-analysis.json": {
     "source": "docs/validation/2026-10-13-yue2-capture-prep/artifacts/intervention-analysis.json",

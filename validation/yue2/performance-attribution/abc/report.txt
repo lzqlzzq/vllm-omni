@@ -1,109 +1,31 @@
-# queue 收益变化：自动 ABC、混合投影与声学供给
+# Automatic ABC: projection work and acoustic supply
 
-2026-10-08，SSH16593，诊断完成。生产代码未修改，未 commit/push；未保存或下载音频/latent。
+## Setup
 
-当前证据定位了一项具体机制：自动 ABC 转 semantic 的排队顺序增加 ABC/semantic 混批，
-使更多 semantic 行执行全词表 LM-head 投影。handler 直接 CPU 成本较小，VAE 没有结构性变化。
-但同源码改成两次调用后，queue 对当前上游仍只观察到约 3% 吞吐收益，不能把历史 6% 与当前
-结果的全部差距归因自动 ABC，也不能承诺修复混合投影就能恢复 6%。
+H800, 2026-10-08; base `c548a110` plus shared loading fix `631f5573`. Compare automatic ABC, two-call PR and two-call main, in that order, using 64 matched prompts/seeds and two full warmups per process. AR32/KV32 GiB/client 64, full CoT/CFG1, ABC 4096/semantic 9000; PR NAR1/VAE1/window 0. Both PR runs include the output-ownership fix. Measurements include external observation wrappers.
 
-## 三组同轮诊断
+## Results
 
-每组独立进程，64 个相同提示及种子、2 首完整预热；执行顺序 auto → two-call → upstream。
-AR32、KV32GiB、客户端64并发，full CoT、CFG1、ABC预算4096、semantic预算9000。
-候选 NAR1/VAE1/window0；两种候选调用方式共用已修复 B1 输出所有权的同一份源码及配置。
-上游保留原生 HOLD 链路、两次调用。正式指标与本轮带观察包装的数据分开保存。
+| Metric | main two-call | PR two-call | PR automatic ABC |
+| --- | ---: | ---: | ---: |
+| Audio seconds / wall second | 17.589 | 18.121 | 17.870 |
+| Relative to main | — | +3.02% | +1.60% |
+| E2EL P50/P95 (s) | 449.47/745.82 | 439.09/735.18 | 428.05/749.17 |
+| RTF P50/P95 | 2.028/3.103 | 2.011/2.928 | 1.770/2.991 |
+| Sampled device peak (GiB) | 65.91 | 59.90 | 65.66 |
 
-| 指标 | 上游两次调用 | queue 两次调用 | queue 自动 ABC |
-|---|---:|---:|---:|
-| 音频吞吐（音频秒/秒） | 17.589 | 18.121 | 17.870 |
-| 相对本轮上游 | — | +3.02% | +1.60% |
-| 总耗时（秒） | 821.23 | 798.82 | 808.90 |
-| E2EL P50 / P95（秒） | 449.47 / 745.82 | 439.09 / 735.18 | 428.05 / 749.17 |
-| RTF P50 / P95 | 2.028 / 3.103 | 2.011 / 2.928 | 1.770 / 2.991 |
-| 设备采样峰值（GiB） | 65.91 | 59.90 | 65.66 |
-| ABC / semantic 预算截断 | 2 / 0 | 1 / 1 | 1 / 0 |
+Automatic ABC increased projected elements by 37.94% and reduced throughput by 1.38% versus the same-source two-call path. Mixed ABC/semantic calls were 41.93% versus 16.89%; semantic rows in mixed calls were 54.29% versus 20.58%. Full-vocabulary projection is used whenever ABC is present; semantic sampling remains restricted.
 
-192 次计时请求、6 次完整预热及12次短 smoke 全部完成。预算截断按协议保留，不是运行失败。
-产物长度和有限性通过，不代表并发数值 parity 或 WSB 质量验收。三组总音频时长分别
-14444.59、14475.31、14455.43 秒，输出及阶段长度并不完全相同。
+The ABC handler took 3.357 s over 130448 calls, 0.415% of host wall time. Acoustic gaps were 94.67/54.71/64.32 s for automatic/two-call/main, almost entirely with no ready job; ready-but-not-started time was about 1 ms per run. VAE structure was unchanged; the historical standard VAE and this legacy VAE differ in weights, not an identified extra execution branch.
 
-## 自动 ABC 的实际影响
+## Scope
 
-`yue2.py::compute_logits` 只有整步为纯 semantic 时才使用 32769 列的窄词表投影；
-只要批内含 ABC，就对整个批次调用完整 LM head。semantic 的采样范围仍受原规则限制，
-额外开销发生在投影，不是扩大了 semantic 可采样词表。
+One sequential, instrumented comparison under thermal throttling: median SM 810 MHz, with approximately 90–92% of samples throttled. Projection-element counts measure projection work; output lengths and truncations also differ. The historical 3090 queue experiment used a different device, load and revision.
 
-`queued.py::_update_request_with_output` 的自动阶段切换把 semantic 请求
-`prepend_request` 到 waiting 队列；上游式两次调用则在 ABC 返回后重新提交 semantic。
-两者仍需 semantic prefill，但排队顺序、混批形状和声学就绪节奏不同。
+## Reproduction and evidence
 
-| 投影观测 | queue 自动 ABC | queue 两次调用 | 上游两次调用 |
-|---|---:|---:|---:|
-| 含 ABC/semantic 混批的调用比例 | 41.93% | 16.89% | 15.81% |
-| semantic 行处于混批的比例 | 54.29% | 20.58% | 20.46% |
-| 全词表投影行数 | 326701 | 207093 | 210292 |
-| 窄词表投影行数 | 165263 | 287501 | 309401 |
-| 累计投影元素数 | 65.758 billion | 47.672 billion | 48.981 billion |
+Original `scripts/run.sh`, `scripts/base.sh`, then `scripts/analyze.py` and `scripts/validate_records.py`.
 
-自动 ABC 相对同源码两次调用，投影元素多 **37.94%**，吞吐低 **1.38%**。
-投影元素是 LM-head 矩阵工作量的代理，不是整个模型 FLOPs；这些计数不能直接换算 GPU 耗时。
-单轮差值同时受阶段长度、调度节奏和热状态影响，不能认定 1.38% 全部来自 LM head。
+[Original protocol and full Chinese report](https://github.com/lzqlzzq/vllm-omni/blob/d5af9577e5ae887208bbccd8e7ed3ff52e743e96/validation/yue2/performance-attribution/abc/report.txt). Commands use the archived experiment layout.
 
-自动 ABC handler 每步复制 `output_token_ids` 并扫描 ABC_END，累计处理约1.429亿历史 token，
-130448次调用累计 **3.357秒，占总墙钟0.415%**。这是主机函数墙钟，可能与 GPU 工作重叠，
-不等于可直接节省的端到端时间；它值得简化，但不能单独解释几个百分点差距。
-
-## 声学供给与历史 6% 的适用范围
-
-三组均实际完成64个 B1 声学 job。自动/两次调用/upstream 的累计 job 墙钟分别
-636.06/646.74/656.54秒，job 之间空档94.67/54.71/64.32秒；这些空档几乎全部发生于
-无就绪声学请求，已就绪却未发起的累计空档每组约1毫秒。观察没有指向等待窗口或声学发起
-逻辑在积压已就绪请求。job 墙钟包含同卡 AR 竞争，不能当作纯 NAR/VAE GPU 时间。
-自动组首个 job 更早（78.03秒，对照97.25/100.25秒），因此不能把增加的中间空档直接相加
-解释总耗时。存在 waiting backlog 的采样区间中，三组 AR 槽均满32；该采样不是逐事件证明。
-
-本轮上游有27763个声学等待/HOLD代理行，占全部投影行 **5.34%**（semantic计数中占7.14%）。
-代理定义是该行对应状态已持有 synthesis job；不是精确 GPU 成本测量，也不表示可省5.34%墙钟。
-
-[历史约6%报告](../2026-10-06-yue2-upstream-queue/README.md) 使用3090、AR4/KV4GiB、
-CoT off、固定512/768/1024/1280帧，并发8或持续16请求。当前是H800、AR32、full CoT及长歌曲；
-硬件、并发规模、阶段混合、长度、上游与模型版本均有变化。旧架构短负载probe曾观察16.29%的
-HOLD行占比，但它来自不同实验/测量定义，不能作为匹配控制组或按比例推导本轮收益。
-queue 释放 AR 槽和 blocks 的收益依赖工作负载，历史6%不是固定架构常数。
-本轮未逐一消融设备、AR槽数、上下文长度及版本，剩余差距尚未完整因果分解。
-
-## VAE 核查
-
-当前三组共用 legacy VAE，计算源码、FP32、tiled core1024/halo16一致。
-历史6%使用 standard VAE：`m-a-p/YuE2-Vae@152733a19ad43aa67e367f9b5503ef8075bb5126`；
-当前使用 `m-a-p/YuE2-Vae-legacy@b54118f0fc462f08999d1ec07e88817f4ee3f770`。
-两份固定版本 config 的唯一差异是 `release_variant`，该字段是元数据，没有改变执行分支。
-权重版本不同不能用来断言 FLOPs 或速度变差；目前没有证据把收益差距归因 VAE。
-参见[配置逐字段比较](evidence/vae-config-comparison.json)及两份原始config。
-
-下一项有证据支撑的优化方向是：混合批次内按阶段选择 logits 投影，让 semantic 行保持窄词表，
-同时保留自动 ABC 功能。历史扫描的增量处理可作为小项；本轮未实现这些优化，也未承诺新收益。
-
-## 复现与证据边界
-
-远端根 `/root/autodl-tmp/yue2-phase-profile-20261008-01`；source 链接已修复 B1 候选，
-upstream 链接此前冻结上游。两者共同基于 c548a110，加载修复631f5573；torch2.13.0+cu130、
-vLLM0.31.0、OMP/MKL1。当前模型 revision 为1a96eca688d6ae5d7f0feb88573fec89920fcd19。
-`scripts/run.sh` 执行两个候选，`scripts/base.sh` 执行上游；配置与完整计划在 configs/evidence。
-
-外置 worker 包装既有 schedule、compute_logits、handler 及声学 job 生命周期，不改计算，
-无逐步同步或 CUDA event。CPU调用计时不是 GPU kernel 计时。三个进程按相同温度前置条件启动，
-中位 SM 均810MHz，温控标志覆盖约90–92%采样；不能完全排除热状态混杂，也不能用热解释所有差异。
-这是单轮顺序带探针对照，不能替代无探针交错 AB/BA。当前候选对上游还包含既有 pinned 修复，
-不能将整个候选收益称为只有 queue 一处变化的消融。
-
-- [指标重算](evidence/analysis.json)、[比较值](evidence/comparison.json)。
-- [192请求、种子、资源配置及指标核查](evidence/record-validation.json)。匹配提示/种子不等于交错配对。
-- [源码审计](evidence/source-audit.json)：候选1860文件、上游1852文件均不变，探针hash符合计划，结束GPU进程为0。
-- [回收清单](evidence/collection-manifest.json)与[SHA验证](evidence/collection-verification.json)：64份文件、11016941字节全部匹配，无生成媒体。
-- 原始 [auto](artifacts/profile-auto-01/summary.json)、[two-call](artifacts/profile-two-call-01/summary.json)、[upstream](artifacts/profile-upstream-01/summary.json)，对应目录保留profile、requests、config、源码hash及日志。
-- `scripts/analyze.py` 和 `scripts/validate_records.py` 可重算与检查上述结果。
-
-后续按原采样重算：[瓶颈复查](bottleneck-review.md)。定位到自动ABC两批之间46秒声学断供，
-以及声学活跃时纯semantic AR减速和强时钟差异；分阶段投影已在独立实验后撤回。
+[analysis.json](evidence/analysis.json) · [comparison.json](evidence/comparison.json)
