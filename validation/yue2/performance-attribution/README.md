@@ -1,72 +1,77 @@
 # YuE2 performance: per-change comparisons
 
-These are the incremental comparisons behind PR #9098. Each row describes its own controls and result. They span several revisions and devices; the deltas are not additive and are not a factorial decomposition of the final 4090 result. The archived reports and numeric records are linked separately from the final E2E benchmark.
+Incremental experiments behind PR #9098. Each row uses the implementation and recipe recorded in its linked report.
 
 ## 1. Bottleneck and architectural motivation
 
-Cosmos3 was a reference for keeping conditioning and generation together and reusing conditioning KV. Our source review confirmed that its Omni deployment used one diffusion stage, with UND/GEN in the same process. YuE already cached conditioning KV; it also needs long semantic AR generation, which differs from the fixed-condition Cosmos generator. We retained YuE's sampling, NAR solver, compilation/graphs and VAE. [Pinned Cosmos source review](cosmos/report.txt).
+Cosmos3’s same-process conditioning/generation design motivated the architecture experiments.
 
-The initial separate-worker KV-transfer experiment removed HOLD work but slowed concurrent generation. The trace contained 698 HOLD rows in main versus zero in the experiment; the actual KV gather kernels totaled only 3.049 ms, while IPC close/ACK and NAR execution were more substantial. Fixed-input NAR replay then isolated co-running AR: on a 3090, median NAR time rose from 3.432 to 5.776 seconds; with MPS it rose from 3.446 to 3.804 seconds. The KV/noise, solver and kernel inventory were fixed, and all 14 latent outputs matched exactly. This implicated the cross-process GPU scheduling environment, without assigning the whole penalty to context-save/restore. [Architecture trace](separate-workers/report.txt), [NAR intervention](nar-isolation/evidence/comparison.json).
+YuE already cached conditioning KV. The first separate-worker split removed HOLD work but reduced concurrent throughput. Fixed-input replay showed NAR taking 3.432 s alone versus 5.776 s alongside AR; MPS reduced the latter to 3.804 s. This led us toward same-worker execution. [Cosmos source review](cosmos/report.txt), [NAR isolation](nar-isolation/evidence/comparison.json).
 
-That led to the present same-worker design: release the finished semantic request's AR slot and paged KV while keeping its native request alive for acoustic completion. We tested both blocking full-song execution and independently queued synthesis; the comparisons below explain why the latter was retained.
+Running the full acoustic loop synchronously still blocked other AR requests. We kept native AR batching and added an independent acoustic queue, releasing completed semantic requests' AR slots/KV while synthesis continued.
 
-Later H800 profiling also ruled out a simple “ready work sits undispatched” explanation. Of 105.473 seconds between acoustic jobs, 105.471 seconds had no ready acoustic request; ready-but-not-started time totaled about 1.64 ms. NAR velocity accounted for about 437.600 seconds of CUDA activity intervals, versus 23.772 seconds for VAE. These intervals overlap AR work and are not additive GPU service times. A separate fixed-work experiment found only 3.50%/3.62% elapsed-time savings from AR/NAR overlap for mixed/pure-semantic batches. The optimization target is request/resource lifetime and efficient acoustic execution, not an assumption that two dense workloads can run simultaneously at their isolated speeds. [Full-chain profile](profile/report.txt), [fixed-work comparison](overlap/artifacts/analysis.json).
+The October 9 profile, after reverting phase-separated AR queues and before the packed-KV/FlashInfer changes, found 105.471 s between acoustic jobs with no ready request, versus 1.64 ms with ready work awaiting dispatch. NAR velocity occupied 437.600 s of CUDA activity intervals versus 23.772 s for VAE. We then focused on NAR batching, copies and kernels. [Profile](profile/report.txt), [recorded configuration](profile/evidence/plan.json).
 
 ## 2. Individual changes retained or made configurable
 
-Throughput below means completed audio seconds per wall second unless explicitly labeled NAR-only. “Retained” describes the implementation, not a universal performance recommendation.
+Each row uses the same hardware within its comparison. Recipe changes are listed in the row.
 
-| Change | Matched comparison / workload | Result | Decision |
-| --- | --- | --- | --- |
-| Independent acoustic queue / early AR release | RTX3090; main `5f95115e` + common loading fix, with/without queue; unchanged NAR/VAE; AR4/KV4 GiB, NAR1; fixed 512/768/1024/1280 frames; three rounds each | Throughput **+3.12% / +6.28% / +6.44%** for client concurrency 4 / 8 / continuous 16 with cap 8. Sequential audio exact; concurrent output hashes can differ. Sequential arm order, not ABBA. | Retained. [Report](queue/report.txt), [per-round results](queue/evidence/summary.json), [isolated patch](queue/evidence/queue.patch) |
-| Packed NAR | Same queue source, NAR1 vs NAR2, VAE1; RTX3090; four alternating-order pairs | Equal-length 768-frame throughput **+6.07–12.59%** across pairs, but P50 latency increased. Mixed-length workloads had no consistent throughput gain. | Configurable; NAR1 default. [Report](nar-batch/report.txt), [results](nar-batch/evidence/summary.json) |
-| Direct writes into packed KV | H800; only intermediate KV storage/copy removed; AR32/KV24/client64/max-B4/32k/200 ms; 64 songs + 2 warmups; original/changed/depth experiment/original | Allocated peak **37.627 → 36.948 GiB** in the matching-output runs. Throughput **+0.244% / +0.837%** versus the two original runs, within a changing baseline. Fixed-input B3/B4 audio exact. | Retained to remove redundant storage/copy; no stable isolated E2E speedup claimed. This is packed assembly, not zero-copy transfer from paged AR KV. [Report](kv-and-depth/report.txt), [results](kv-and-depth/artifacts/analysis.json) |
-| FlashInfer BF16 SiLU×gate | H800; only SiLU×gate replaced, real weights and fixed inputs, five B1/B2/B4 shapes; original/new/new/original per shape, each arm 1 full-ODE warmup + 2 timed solves | Complete **NAR-only** throughput **+2.38–3.58%** across shape medians; all 10 pairs positive. Velocity and latent outputs exact for the tested inputs. Attention/GEMM alternatives had no consistent win and were not adopted. | Retained for eligible BF16 CUDA inputs. [Report](flashinfer/report.txt), [per-shape pairs](flashinfer/artifacts/analysis.json) |
-| Remove single-element `cat` calls | H800, same frozen model; old/new B1/B3/B4 and cross-chunk paths | **15/15 complete FP32 audio pairs exact**, including cancellation/reuse checks. The subsequent memory profiling run had snapshot overhead. | Retained; no standalone E2E percentage assigned. [Report](single-cat/report.txt), [validation](single-cat/evidence/validation.json) |
-| Synchronize/reclaim cache before NAR Graph capture | RTX4090 24 GiB; only those two preparation calls added; same previously failing 32-song load, 2 warmups, AR1/KV3/client2/NAR1 | Original run failed at song 18; intervention completed **32/32, zero retries/OOM**. First 17 ABC/semantic hashes and frame counts matched. At the former failing shape, reserved memory fell **19.633 → 13.502 GiB** before capture. | Retained as a stability fix. Not a fresh paired speed measurement; sync and cache release were not separately ablated. Final E2E below includes both calls. [Report](capture-prep/report.txt), [analysis](capture-prep/artifacts/intervention-analysis.json), [two-call patch](capture-prep/evidence/source.patch) |
+| Retained change | Comparison and result |
+| --- | --- |
+| [Independent acoustic queue / early AR release](queue/report.txt) | Same base, NAR/VAE unchanged, AR4/KV4/NAR1, three rounds/load: throughput **+3.12% / +6.28% / +6.44%** at client concurrency 4 / 8 / continuous 16 capped at 8. |
+| [Packed NAR](nar-batch/report.txt) | Same source, NAR1→NAR2 with VAE1, four alternating-order pairs: equal-length throughput **+6.07–12.59%**; P50 latency increased. Mixed-length results varied. NAR1 default. |
+| [Direct packed-KV writes](kv-and-depth/report.txt) | Intermediate storage/copy removed: allocated peak **37.627→36.948 GiB**; throughput **+0.244% / +0.837%** against bracketing original runs. |
+| [FlashInfer BF16 SiLU×gate](flashinfer/report.txt) | Fixed-input complete NAR solves, five B1/B2/B4 shapes: **NAR throughput +2.38–3.58%**; tested velocity/latent outputs exact. |
+| [Single-element concatenation removal](single-cat/report.txt) | **15/15 FP32 audio pairs exact**, covering B1/B3/B4, cross-chunk and cancellation/reuse cases. |
+| [Pre-capture synchronization/cache reclamation](capture-prep/report.txt) | Same load: failure at song 18 became **32/32 completed, zero retries/OOM**. Reserved memory at that capture fell **19.633→13.502 GiB**. |
 
-Automatic ABC, paired CFG and Hugging Face loading are functionality claims. A same-source H800 auto-ABC vs two-call diagnostic found increased mixed-phase projection work and about 1.38% lower throughput with auto-ABC; its handler's CPU wall time was only 0.415% of the run. This did not establish an automatic-ABC speedup. CFG was 1 in the performance runs, so no CFG-parallel speedup is claimed. [ABC diagnostic](abc/report.txt).
+Automatic ABC, paired CFG and HF loading are functional additions. The automatic-ABC/two-call diagnostic measured throughput −1.38% and handler CPU wall time at 0.415% of the run. Performance comparisons used CFG1. [ABC diagnostic](abc/report.txt).
 
 ## 3. Regressions and changes without a demonstrated E2E benefit
 
-The observations below are measured; the explanations are hypotheses unless explicitly identified as directly observed. A negative result rejects the tested setting, not every possible implementation of that idea.
+The last column gives our explanation/hypothesis.
 
-| Change / matched comparison | Observed result | Why it may not have worked | Decision |
-| --- | --- | --- | --- |
-| Separate-worker AR/acoustic split with KV transfer; RTX3090, same fixed lengths/config, three concurrent rounds | Concurrent-4 throughput **−6.29%** despite removing HOLD work. | Trace showed small gather cost but IPC close/ACK stalls and longer NAR execution. Fixed-input AR co-run/MPS intervention supports a cross-process scheduling contribution, not a precise context-switch cost. | Replaced by same-worker queuing. [Report](separate-workers/report.txt), [timings](separate-workers/evidence/timing-summary.json) |
-| One AR GPU + one acoustic GPU versus two full-model replicas; two RTX3090s, fixed lengths, three rounds/load | Continuous-16 throughput **−30.16%**; sampled utilization about 45% AR / 94% acoustic. | Stage imbalance plausibly leaves AR capacity idle while acoustic work queues. No P2P was available (CPU staging); AR capacity was 4 total for the split vs 8 across replicas, so this is a deployment comparison, not an isolated transport ablation. | No multi-GPU speedup claim; other stage ratios/P2P remain untested. [Report](two-gpu/report.txt), [results](two-gpu/summary.json) |
-| Blocking Cosmos-style complete generation; same-worker RTX3090, two method changes, same fixed lengths, three rounds per load | Throughput **−6.55% / −6.29% / −7.84%** at concurrency 4 / 8 / continuous 16. Sequential audio exact. | The implementation directly blocks other AR requests during synthesis. Losing AR progress plausibly outweighs saved HOLD/pump overhead under concurrency; there was no trace to apportion the loss. | Rejected; use independent queuing. [Report](direct-generation/report.txt), [patch](direct-generation/experiment-source/execution.patch) |
-| MPS for same-worker execution; H800, same source/config, off/on/on/off, 64 songs + 2 warmups per arm | Throughput **−0.69% / −1.51%**; no thermal-throttle samples. | Unlike the initial separate-worker design, AR/NAR already share one context. MPS does not remove their compute/power competition; no benefit was observed, but the small loss is not independently attributed to MPS overhead. | MPS remains off. [Report](mps/report.txt), [results](mps/evidence/analysis.json) |
-| Phase-specific `index_select` logits; fixed H800 inputs, four alternating-order rounds | Mixed projections **54.51–61.43% slower**; short E2E differences crossed zero. | The ABC sub-batch still reads the full head; a second projection plus gather/fill/scatter adds work. Reduced projection-element count did not predict execution time. Bandwidth versus launch costs were not separately measured. | Reverted. [Report](phase-logits/report.txt), [microbenchmark](phase-logits/evidence/projection-probe.json) |
-| Separate ABC/semantic queues; H800, 64 songs + 2 warmups per arm, stage probes, thermal throttling | Throughput **−5.09%**. Mean AR batch **22.185 → 16.260**; projection calls **+36.55%**. | Smaller batches and more steps are directly observed. Phase isolation plausibly sacrifices batching efficiency; reduced maximum acoustic gap was offset by more cumulative gaps. Rotation length/admission/FIFO were not independently ablated. | Reverted. [Report](phase-queue/report.txt), [analysis](phase-queue/evidence/analysis.json) |
-| Equalize acoustic stream priority; only −3 → 0, one H800 profiled pair | Descriptive throughput **+1.12%**, but AR waits persisted and tail/queue measures were mixed. | Priority alone appears insufficient to remove shared GPU resource/power contention. This trial does not separate those mechanisms or establish that all priority policies are ineffective. | Keep original priority. [Report](priority/report.txt), [comparison](priority/artifacts/comparison.json) |
-| Reduce acoustic submission depth; only 2 → 1, separate from direct-KV change | Throughput **+0.170% / +0.763%** against bracketing originals; slightly worse RTF P95. | Fewer queued work units may change ordering without reducing the dense NAR work. Baseline throughput drift was comparable to the apparent gain; no timing trace isolated the explanation. | Keep depth 2. [Report](kv-and-depth/report.txt), [results](kv-and-depth/artifacts/analysis.json) |
-| VAE batching; same NAR2 source, only VAE limit 2 vs 1, RTX3090, three rounds/load | Throughput differences within **±0.4%**; VAE1 whole-suite sampled peak **2.84 GiB lower**. | VAE may be too small a share of the critical path to repay added batch storage. Later H800 stage profiling supports that mechanism, but does not itself prove attribution on this 3090 run. | VAE1 default. [Report](vae-batch/report.txt), [results](vae-batch/evidence/summary.json) |
-| Longer batching wait; H800 AR16/KV32/NAR2, 0 / 200 / 1000 ms, 32 songs/config, single rounds | Throughput **16.075 / 16.060 / 16.067**; B2 coverage **6 / 6 / 10** of 32. | Waiting creates no completed AR work. At 1 s, greater batch coverage may be offset by added delay and dense-NAR contention; this was calibration, not a repeated causal decomposition. | Window remains configurable, default 0. [Report](wait-window/report.txt) |
-| Token-budget/max-B4 batching; H800, same AR32/KV24/client64/VAE1/200 ms, fixed max-B2 vs 32k / 48k budgets | Throughput **+0.225% / −1.080%**; only the 48k run formed B3 (2 jobs), neither formed B4. Low-frequency probes were present. | Raising the cap does not guarantee compatible requests become ready together. Limited actual larger-batch coverage plus already dense NAR work plausibly limits gains. | Retain optional budget control, no speedup claim. [Report](token-budget/report.txt), [results](token-budget/artifacts/analysis.json) |
-| Whole PR stack on H800; AR32/KV24/client64/NAR≤4/32k/200 ms; main/PR/PR/main, 64 songs + 2 warmups per arm | Throughput **+0.739% / −0.886%**; device peaks higher than main. | Local NAR speedups need not reduce the end-to-end critical path once AR contention, ready times and changing generated lengths interact. Consistent with the profile/overlap results, but those costs were not independently decomposed in this ABBA. | No H800 throughput-win claim. [Report](h800-e2e/report.txt), [pairs](h800-e2e/artifacts/pairs.json) |
+| Experiment | Result | Explanation / hypothesis |
+| --- | --- | --- |
+| [Separate-worker KV-transfer split](separate-workers/report.txt) | Concurrency-4 throughput **−6.29%** | IPC stalls and longer co-running NAR outweighed removed HOLD work. |
+| [One AR GPU + one acoustic GPU vs two replicas](two-gpu/report.txt) | Continuous-16 throughput **−30.16%** | Stage imbalance: about 45% AR / 94% acoustic utilization; CPU-staged transfer and 4 vs 8 total AR slots. |
+| [Blocking complete-generation loop](direct-generation/report.txt) | Concurrent throughput **−6.29% to −7.84%** | Other AR requests cannot progress during synthesis. |
+| [MPS on the same-worker phase-queue version](mps/report.txt) | Off/on/on/off: **−0.69% / −1.51%** throughput | AR/NAR already shared a context; compute contention remained. |
+| [Phase-specific logits projection](phase-logits/report.txt) | Mixed projection **54.51–61.43% slower** | Extra projection and gather/scatter outweighed saved work. Reverted. |
+| [Separate ABC/semantic queues](phase-queue/report.txt) | Throughput **−5.09%**; mean AR batch **22.185→16.260** | Smaller batches required more steps. Reverted. |
+| [Equal acoustic/AR stream priority](priority/report.txt) | **+1.12%** throughput in one profiled pair; AR waits remained | Priority did not resolve shared-resource contention. |
+| [Submission depth 2→1](kv-and-depth/report.txt) | **+0.170% / +0.763%**, RTF P95 slightly worse | Less queued work changed ordering without reducing NAR computation. |
+| [VAE batch 1→2](vae-batch/report.txt) | Throughput within **±0.4%**; VAE1 peak **2.84 GiB lower** | Too little critical-path work to repay additional batch storage. |
+| [Wait window 0/200/1000 ms](wait-window/report.txt) | Throughput **16.075/16.060/16.067**; B2 coverage **6/6/10** of 32 | Additional batching did not repay the wait. |
+| [Max-B2→max-B4 with 32k/48k token budgets](token-budget/report.txt) | Throughput **+0.225% / −1.080%**; neither run formed B4 | A larger cap did not produce enough simultaneously ready requests. |
 
+NAR operator profiling found attention and MLP dominant. FlashInfer attention/GEMM alternatives gave mixed results across shapes; the SiLU replacement was retained. [Profile](nar-hotspots/report.txt), [kernel comparison](flashinfer/report.txt).
 
-NAR operator profiling found attention and MLP dominant, with small replay gaps; the original FA3, compilation and Graph paths were active. This motivated the narrow SiLU experiment rather than replacing the whole NAR backend. [Kernel profile](nar-hotspots/report.txt).
+## 4. Whole-path results
 
-## 4. User value: final whole-change E2E comparison
+The October 10 packed-KV/FlashInfer snapshot measured throughput **+0.739% / −0.886%** against main with AR32/KV24/client64/NAR≤4/token32768/window200ms/VAE1. Main→PR→PR→main, each with 2 full warmups + 64 measured songs. [Plan](h800-e2e/evidence/plan.json), [results](h800-e2e/artifacts/pairs.json), [report](h800-e2e/report.txt).
 
-The PR's **6.22–6.38%** figure is the complete tested NAR1 implementation versus main, not the sum of the rows above. It includes capture preparation. One RTX4090 24 GiB, main=`f9143976b688cf1e78796ee080d7294f6e019960` plus the common HF/VAE loading fix; PR=the same base plus the archived implementation patch. The measured tree was uncommitted: [patches, per-file SHA256 and reconstruction script](../README.md#reproduce-the-measured-performance) identify it precisely; it is not represented as a measurement of the current PR SHA.
+Changes made after that run:
 
-Same model `YuE2-3B@1a96eca`, legacy VAE `b54118f`, inputs/seeds, AR1/KV3 GiB/client2/context24576/graphs/full-CoT/CFG1/ABC4096/semantic9000. PR NAR1/VAE1/window0/token-budget0; MPS off. Order main → PR → PR → main, each a fresh process with 2 full warmups + 32 measured songs; no stage/batch/Nsight probes. Full revisions/environment are in [assets](../performance/evidence/assets.json) and [plan](../performance/evidence/plan.json).
+| Change | Record |
+| --- | --- |
+| Single-element concatenation removal | [Fixed-input audio and allocator profiling](single-cat/report.txt) |
+| Unified default entry and CFG scheduling | [Ordinary-request admission and CFG-capacity handling](unified-entry/report.txt) |
+| Graph pre-capture synchronization/cache reclamation | [Intervention](capture-prep/report.txt), [adopted patch](../performance/evidence/candidate.patch) |
+| Upstream migration to `f9143976`, including delayed-output token handling | [Recorded patch](../performance/evidence/candidate.patch) |
 
-| Metric | Two paired changes, PR relative to main |
+The October 14 main/PR ABBA used base `f9143976` + the common loading fix versus the recorded PR patch. Both used AR1/KV3/client2, context24576, full-CoT/CFG1, ABC4096/semantic9000; PR NAR1/VAE1/window0/token-budget0. Main→PR→PR→main, fresh processes, each with 2 full warmups + 32 measured songs:
+
+| Metric | PR relative to main, two pairs |
 | --- | --- |
 | Audio throughput | **+6.22% / +6.38%** |
 | Content TPS | **+5.80% / +5.95%** |
 | E2EL P95 | **−13.94% / −14.10%** |
-| Per-request RTF P95 | **−15.75% / −15.86%** |
-| Sampled device peak | **22.688 → 21.373 GiB** in both pairs |
+| RTF P95 | **−15.75% / −15.86%** |
+| Device peak | **22.688→21.373 GiB** |
 
-All 128 measured songs completed; PR had zero allocator retries/OOM. PR audio was **2.454% shorter**, and both versions thermally throttled. Percent ranges are the two observed pairs, not confidence intervals. The earlier H800 packed-configuration E2E ABBA was effectively throughput-neutral (**+0.739% / −0.886%**) with higher device peaks; we do not claim a universal win or independently optimal deployment settings. [H800 report](h800-e2e/report.txt).
-
-Fixed-input exactness checks above and the completed NAR1 WSB evaluation provide correctness/quality evidence with different scopes. Concurrent free-generation outputs are not bitwise identical, and WSB was not a paired current-main quality-equivalence test. Current-head GPU validation and batched-NAR quality acceptance remain open. [WSB scope](../README.md#wsb-protocol-and-scripts).
+PR audio was 2.454% shorter; both arms thermally throttled. [Sources, recipes and per-request results](../README.md#reproduce-the-measured-performance).
 
 ## Evidence provenance
 
-This is a curated index of existing experiments, not a new benchmark run. `sources.json` records the original workspace path and SHA256 for every copied file. `report.txt` files preserve the original reports byte for byte, including historical labels and paths; their relative references refer to those archived experiment directories. The selected numeric records are included alongside them; full traces, tensors and all original experiment files are not republished here. The parent `SHA256.json` covers this index and all included records.
+`sources.json` records original workspace paths and SHA256. Archived reports and numeric records preserve their original bytes and labels; references inside the reports refer to their original experiment directories. The parent `SHA256.json` covers the published files.

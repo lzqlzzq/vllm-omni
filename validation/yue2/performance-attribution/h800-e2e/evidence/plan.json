@@ -1,0 +1,87 @@
+{
+  "order": [
+    "upstream-01",
+    "candidate-01",
+    "candidate-02",
+    "upstream-02"
+  ],
+  "requests": 64,
+  "warmups": 2,
+  "concurrency": 64,
+  "offset": 1,
+  "max_abc": 4096,
+  "max_frames": 9000,
+  "mps": "off",
+  "omp_mkl": 1,
+  "upstream": "c548a110 + shared HF/VAE loading fix 631f5573",
+  "candidate": "Adopted zero-copy + FlashInfer BF16 SiLU; full queue candidate, not kernel-only ablation",
+  "source_counts": {
+    "upstream": 1852,
+    "candidate": 1860
+  },
+  "common_config": {
+    "model_runner": "v1",
+    "async_chunk": false,
+    "dtype": "bfloat16",
+    "stages": [
+      {
+        "stage_id": 0,
+        "max_num_seqs": 32,
+        "gpu_memory_utilization": 0.7,
+        "enforce_eager": false,
+        "enable_prefix_caching": false,
+        "max_num_batched_tokens": 24576,
+        "max_model_len": 24576,
+        "devices": "0",
+        "skip_tokenizer_init": true,
+        "tokenizer": "gpt2",
+        "hf_overrides": {
+          "yue2_vae_path": null,
+          "yue2_vae_revision": "main"
+        },
+        "default_sampling_params": {
+          "extra_args": {
+            "yue2_phase": "semantic",
+            "yue2_seed": 831001,
+            "yue2_max_audio_frames": 200,
+            "yue2_max_hold_steps": 4096
+          },
+          "detokenize": false,
+          "stop_token_ids": [
+            151848,
+            151852
+          ],
+          "max_tokens": 4297,
+          "temperature": 1.0
+        },
+        "async_scheduling": false,
+        "enable_chunked_prefill": false,
+        "compilation_config": {
+          "mode": 3,
+          "cudagraph_mode": "FULL_AND_PIECEWISE",
+          "cudagraph_capture_sizes": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+          ]
+        },
+        "kv_cache_memory_bytes": 25769803776
+      }
+    ]
+  },
+  "runtime_files": {
+    "scripts/analyze.py": "304fb83a03579d9b2552eb2ed185c0a89df997158ff5d24138eee1441262cd24",
+    "scripts/bench_e2e.py": "1f998a1345d57b4320ff14d73932a24d9e2b7d21abe8c34cc4a2e01d419d70f6",
+    "scripts/env.sh": "8ef71a49bf5bfa6e749bddb2973913e2de06d9f2d59b2d52462db9d07ae88f93",
+    "scripts/preflight.py": "30a47f0cc1f316b810ffbe0b7d52f61cdc5a8d22b155940096ec3a510f4f69e4",
+    "scripts/run.sh": "cf6c944d16a90f7c67f741494e2b20a5a2c6f472aa1b6b4af67c9cac4c8eab75",
+    "scripts/tps.py": "1a04943911b20c08da11a8194f3ef11a010ac0320d6d03940124fae0b9072eca",
+    "configs/candidate.yaml": "1d2efda28aa38bafbc3e3d8ba1e6d472673aabac31d130fa7fb8f57497865464",
+    "configs/upstream.yaml": "8a6d79d32589f1e49765f20c910ac67486febb8e84e4a282dabd0f436afa8df9"
+  },
+  "save_audio_latent": false,
+  "observers": false
+}

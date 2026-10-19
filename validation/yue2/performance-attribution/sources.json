@@ -294,6 +294,16 @@
     "sha256": "2f3455c86291d885e65b61fd7b96498aa53aee6beaf7572dbb89247cc5d0ab96",
     "transformation": "none"
   },
+  "h800-e2e/evidence/plan.json": {
+    "source": "docs/validation/2026-10-10-yue2-flashinfer-upstream/evidence/plan.json",
+    "sha256": "5eee39d68868b4ab2c2aa32e9840fc141bb69e7fd91fa75ecd47a24bae994de6",
+    "transformation": "none"
+  },
+  "unified-entry/report.txt": {
+    "source": "docs/validation/2026-10-12-yue2-unified-entry/README.md",
+    "sha256": "ca37da12dfb117e3c96fe612a889d894b5b630bdb688a13ea76cb07b1e3251b7",
+    "transformation": "none"
+  },
   "single-cat/report.txt": {
     "source": "docs/validation/2026-10-10-yue2-copy-memory/README.md",
     "sha256": "c2a180d9177e413afb404b19538b51bc8eacf3104026286550aa1bd0006530bc",
