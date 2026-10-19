@@ -91,6 +91,7 @@ class BatchedSynthesisQueue(_SynthesisQueue):
         self.vae_batch_size = vae_batch_size
         self.tile_frames = tile_frames
         self.members = []
+        self.retrying = []
         self.cancelled = set()
         self.sizes = []
         self.ready = {}
@@ -163,13 +164,23 @@ class BatchedSynthesisQueue(_SynthesisQueue):
             if not self.active.done():
                 return
             audio, failed = self.active.finish()
-            waves = [torch.zeros((2, 0)) for _ in self.members] if failed else audio.split(self.sizes, dim=-1)
-            for index, (state, wave) in enumerate(zip(self.members, waves)):
-                if index not in self.cancelled:
-                    self.ready[state.request_id] = self._payload(wave, failed, state.truncated)
+            # Retry recoverable packed failures once as B1; unknown CUDA errors stay terminal.
+            if (
+                failed
+                and len(self.members) > 1
+                and (self.active.error is None or isinstance(self.active.error, (torch.OutOfMemoryError, ValueError)))
+            ):
+                self.retrying.extend(state for index, state in enumerate(self.members) if index not in self.cancelled)
+            else:
+                waves = [torch.zeros((2, 0)) for _ in self.members] if failed else audio.split(self.sizes, dim=-1)
+                for index, (state, wave) in enumerate(zip(self.members, waves)):
+                    if index not in self.cancelled:
+                        self.ready[state.request_id] = self._payload(wave, failed, state.truncated)
             self.active = None
             self.members = []
-        if self.waiting:
+        if self.retrying:
+            self.members = [self.retrying.pop(0)]
+        elif self.waiting:
             count, tokens = 0, 0
             for state in self.waiting[: self.nar_batch_size]:
                 cost = state.acoustic_batch_tokens if self.batch_max_tokens else 0
@@ -190,10 +201,12 @@ class BatchedSynthesisQueue(_SynthesisQueue):
                 return
             self.members = self.waiting[:count]
             del self.waiting[:count]
-            self.cancelled = set()
-            self.sizes = []
-            self.active = _SynthesisJob(self.members[0].request_id, self._work)
-            self.active.start(self.stream())
+        else:
+            return
+        self.cancelled = set()
+        self.sizes = []
+        self.active = _SynthesisJob(self.members[0].request_id, self._work)
+        self.active.start(self.stream())
 
     def poll(self):
         self.pump()
@@ -202,6 +215,7 @@ class BatchedSynthesisQueue(_SynthesisQueue):
 
     def cancel_request(self, request_id):
         self.waiting[:] = [state for state in self.waiting if state.request_id != request_id]
+        self.retrying[:] = [state for state in self.retrying if state.request_id != request_id]
         self.ready.pop(request_id, None)
         for index, state in enumerate(self.members):
             if state.request_id == request_id:

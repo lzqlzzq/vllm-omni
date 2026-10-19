@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fixed-input independent-request oracle for packed NAR batching."""
 
+import weakref
+
 import pytest
 import torch
 import torch.nn.functional as F
@@ -149,6 +151,7 @@ def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
     a, b, c = [yue2._RequestState(x, mocker.Mock(spec=yue2._RowConstants)) for x in ("a", "b", "c")]
     queue.members = [a, b]
     queue.waiting = [c]
+    queue.retrying = [c]
     queue.sizes = [2, 3]
     cancelled = []
     source = torch.tensor([[1, 1, 2, 2, 2], [1, 1, 2, 2, 2]])
@@ -160,7 +163,7 @@ def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
     )
     queue.cancel_request("c")
     queue.cancel_request("a")
-    assert not cancelled and not queue.waiting
+    assert not cancelled and not queue.waiting and not queue.retrying
     ready = queue.poll()
     assert set(ready) == {"b"} and torch.equal(ready["b"]["audio"], torch.full((2, 3), 2))
     assert ready["b"]["audio"].is_contiguous() and ready["b"]["audio"]._base is None
@@ -173,6 +176,59 @@ def test_batch_member_cancellation_preserves_survivor_and_mapping(mocker):
     queue.cancel_request("a")
     queue.cancel_request("b")
     assert cancelled == [True] and queue.active is None and not queue.members
+
+
+@pytest.mark.parametrize("error", [None, torch.OutOfMemoryError, ValueError, RuntimeError])
+def test_failed_packed_job_retries_members_once(monkeypatch, mocker, error):
+    from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
+
+    queue = BatchedSynthesisQueue(None, 2, 1, 1024)
+    attempts, jobs, buffers = [], [], []
+
+    def fail():
+        scratch = torch.ones(1)
+        buffers.append(weakref.ref(scratch))
+        raise error("bad member")
+
+    def job(request_id, work):
+        assert all(ref() is None for ref in buffers)
+        names = [s.request_id for s in queue.members]
+        attempts.append(names)
+        queue.sizes = [3] * len(names)
+        result = yue2._SynthesisJob(request_id, work)
+        result.audio = torch.full((2, sum(queue.sizes)), 0.25)
+        result.finite = torch.tensor("bad" not in names)
+        if "bad" in names and error:
+            try:
+                fail()
+            except (RuntimeError, ValueError) as exc:
+                result.error = exc
+        jobs.append(result)
+        mocker.patch.object(result, "start")
+        mocker.patch.object(result, "done", return_value=True)
+        return result
+
+    monkeypatch.setattr(module, "_SynthesisJob", job)
+    monkeypatch.setattr(BatchedSynthesisQueue, "stream", lambda self: None)
+    for name in ("bad", "good"):
+        queue.submit(yue2._RequestState(name, mocker.Mock(spec=yue2._RowConstants), history=[yue2.CODEC_OFFSET]))
+    ready: dict[str, dict[str, torch.Tensor]] = {}
+    for _ in range(5):
+        outputs = queue.poll()
+        assert not ready.keys() & outputs.keys()
+        ready.update(outputs)
+    assert set(ready) == {"bad", "good"}
+    assert ready["bad"]["meta.error"].item() == 1 and ready["bad"]["audio"].numel() == 0
+    if error is RuntimeError:
+        assert attempts == [["bad", "good"]]
+        assert ready["good"]["meta.error"].item() == 1
+    else:
+        assert attempts == [["bad", "good"], ["bad"], ["good"]]
+        assert ready["good"]["meta.error"].item() == 0
+        torch.testing.assert_close(ready["good"]["audio"], torch.full((2, 3), 0.25))
+    assert not queue.active and not queue.members and not queue.waiting and not queue.retrying
+    assert all(job.error is None or job.error.__traceback__ is None for job in jobs)
+    assert all(ref() is None for ref in buffers)
 
 
 def test_batch_window_deadline_full_cancel_and_drain(monkeypatch, mocker):

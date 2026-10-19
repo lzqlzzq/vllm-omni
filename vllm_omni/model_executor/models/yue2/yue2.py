@@ -1839,6 +1839,8 @@ class _SynthesisJob:
         if self.work is not None:
             self.work.close()
             self.work = None
+        if self.error is not None:
+            self.error.__traceback__ = None  # Release failed generator locals, including GPU tensors.
         for item in self.keep:
             if isinstance(item, CachedNAR):
                 item.close()
