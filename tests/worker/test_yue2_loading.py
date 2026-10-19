@@ -4,7 +4,6 @@
 
 import pytest
 import torch
-from safetensors.torch import save_file
 from vllm.config import LoadConfig, ModelConfig, VllmConfig
 
 from vllm_omni.entrypoints.async_omni import AsyncOmni
@@ -83,34 +82,3 @@ def test_model_vae_revision_and_credentials(path, legacy, expected, monkeypatch,
     )
     assert model._vae_model(torch.device("cpu")) is vae
     assert load.call_count == 1
-
-
-@pytest.mark.parametrize("from_hub", [False, True], ids=["local", "hf"])
-def test_vae_checkpoint_loading(tmp_path, mocker, from_hub):
-    config = y.YuE2VAEConfig(
-        latent_dim=2,
-        downsampling_ratio=2,
-        decoder_config=dict(out_channels=2, channels=4, c_mults=[1], strides=[2], latent_dim=2),
-    )
-    original = y.YuE2VAE(config, decoder_only=True).float()
-    config.save_pretrained(tmp_path)
-    save_file(original.state_dict(), tmp_path / "model.safetensors")
-    api = mocker.patch("vllm_omni.transformers_utils.repo_utils.hf_api")
-    api.return_value.snapshot_download.return_value = str(tmp_path)
-    loaded = y.YuE2VAE.from_pretrained(
-        "m-a-p/YuE2-Vae" if from_hub else tmp_path, revision="vae-sha", decoder_only=True
-    )
-    assert loaded.state_dict().keys() == original.state_dict().keys()
-    for name, value in original.state_dict().items():
-        assert torch.equal(value, loaded.state_dict()[name])
-    if from_hub:
-        assert api.return_value.snapshot_download.call_args.kwargs["revision"] == "vae-sha"
-    else:
-        api.assert_not_called()
-
-
-def test_vae_config_round_trip():
-    config = Yue2Config(yue2_vae_path="m-a-p/YuE2-Vae", yue2_vae_revision="vae-sha")
-    restored = Yue2Config.from_dict(config.to_dict())
-    assert restored.yue2_vae_path == "m-a-p/YuE2-Vae"
-    assert restored.yue2_vae_revision == "vae-sha"

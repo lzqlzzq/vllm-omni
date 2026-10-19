@@ -4,6 +4,7 @@
 
 import pytest
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 from vllm_omni.model_executor.models.yue2 import batched_nar, yue2
@@ -75,12 +76,24 @@ def inputs(lengths):
 
 
 @pytest.mark.parametrize("lengths", [[(5, 4), (5, 4)], [(3, 2), (7, 5)], [(7, 2), (3, 5), (4, 3), (6, 4)]])
+@pytest.mark.parametrize("varlen", [False, True])
 @torch.inference_mode()
-def test_batched_solver_matches_independent_requests(tiny_model, lengths):
-    chunks, conditions = inputs(lengths)
-    expected = [yue2.CachedNAR(tiny_model, c).solve(3) for c, kv in zip(chunks, conditions)]
+def test_batched_solver_matches_independent_requests(tiny_model, lengths, varlen):
+    chunks, _ = inputs(lengths)
+    expected = [yue2.CachedNAR(tiny_model, c).solve(3) for c in chunks]
     engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
+
+    def varlen_oracle(q, k, v, *, cu_seqlens_q, cu_seqlens_k, **kwargs):
+        # Independent attention on the packed spans checks both gather indices
+        # and cumulative boundaries; CUDA tests use the real flash kernel.
+        outputs = []
+        for qa, qb, ka, kb in zip(cu_seqlens_q[:-1], cu_seqlens_q[1:], cu_seqlens_k[:-1], cu_seqlens_k[1:]):
+            outputs.append(yue2._attention(q[qa:qb], k[ka:kb], v[ka:kb], causal=False))
+        return torch.cat(outputs)
+
     yue2._drain(engine.prefill_iter())
+    if varlen:
+        engine.batch_flash = varlen_oracle
     actual = yue2._drain(engine.solve_iter(3)).split(engine.lengths)
     for index, value in enumerate(expected):
         torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
@@ -101,27 +114,6 @@ def test_request_order_and_lengths_do_not_leak_between_songs(tiny_model):
     yue2._drain(reverse.prefill_iter())
     second = yue2._drain(reverse.solve_iter(2)).split(reverse.lengths)
     torch.testing.assert_close(first[0], second[1], atol=2e-6, rtol=2e-5)
-
-
-@torch.inference_mode()
-def test_packed_varlen_boundaries_match_independent_requests(tiny_model):
-    chunks, conditions = inputs([(7, 2), (3, 5), (4, 3), (6, 4)])
-    expected = [yue2.CachedNAR(tiny_model, c).solve(2) for c, kv in zip(chunks, conditions)]
-    engine = batched_nar.BatchedCachedNAR(tiny_model, chunks)
-
-    def varlen_oracle(q, k, v, *, cu_seqlens_q, cu_seqlens_k, **kwargs):
-        # Independent attention on the packed spans checks both gather indices
-        # and cumulative boundaries; CUDA tests use the real flash kernel.
-        outputs = []
-        for qa, qb, ka, kb in zip(cu_seqlens_q[:-1], cu_seqlens_q[1:], cu_seqlens_k[:-1], cu_seqlens_k[1:]):
-            outputs.append(yue2._attention(q[qa:qb], k[ka:kb], v[ka:kb], causal=False))
-        return torch.cat(outputs)
-
-    yue2._drain(engine.prefill_iter())
-    engine.batch_flash = varlen_oracle
-    actual = yue2._drain(engine.solve_iter(2)).split(engine.lengths)
-    for index, value in enumerate(expected):
-        torch.testing.assert_close(actual[index], value, atol=2e-6, rtol=2e-5)
 
 
 @pytest.mark.parametrize("batch_size", [1, 2])
@@ -314,3 +306,68 @@ def test_supplied_condition_storage_rejects_wrong_shape(tiny_model):
     wrong = torch.zeros(2, 8, 2, 8)
     with pytest.raises(ValueError, match="Condition KV storage"):
         yue2.CachedNAR(tiny_model, chunks[0], kv=(wrong, wrong.clone()))
+
+
+@pytest.mark.parametrize("available", [False, True])
+@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
+@torch.inference_mode()
+def test_cpu_post_attention_preserves_reference(monkeypatch, available, dtype):
+    monkeypatch.setattr(yue2, "_USE_FLASHINFER_SILU", available)
+    torch.manual_seed(73)
+    x, attn, w_o, norm, gate_up, down = [
+        torch.randn(*shape, dtype=dtype) for shape in [(7, 32), (7, 4, 8), (32, 32), (32,), (96, 32), (32, 48)]
+    ]
+    residual = x + F.linear(attn.flatten(1), w_o)
+    gate, up = F.linear(yue2._rms(residual, norm, 1e-6), gate_up).chunk(2, dim=-1)
+    expected = residual + F.linear(F.silu(gate) * up, down)
+    actual = yue2._nar_post_attention(x, attn, w_o, norm, gate_up, down, 1e-6)
+    assert torch.equal(actual, expected)
+
+
+@pytest.mark.parametrize("shape", [(7, 12288), (2, 7, 12288)])
+def test_flashinfer_fake_output_contract(shape):
+    x = torch.empty(shape, dtype=torch.bfloat16, device="meta")
+    out = yue2._flashinfer_silu_and_mul(x)
+    assert out.shape == (*shape[:-1], shape[-1] // 2)
+    assert out.dtype == x.dtype and out.device == x.device
+    assert out.is_contiguous()
+
+
+@pytest.mark.parametrize("capture_fails", [False, True])
+def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails):
+    engine = object.__new__(yue2.CachedNAR)
+    engine.device = torch.device("cuda:0")
+    engine.pool = (0, 1)
+    engine.graph = None
+    engine.state_in = torch.zeros(2, 64)
+    engine.time_in = torch.zeros(())
+    state = torch.ones_like(engine.state_in)
+    calls = mocker.Mock()
+    graph = mocker.Mock(spec=torch.cuda.CUDAGraph)
+    for name in ("capture_begin", "capture_end", "replay"):
+        calls.attach_mock(getattr(graph, name), name)
+    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: graph)
+    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: "side")
+    monkeypatch.setattr(torch.cuda, "default_stream", lambda device: "default")
+    monkeypatch.setattr(torch.accelerator, "synchronize", calls.synchronize)
+    monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
+    engine._velocity = mocker.Mock(return_value=state.clone())
+    if capture_fails:
+        engine._velocity.side_effect = RuntimeError("capture failed")
+        with pytest.raises(RuntimeError, match="capture failed"):
+            engine.velocity(state, 0.5)
+    else:
+        assert torch.equal(engine.velocity(state, 0.5), state)
+        assert torch.equal(engine.velocity(state, 0.25), state)
+        assert torch.equal(engine.state_in, state)
+        assert engine.time_in.item() == 0.25
+    expected = [
+        mocker.call.synchronize(engine.device),
+        mocker.call.empty_cache(),
+        mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
+        mocker.call.capture_end(),
+    ]
+    if not capture_fails:
+        expected += [mocker.call.replay(), mocker.call.replay()]
+    assert calls.mock_calls == expected
+    engine._velocity.assert_called_once()

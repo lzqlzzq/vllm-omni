@@ -6,10 +6,10 @@ import pytest
 import torch
 from vllm import SamplingParams
 from vllm.v1.core.encoder_cache_manager import EncoderCacheManager
+from vllm.v1.core.sched.interface import PauseState
 from vllm.v1.engine import FinishReason
 from vllm.v1.request import RequestStatus
 
-from vllm_omni.core.sched.omni_ar_scheduler import OmniARScheduler
 from vllm_omni.core.sched.output import OmniSchedulerOutput
 from vllm_omni.model_executor.models.yue2.runtime import (
     Yue2ForCausalLM,
@@ -75,7 +75,7 @@ def test_b1_output_owns_audio_after_job_release(mocker):
     assert Yue2ForCausalLM.poll_audio(model) == {}
 
 
-def test_detach_zero_token_completion_and_abort_race(monkeypatch, mocker):
+def test_runner_drains_started_ids_through_model_wrapper(mocker):
     model = mocker.Mock(spec=Yue2ForCausalLM, acoustic_started=[], poll_audio=lambda: {})
 
     class Wrapper:
@@ -89,64 +89,9 @@ def test_detach_zero_token_completion_and_abort_race(monkeypatch, mocker):
         result = runner._with_audio(OmniModelRunnerOutput(req_ids=[], req_id_to_index={}))
         assert result.acoustic_started == [rid] and not model.acoustic_started
 
-    def update(self, schedule, output):
-        for rid in schedule.num_scheduled_tokens:
-            tokens, stopped = self._update_request_with_output(self.requests[rid], [MUSIC_END])
-            assert tokens == [] and not stopped
-        return {}
 
-    monkeypatch.setattr(OmniARScheduler, "update_from_output", update)
-    monkeypatch.setattr(OmniARScheduler, "get_num_unfinished_requests", lambda self: len(self.running))
-
-    for outcome in ("success", "error", "abort"):
-        scheduler = object.__new__(Yue2SchedulerBase)
-        request = OmniRequest("song", [1], SamplingParams(extra_args={}), None)
-        request.status = RequestStatus.RUNNING
-        scheduler.requests = {"song": request}
-        scheduler.running = [request]
-        scheduler._inflight_prefills = {request}
-        scheduler.finished_req_ids_dict = {}
-        scheduler._held_token_ids = {}
-        freed = []
-        scheduler._free_request_blocks = lambda r: freed.append(r.request_id)
-        scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager, free=lambda r: None)
-
-        def finish(r):
-            scheduler.requests.pop(r.request_id)
-            scheduler.finished_req_ids_dict.setdefault(r.client_index, set()).add(r.request_id)
-
-        scheduler._free_request = finish
-        output = Yue2ModelRunnerOutput(req_ids=["song"], req_id_to_index={"song": 0}, acoustic_started=["song"])
-        assert (
-            scheduler.update_from_output(
-                mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={"song": 1}), output
-            )
-            == {}
-        )
-        assert freed == ["song"] and not scheduler.running and not scheduler._inflight_prefills
-        assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
-        assert not list(request.output_token_ids)
-        if outcome == "abort":
-            request.status = RequestStatus.FINISHED_ABORTED
-            scheduler.requests.clear()
-        payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(outcome == "error")}
-        result = scheduler.update_from_output(
-            mocker.Mock(spec=OmniSchedulerOutput, num_scheduled_tokens={}),
-            Yue2ModelRunnerOutput(req_ids=[], req_id_to_index={}, acoustic_ready={"song": payload}),
-        )
-        assert not scheduler.requests and scheduler.get_num_unfinished_requests() == 0
-        if outcome == "abort":
-            assert not result
-        else:
-            assert list(request.output_token_ids) == [MUSIC_END]
-            assert result[0].finished_requests == {"song"}
-            final = result[0].outputs[0]
-            assert final.finish_reason == (FinishReason.ERROR if outcome == "error" else FinishReason.STOP)
-            assert final.multimodal_output is payload
-
-
-@pytest.mark.parametrize("failed", [False, True])
-def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
+@pytest.mark.parametrize("outcome", ["success", "error", "abort"])
+def test_detach_and_delayed_completion_with_coalesced_tokens(mocker, outcome):
     from tests.core.sched.test_omni_ar_scheduler_logprobs import _bind_request_lifecycle, _make_scheduler_stub
 
     request = OmniRequest("song", [1, 2, 3], SamplingParams(max_tokens=20, detokenize=False), None)
@@ -157,14 +102,16 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
     _bind_request_lifecycle(scheduler, update_request=lambda r, tokens: (tokens, False))
     del scheduler._update_request_with_output
     scheduler.max_model_len = 4096
+    scheduler._pause_state = PauseState.UNPAUSED
+    scheduler.num_waiting_for_streaming_input = 0
     scheduler._hold_payloadless_outputs = True
     scheduler._held_token_ids = {}
     scheduler._pending_input_timeout_outputs = {}
     scheduler._streaming_context_overflow = {}
     scheduler.kv_cache_manager.estimate_cached_tokens = lambda req: 0
     scheduler.vllm_config.model_config.engine_output_type = "audio"
-    scheduler._inflight_prefills = set()
-    scheduler._free_request_blocks = lambda req: None
+    scheduler._inflight_prefills = {request}
+    scheduler._free_request_blocks = mocker.Mock()
     scheduler.encoder_cache_manager = mocker.Mock(spec=EncoderCacheManager)
 
     def step(token=None, *, started=False, payload=None):
@@ -191,7 +138,17 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
     assert step(151854) == []
     assert scheduler._held_token_ids == {"song": [151854]}
     assert step(MUSIC_END, started=True) == []
+    scheduler._free_request_blocks.assert_called_once_with(request)
+    assert not scheduler.running and not scheduler._inflight_prefills
+    assert scheduler.requests["song"] is request and scheduler.get_num_unfinished_requests() == 1
     assert step() == []
+    if outcome == "abort":
+        request.status = RequestStatus.FINISHED_ABORTED
+        scheduler.requests.clear()
+        assert step(payload={"audio": torch.ones(2, 3), "meta.error": torch.tensor(False)}) == []
+        assert scheduler.get_num_unfinished_requests() == 0
+        return
+    failed = outcome == "error"
     payload = {"audio": torch.ones(2, 3), "meta.error": torch.tensor(failed)}
     (final,) = step(payload=payload)
     assert final.new_token_ids == [151854, MUSIC_END]
@@ -199,4 +156,5 @@ def test_coalesced_tokens_reach_delayed_audio_once(mocker, failed):
     assert final.finish_reason == (FinishReason.ERROR if failed else FinishReason.STOP)
     assert final.multimodal_output is payload
     assert not scheduler._held_token_ids and not scheduler.requests
+    assert scheduler.get_num_unfinished_requests() == 0
     assert step(payload=payload) == []
