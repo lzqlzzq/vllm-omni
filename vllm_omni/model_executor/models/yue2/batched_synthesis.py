@@ -154,6 +154,8 @@ class BatchedSynthesisQueue(_SynthesisQueue):
                 engine.last_use.record()
             latents = [parts[0] if len(parts) == 1 else torch.cat(parts) for parts in pieces]
         keep.extend(latents)
+        # Retire completed NAR buffers before allocating VAE workspace.
+        yield torch.cuda.Event()
         vae = model._vae_model(latents[0].device)
         waves = yield from decode_tiles_iter(vae, latents, self.vae_batch_size, self.tile_frames, self.cancelled)
         self.sizes = [wave.shape[-1] for wave in waves]

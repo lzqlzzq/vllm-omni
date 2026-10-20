@@ -130,9 +130,9 @@ can change floating-point results and subsequent generated audio; do not
 assume bitwise equivalence across batching configurations.
 
 AR paged KV, NAR conditioning KV, graphs and VAE activations all contribute to
-peak memory. Before capturing a new NAR graph, the worker synchronizes the
-device and releases unused allocator cache so the graph's private pool can
-grow. This preparation is not repeated on graph replay.
+peak memory. The synthesis job waits for the final NAR completion event and
+releases its KV and graph buffers before allocating VAE workspace. The shared
+graph allocator pool retains reserved storage for reuse.
 
 The supplied four-slot / 0.70 memory-utilization settings are starting points,
 not a 24 GiB deployment guarantee. For long songs on a 24 GiB card, start with

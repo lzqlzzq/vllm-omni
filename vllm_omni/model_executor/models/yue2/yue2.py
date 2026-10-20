@@ -659,9 +659,6 @@ class CachedNAR:
                 with torch.cuda.graph(self.graph, pool=self.pool, capture_error_mode="thread_local"):
                     self.velocity_out = self._velocity(self.state_in, self.time_in)
             else:
-                # Capture cannot reclaim eager cache for the graph's private pool.
-                torch.accelerator.synchronize(self.device)
-                torch.accelerator.empty_cache()
                 self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
                 try:
                     self.velocity_out = self._velocity(self.state_in, self.time_in)
@@ -1711,7 +1708,7 @@ class _RequestState:
     delivered: tuple[torch.Tensor, bool, bool] | None = None
 
 
-SongWork = Callable[[list], Generator[None, None, torch.Tensor]]
+SongWork = Callable[[list], Generator[torch.cuda.Event | None, None, torch.Tensor]]
 
 
 class _SynthesisJob:
@@ -1732,13 +1729,14 @@ class _SynthesisJob:
 
     def __init__(self, request_id: str, song: SongWork):
         """``song(keep)`` yields once per enqueued work unit and returns the
-        device audio [2, samples]; what it appends to ``keep`` stays alive
-        until the job is released."""
+        device audio [2, samples]. Yielding an unrecorded event pauses work
+        until all prior units finish; completed NAR engines are then retired."""
         self.request_id = request_id
         self.song = song
         self.stream: torch.cuda.Stream | None = None
-        self.work: Iterator[None] | None = None
+        self.work: Iterator[torch.cuda.Event | None] | None = None
         self.inflight: list[torch.cuda.Event] = []
+        self.waiting: torch.cuda.Event | None = None
         self.event: torch.cuda.Event | None = None  # recorded after the last unit
         self.audio: torch.Tensor | None = None  # pinned host copy
         self.finite: torch.Tensor | None = None  # pinned pre-clamp validity flag
@@ -1755,7 +1753,7 @@ class _SynthesisJob:
     def started(self) -> bool:
         return self.t_start is not None
 
-    def _run(self) -> Iterator[None]:
+    def _run(self) -> Iterator[torch.cuda.Event | None]:
         audio = yield from self.song(self.keep)
         # Check before clipping: clipping maps infinities to finite +/-1.
         # Both copies target pinned allocations and complete before self.event.
@@ -1777,6 +1775,10 @@ class _SynthesisJob:
         """Enqueue work units up to MAX_INFLIGHT ahead of the GPU; never waits."""
         if self.work is None or self.event is not None or self.error is not None:
             return
+        if self.waiting is not None:
+            if not self.waiting.query():
+                return
+            self.waiting = None
         with torch.cuda.stream(self.stream), torch.inference_mode():
             while True:
                 # Completed chunks need not keep all their K/V and private
@@ -1790,7 +1792,7 @@ class _SynthesisJob:
                 if len(self.inflight) >= self.MAX_INFLIGHT:
                     return
                 try:
-                    next(self.work)
+                    barrier = next(self.work)
                 except StopIteration:
                     self.event = torch.cuda.Event()
                     self.event.record(self.stream)
@@ -1801,6 +1803,10 @@ class _SynthesisJob:
                     # rejects a bad song with ValueError. Either fails only
                     # this request (see finish); anything else is a bug.
                     self.error = exc
+                    return
+                if barrier is not None:
+                    barrier.record(self.stream)
+                    self.waiting = barrier
                     return
                 unit = torch.cuda.Event()
                 unit.record(self.stream)
@@ -1818,7 +1824,9 @@ class _SynthesisJob:
     def drain(self) -> None:
         """Enqueue and wait for everything (a request out of hold budget)."""
         while self.work is not None and self.event is None and self.error is None:
-            if self.inflight:
+            if self.waiting is not None:
+                self.waiting.synchronize()
+            elif self.inflight:
                 self.inflight[0].synchronize()
             self.advance()
 
@@ -1851,6 +1859,7 @@ class _SynthesisJob:
             if isinstance(item, CachedNAR):
                 item.close()
         self.keep.clear()
+        self.waiting = None
         self.stream = None
         self._released = True
 
@@ -2591,10 +2600,12 @@ class Yue2ForCausalLM(nn.Module):
 
     def _song_iter(
         self, prefix_ids: list[int], codec: list[int], seed: int, keep: list
-    ) -> Generator[None, None, torch.Tensor]:
+    ) -> Generator[torch.cuda.Event | None, None, torch.Tensor]:
         """NAR + VAE for one song as work units; returns the device audio."""
         latents = yield from synthesize_iter(self, prefix_ids, codec, seed, keep, self._synthesis.graph_pool)
         keep.append(latents)
+        # Retire completed NAR buffers before allocating VAE workspace.
+        yield torch.cuda.Event()
         return (yield from self._decode_latents_iter(latents))
 
     def _queue_synthesis(self, state: _RequestState) -> None:

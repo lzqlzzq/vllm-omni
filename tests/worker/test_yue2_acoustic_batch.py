@@ -4,6 +4,7 @@
 
 import logging
 import weakref
+from contextlib import nullcontext
 
 import pytest
 import torch
@@ -422,7 +423,7 @@ def test_flashinfer_fake_output_contract(shape):
 
 
 @pytest.mark.parametrize("capture_fails,end_fails", [(False, False), (True, False), (True, True)])
-def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fails, end_fails):
+def test_side_stream_capture_without_allocator_preparation(monkeypatch, mocker, capture_fails, end_fails):
     engine = object.__new__(yue2.CachedNAR)
     engine.device = torch.device("cuda:0")
     engine.pool = (0, 1)
@@ -458,8 +459,6 @@ def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fa
         assert torch.equal(engine.state_in, state)
         assert engine.time_in.item() == 0.25
     expected = [
-        mocker.call.synchronize(engine.device),
-        mocker.call.empty_cache(),
         mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
         mocker.call.capture_end(),
     ]
@@ -467,3 +466,104 @@ def test_side_stream_capture_reclaims_cache_once(monkeypatch, mocker, capture_fa
         expected += [mocker.call.replay(), mocker.call.replay()]
     assert calls.mock_calls == expected
     engine._velocity.assert_called_once()
+
+
+@pytest.mark.parametrize("path", ["default", "batch_one", "packed"])
+@pytest.mark.parametrize("finish", ["advance", "drain", "cancel"])
+def test_nar_retires_before_vae_and_can_cancel_while_waiting(monkeypatch, mocker, path, finish):
+    from vllm_omni.model_executor.models.yue2 import batched_synthesis as module
+
+    ready, engines, decoded, recorded = [False], [], [], []
+
+    class Event:
+        def record(self, *args):
+            self.nar = not args
+            recorded.append(self)
+
+        def query(self):
+            return ready[0] or (not self.nar and self is not job.waiting)
+
+        def synchronize(self):
+            ready[0] = True
+
+    class NAR(yue2.CachedNAR):
+        def __init__(self, model, chunks, pool):
+            self.lengths = [2] * (len(chunks) if isinstance(chunks, list) else 1)
+            self.keys = self.values = torch.ones(1)
+            self.last_use = None
+            self.closed = 0
+            engines.append(self)
+
+        def prefill_iter(self):
+            yield
+
+        def solve_iter(self, steps):
+            yield
+            return torch.ones(sum(self.lengths), 64)
+
+        def close(self):
+            assert ready[0]
+            self.keys = self.values = None
+            self.closed += 1
+
+    def decode(vae, latents, *args):
+        assert engines and all(e.closed == 1 and e.keys is None for e in engines)
+        for latent in latents:
+            torch.testing.assert_close(latent, torch.ones(4, 64))
+        decoded.append(True)
+        yield
+        return [torch.ones(2, 8) for _ in latents]
+
+    monkeypatch.setattr(torch.cuda, "Event", Event)
+    monkeypatch.setattr(torch.cuda, "stream", lambda stream: nullcontext())
+    monkeypatch.setattr(yue2, "CachedNAR", NAR)
+    monkeypatch.setattr(module, "BatchedCachedNAR", NAR)
+
+    def chunks(*args):
+        return [object(), object()]
+
+    monkeypatch.setattr(yue2, "song_chunks", chunks)
+    monkeypatch.setattr(module, "song_chunks", chunks)
+    monkeypatch.setattr(module, "decode_tiles_iter", decode)
+    model = mocker.Mock()
+    model._synthesis.graph_pool.handle.return_value = None
+    model.vae2llm = nn.Linear(1, 1)
+
+    def decode_one(latent):
+        return (yield from decode(None, [latent]))[0]
+
+    model._decode_latents_iter = decode_one
+    if path == "default":
+
+        def work(keep):
+            return yue2.Yue2ForCausalLM._song_iter(model, [1], [0], 7, keep)
+    else:
+        queue = BatchedSynthesisQueue(model, 2, 1, 1024)
+        queue.graph_pool = model._synthesis.graph_pool
+        queue.members = [
+            yue2._RequestState(str(i), mocker.Mock(seed=7), prefix_ids=[1], history=[yue2.CODEC_OFFSET])
+            for i in range(2 if path == "packed" else 1)
+        ]
+        work = queue._work
+    job = yue2._SynthesisJob("retire", work)
+    job.stream = object()
+    job.work = work(job.keep)
+    job.advance()
+    assert job.waiting is not None and len(engines) == 2
+    record_count = len(recorded)
+    job.advance()
+    assert len(recorded) == record_count
+    assert not decoded and engines and not any(e.closed for e in engines)
+    if finish == "cancel":
+        job.cancel()
+        assert not decoded and job.work is None and not job.keep
+    else:
+        if finish == "drain":
+            job.drain()
+        else:
+            ready[0] = True
+            job.advance()
+        assert decoded == [True] and job.event is not None and job.error is None
+        job.release()
+    assert job.waiting is None
+    assert all(e.closed == 1 and e.keys is None for e in engines)
