@@ -133,6 +133,11 @@ AR paged KV, NAR conditioning KV, graphs and VAE activations all contribute to
 peak memory. The synthesis job waits for the final NAR completion event and
 releases its KV and graph buffers before allocating VAE workspace. The shared
 graph allocator pool retains reserved storage for reuse.
+If NAR graph capture runs out of memory, it discards the failed graph,
+synchronizes and clears unused cached memory, then attempts capture once more.
+This recovery also covers an OOM wrapped by CUDA's capture-invalidated error;
+other errors and a second OOM propagate to the synthesis job.
+Successful captures and graph replays do not perform this reclamation.
 
 The supplied four-slot / 0.70 memory-utilization settings are starting points,
 not a 24 GiB deployment guarantee. For long songs on a 24 GiB card, start with

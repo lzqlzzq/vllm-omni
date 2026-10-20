@@ -573,6 +573,17 @@ def fuse_nar_projections(layers: nn.ModuleList) -> list[tuple[torch.Tensor, ...]
     return fused
 
 
+def _clear_exception_tracebacks(error: BaseException | None) -> None:
+    # Chained exceptions also retain failed generator locals and GPU tensors.
+    errors, seen = [error], set()
+    while errors:
+        error = errors.pop()
+        if error is not None and id(error) not in seen:
+            seen.add(id(error))
+            error.__traceback__ = None
+            errors.extend((error.__cause__, error.__context__))
+
+
 class CachedNAR:
     """One acoustic chunk: AR prefix K/V prefilled once, ODE walks the NAR path."""
 
@@ -654,21 +665,43 @@ class CachedNAR:
                 self.state_in.copy_(state)
                 self.time_in.fill_(raw_t)
                 return self._velocity(self.state_in, self.time_in)
-            self.graph = torch.cuda.CUDAGraph()
-            if torch.cuda.current_stream(self.device) == torch.cuda.default_stream(self.device):
-                with torch.cuda.graph(self.graph, pool=self.pool, capture_error_mode="thread_local"):
-                    self.velocity_out = self._velocity(self.state_in, self.time_in)
-            else:
-                self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
-                try:
-                    self.velocity_out = self._velocity(self.state_in, self.time_in)
-                finally:
-                    self.graph.capture_end()
+            try:
+                self._capture_velocity()
+            except RuntimeError as error:
+                # capture_end may wrap OOM in cudaErrorStreamCaptureInvalidated (901).
+                oom = isinstance(error, torch.OutOfMemoryError) or (
+                    isinstance(error, torch.AcceleratorError)
+                    and getattr(error, "error_code", None) == 901
+                    and isinstance(error.__context__, torch.OutOfMemoryError)
+                )
+                if not oom:
+                    raise
+                logger.warning("YuE2 NAR graph capture ran out of memory.")
+                self.graph.reset()
+                self.graph = self.velocity_out = None
+                _clear_exception_tracebacks(error)
+            if self.graph is None:
+                # Leave the exception handler before reclaiming failed-frame tensors.
+                torch.accelerator.synchronize(self.device)
+                torch.accelerator.empty_cache()
+                self._capture_velocity()
         # The graph reads its inputs from the addresses it was captured with.
         self.state_in.copy_(state)
         self.time_in.fill_(raw_t)
         self.graph.replay()
         return self.velocity_out
+
+    def _capture_velocity(self) -> None:
+        self.graph = torch.cuda.CUDAGraph()
+        if torch.cuda.current_stream(self.device) == torch.cuda.default_stream(self.device):
+            with torch.cuda.graph(self.graph, pool=self.pool, capture_error_mode="thread_local"):
+                self.velocity_out = self._velocity(self.state_in, self.time_in)
+        else:
+            self.graph.capture_begin(pool=self.pool, capture_error_mode="thread_local")
+            try:
+                self.velocity_out = self._velocity(self.state_in, self.time_in)
+            finally:
+                self.graph.capture_end()
 
     def _velocity(self, state: torch.Tensor, raw_t: torch.Tensor) -> torch.Tensor:
         model = self.model
@@ -1847,14 +1880,7 @@ class _SynthesisJob:
         if self.work is not None:
             self.work.close()
             self.work = None
-        # Chained exceptions also retain failed generator locals and GPU tensors.
-        errors, seen = [self.error], set()
-        while errors:
-            error = errors.pop()
-            if error is not None and id(error) not in seen:
-                seen.add(id(error))
-                error.__traceback__ = None
-                errors.extend((error.__cause__, error.__context__))
+        _clear_exception_tracebacks(self.error)
         for item in self.keep:
             if isinstance(item, CachedNAR):
                 item.close()

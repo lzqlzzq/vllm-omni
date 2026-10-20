@@ -2,9 +2,10 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fixed-input independent-request oracle for packed NAR batching."""
 
+import gc
 import logging
 import weakref
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 
 import pytest
 import torch
@@ -422,8 +423,9 @@ def test_flashinfer_fake_output_contract(shape):
     assert out.is_contiguous()
 
 
-@pytest.mark.parametrize("capture_fails,end_fails", [(False, False), (True, False), (True, True)])
-def test_side_stream_capture_without_allocator_preparation(monkeypatch, mocker, capture_fails, end_fails):
+@pytest.mark.parametrize("stream", ["side", "default"])
+@pytest.mark.parametrize("failure", [None, "oom", "invalidated", "persistent", "unknown", "fatal", "wrapped_unknown"])
+def test_capture_oom_reclaims_once(monkeypatch, mocker, stream, failure, caplog):
     engine = object.__new__(yue2.CachedNAR)
     engine.device = torch.device("cuda:0")
     engine.pool = (0, 1)
@@ -431,41 +433,80 @@ def test_side_stream_capture_without_allocator_preparation(monkeypatch, mocker, 
     engine.state_in = torch.zeros(2, 64)
     engine.time_in = torch.zeros(())
     state = torch.ones_like(engine.state_in)
-    calls = mocker.Mock()
-    graph = mocker.Mock(spec=torch.cuda.CUDAGraph)
-    for name in ("capture_begin", "capture_end", "replay"):
-        calls.attach_mock(getattr(graph, name), name)
-    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: graph)
-    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: "side")
+    graphs = [mocker.Mock(spec=torch.cuda.CUDAGraph) for _ in range(2)]
+    factory = mocker.Mock(side_effect=graphs)
+    monkeypatch.setattr(torch.cuda, "CUDAGraph", factory)
+    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: stream)
     monkeypatch.setattr(torch.cuda, "default_stream", lambda device: "default")
-    monkeypatch.setattr(torch.accelerator, "synchronize", calls.synchronize)
-    monkeypatch.setattr(torch.accelerator, "empty_cache", calls.empty_cache)
-    engine._velocity = mocker.Mock(return_value=state.clone())
-    if capture_fails:
-        original = torch.OutOfMemoryError("capture failed")
-        engine._velocity.side_effect = original
-        if end_fails:
-            graph.capture_end.side_effect = RuntimeError("capture invalidated")
-        with pytest.raises(RuntimeError, match="capture invalidated" if end_fails else "capture failed") as caught:
-            engine.velocity(state, 0.5)
-        if end_fails:
-            assert caught.value.__context__ is original
-            assert not isinstance(caught.value, torch.OutOfMemoryError)
+
+    @contextmanager
+    def capture(graph, **kwargs):
+        graph.capture_begin(**kwargs)
+        try:
+            yield
+        finally:
+            graph.capture_end()
+
+    monkeypatch.setattr(torch.cuda, "graph", capture)
+    if failure in ("invalidated", "fatal", "wrapped_unknown"):
+        outer = torch.AcceleratorError("capture ended with error")
+        outer.error_code = 901 if failure == "invalidated" else 700
+        if failure == "wrapped_unknown":
+            outer = RuntimeError("unknown capture end failure")
+        graphs[0].capture_end.side_effect = outer
+    refs, calls = [], []
+
+    def velocity(*_):
+        calls.append("velocity")
+        if failure and (len(calls) == 1 or failure == "persistent"):
+            scratch = torch.ones(8)
+            refs.append(weakref.ref(scratch))
+            if failure == "unknown":
+                raise ValueError("unrelated failure")
+            raise torch.OutOfMemoryError("capture allocation failed")
+        return state.clone()
+
+    engine._velocity = velocity
+    order = []
+
+    def synchronize(device):
+        assert device == engine.device
+        assert "NAR graph capture ran out of memory" in caplog.text
+        graphs[0].reset.assert_called_once()
+        assert engine.graph is None and engine.velocity_out is None
+        assert refs and all(ref() is None for ref in refs)
+        order.append("synchronize")
+
+    monkeypatch.setattr(torch.accelerator, "synchronize", synchronize)
+    monkeypatch.setattr(torch.accelerator, "empty_cache", lambda: order.append("empty_cache"))
+    enabled = gc.isenabled()
+    gc.disable()
+    try:
+        if failure in ("persistent", "unknown", "fatal", "wrapped_unknown"):
+            with pytest.raises((RuntimeError, ValueError)) as caught:
+                engine.velocity(state, 0.5)
+            if failure in ("fatal", "wrapped_unknown"):
+                assert caught.value is outer
+                assert isinstance(outer.__context__, torch.OutOfMemoryError)
         else:
-            assert caught.value is original
+            assert torch.equal(engine.velocity(state, 0.5), state)
+            assert torch.equal(engine.velocity(state, 0.25), state)
+            assert torch.equal(engine.state_in, state)
+            assert engine.time_in.item() == 0.25
+    finally:
+        if enabled:
+            gc.enable()
+    retried = failure in ("oom", "invalidated", "persistent")
+    assert order == (["synchronize", "empty_cache"] if retried else [])
+    assert caplog.text.count("NAR graph capture ran out of memory") == int(retried)
+    assert factory.call_count == len(calls) == (2 if retried else 1)
+    for graph in graphs[: factory.call_count]:
+        graph.capture_begin.assert_called_once_with(pool=engine.pool, capture_error_mode="thread_local")
+        graph.capture_end.assert_called_once()
+    if failure in (None, "oom", "invalidated"):
+        graphs[int(retried)].replay.assert_has_calls([mocker.call(), mocker.call()])
     else:
-        assert torch.equal(engine.velocity(state, 0.5), state)
-        assert torch.equal(engine.velocity(state, 0.25), state)
-        assert torch.equal(engine.state_in, state)
-        assert engine.time_in.item() == 0.25
-    expected = [
-        mocker.call.capture_begin(pool=engine.pool, capture_error_mode="thread_local"),
-        mocker.call.capture_end(),
-    ]
-    if not capture_fails:
-        expected += [mocker.call.replay(), mocker.call.replay()]
-    assert calls.mock_calls == expected
-    engine._velocity.assert_called_once()
+        assert all(graph.replay.call_count == 0 for graph in graphs)
 
 
 @pytest.mark.parametrize("path", ["default", "batch_one", "packed"])
