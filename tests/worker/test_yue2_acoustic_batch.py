@@ -472,6 +472,7 @@ def test_capture_oom_reclaims_once(monkeypatch, mocker, stream, failure, caplog)
     def synchronize(device):
         assert device == engine.device
         assert "NAR graph capture ran out of memory" in caplog.text
+        assert "capture allocation failed" in caplog.text
         graphs[0].reset.assert_called_once()
         assert engine.graph is None and engine.velocity_out is None
         assert refs and all(ref() is None for ref in refs)

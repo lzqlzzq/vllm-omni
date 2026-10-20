@@ -676,7 +676,10 @@ class CachedNAR:
                 )
                 if not oom:
                     raise
-                logger.warning("YuE2 NAR graph capture ran out of memory.")
+                logger.warning(
+                    "YuE2 NAR graph capture ran out of memory: %s",
+                    str(error if isinstance(error, torch.OutOfMemoryError) else error.__context__),
+                )
                 self.graph.reset()
                 self.graph = self.velocity_out = None
                 _clear_exception_tracebacks(error)
