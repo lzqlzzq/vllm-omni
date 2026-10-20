@@ -23,7 +23,8 @@ Each row uses the same hardware within its comparison. Recipe changes are listed
 | [Direct packed-KV writes](kv-and-depth/report.txt) | Intermediate storage/copy removed: allocated peak **37.627→36.948 GiB**; throughput **+0.244% / +0.837%** against bracketing original runs. |
 | [FlashInfer BF16 SiLU×gate](flashinfer/report.txt) | Fixed-input complete NAR solves, five B1/B2/B4 shapes: **NAR throughput +2.38–3.58%**; tested velocity/latent outputs exact. |
 | [Single-element concatenation removal](single-cat/report.txt) | **15/15 FP32 audio pairs exact**, covering B1/B3/B4, cross-chunk and cancellation/reuse cases. |
-| [Pre-capture synchronization/cache reclamation](capture-prep/report.txt) | Same load: failure at song 18 became **32/32 completed, zero retries/OOM**. Reserved memory at that capture fell **19.633→13.502 GiB**. |
+| [Pre-capture synchronization/cache reclamation](capture-prep/report.txt), subsequently removed | Same load: failure at song 18 became **32/32 completed, zero retries/OOM**. Reserved memory at that capture fell **19.633→13.502 GiB**. Later replaced by [event-based NAR retirement](../nar-retirement/README.md). |
+| [Event-based NAR retirement before VAE](../nar-retirement/README.md) | Removed capture-time synchronization/cache clearing. Old/new PR four-run comparison: throughput **+0.65% / +0.07%**, allocated peak **−1.53 GiB**, device peak **+1.58 GiB**, zero retries/OOM. |
 
 Automatic ABC, paired CFG and HF loading are functional additions. The automatic-ABC/two-call diagnostic measured throughput −1.38% and handler CPU wall time at 0.415% of the run. Performance comparisons used CFG1. [ABC diagnostic](abc/report.txt).
 

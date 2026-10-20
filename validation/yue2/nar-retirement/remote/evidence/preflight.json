@@ -1,0 +1,18 @@
+{
+  "source_verified": true,
+  "changed_runtime_files": [
+    "vllm_omni/model_executor/models/yue2/batched_synthesis.py",
+    "vllm_omni/model_executor/models/yue2/yue2.py"
+  ],
+  "runtime_files": {
+    "old-pr": 2013,
+    "new-pr": 2013
+  },
+  "versions": {
+    "torch": "2.13.0+cu129",
+    "vllm": "0.31.0+cu129",
+    "vllm-omni": "0.0.0+yue2.sync",
+    "flashinfer-python": "0.7.0.post1"
+  },
+  "config_sha256": "2fbe97766c8afe9b9790433136ed67f65a358f98bf0783d18079d1847d0f1fbd"
+}

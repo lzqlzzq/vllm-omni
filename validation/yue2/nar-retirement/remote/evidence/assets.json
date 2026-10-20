@@ -1,0 +1,14 @@
+[
+  {
+    "repo": "m-a-p/YuE2-3B",
+    "revision": "1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+    "path": "/root/autodl-tmp/yue2-sync-39268/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+    "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9"
+  },
+  {
+    "repo": "m-a-p/YuE2-Vae-legacy",
+    "revision": "b54118f0fc462f08999d1ec07e88817f4ee3f770",
+    "path": "/root/autodl-tmp/yue2-sync-39268/hf-cache/hub/models--m-a-p--YuE2-Vae-legacy/snapshots/b54118f0fc462f08999d1ec07e88817f4ee3f770",
+    "sha256": "b6d283628913bb41145ba99e2314eef613905ee95f690eb70e8212d5f4965044"
+  }
+]

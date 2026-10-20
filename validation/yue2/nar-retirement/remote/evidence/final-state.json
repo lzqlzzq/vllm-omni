@@ -1,0 +1,17 @@
+{
+  "nvidia-smi --query-gpu=memory.used,utilization.gpu,temperature.gpu --format=csv,noheader": {
+    "returncode": 0,
+    "stdout": "1 MiB, 0 %, 37\n",
+    "stderr": ""
+  },
+  "nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader": {
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "screen -ls": {
+    "returncode": 1,
+    "stdout": "No Sockets found in /run/screen/S-root.\n\n",
+    "stderr": ""
+  }
+}

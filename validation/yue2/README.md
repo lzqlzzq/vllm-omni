@@ -7,17 +7,20 @@ Run the published main/PR performance comparison or CPU regressions against an i
 | Check | Tested source | Result / evidence |
 | --- | --- | --- |
 | Performance | `f9143976` + recorded main/PR patches | Throughput +6.22/+6.38%; E2EL P95 −13.94/−14.10%; RTF P95 −15.75/−15.86%. [Results](performance/artifacts/comparison.json) |
+| NAR retirement / capture preparation removal | Old PR `0b982dc8` → new PR `298d5258` | Performance effectively unchanged; throughput +0.65/+0.07%, allocated peak −1.53 GiB, device peak +1.58 GiB; zero OOM/retries. [Four-run comparison](nar-retirement/README.md) |
 | ABC / paired CFG / HTTP | `f9143976` + PR | AR1/AR2, 402 paired sampling steps, five HTTP successes/two rejections. [Records](performance/artifacts) |
 | CPU fixes | Exception-chain snapshot; logging at `9b62169b` | 256 YuE2 + 277 shared passes/2 CUDA-only skips; later 40 acoustic passes. [Exact scope and logs](review-regression/README.md) |
 | WildSongBench | `f9143976` + PR, NAR1 | 384 outputs; same 192 PER-selected outputs for all four metrics. [Scores](wsb/scoring/nar1-full-scores-01/summary.json) |
 
-Performance used one RTX4090 24 GiB, AR1/KV3 GiB/client2, full CoT/CFG1, NAR1/VAE1. PR audio was 2.454% shorter; both versions thermally throttled.
+The main/PR performance comparison used one RTX4090 24 GiB, AR1/KV3 GiB/client2, full CoT/CFG1, NAR1/VAE1. PR audio was 2.454% shorter; both versions thermally throttled.
+The later NAR retirement comparison used a 4090 D with matching frame counts and token hashes across all four runs and no sampled thermal-throttling flags.
 Batched NAR acceptance, Q3O and long-form CFG quality remain pending. [Per-change analysis](performance-attribution/README.md) · [Historical submission check](PRECHECK.md).
 
 ## Verify without a GPU
 
 ```bash
 python3 validation/yue2/verify.py
+python3 validation/yue2/nar-retirement/scripts/analyze.py
 ```
 
 Checks file hashes and recomputes performance/WSB aggregates using the Python standard library. `provenance.json` and `performance-attribution/sources.json` identify the source records.

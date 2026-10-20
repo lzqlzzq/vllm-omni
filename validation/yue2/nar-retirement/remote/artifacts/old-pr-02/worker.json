@@ -1,0 +1,15 @@
+{
+  "allocated": 11154148352,
+  "reserved": 19012780032,
+  "peak_allocated": 15995000320,
+  "peak_reserved": 21393047552,
+  "allocator": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0
+  },
+  "model_states": 0,
+  "active": false,
+  "waiting": 0,
+  "fa3_available": false,
+  "acoustic_priority": -3
+}

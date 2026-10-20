@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "arm": "new-pr",
+  "count": 8,
+  "elapsed_s": 553.5783493220806,
+  "throughput_audio_s_s": 3.577721808952139,
+  "total_content_tps": 120.71100699988057,
+  "semantic_tps": 89.44352693821119,
+  "measured_start": 51295017.73649159,
+  "measured_end": 51295571.31499301,
+  "peak_device_bytes": 24077991936,
+  "peak_allocated": 14350711808,
+  "peak_reserved": 23091740672,
+  "allocator": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0
+  },
+  "e2el_s": {
+    "p50": 131.41396559029818,
+    "p95": 175.46625295132398
+  },
+  "rtf": {
+    "p50": 0.5636099430587573,
+    "p95": 0.6406582961154776
+  }
+}

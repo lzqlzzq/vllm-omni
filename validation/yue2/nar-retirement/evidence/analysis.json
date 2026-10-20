@@ -1,0 +1,164 @@
+{
+  "complete": true,
+  "results": [
+    {
+      "label": "old-pr-01",
+      "arm": "old-pr",
+      "elapsed_s": 554.4473164901137,
+      "audio_s": 1980.5493333333334,
+      "throughput_audio_s_s": 3.572114562427769,
+      "total_content_tps": 120.52182058165216,
+      "semantic_tps": 89.30334502012668,
+      "e2el_s": {
+        "p50": 131.82117341831326,
+        "p95": 175.85870783999565
+      },
+      "rtf": {
+        "p50": 0.5645975947827373,
+        "p95": 0.6389870490890877
+      },
+      "device_peak_GiB": 20.84234619140625,
+      "allocated_peak_GiB": 14.896504878997803,
+      "reserved_peak_GiB": 19.923828125,
+      "allocator": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "temperature_c": [
+        53,
+        71
+      ],
+      "sm_median_mhz": 2730.0,
+      "thermal_fraction": 0.0,
+      "power_mean_w": 308.3877226661823,
+      "identical_outputs": 8,
+      "truncated": 0
+    },
+    {
+      "label": "new-pr-01",
+      "arm": "new-pr",
+      "elapsed_s": 550.8835844546556,
+      "audio_s": 1980.5493333333334,
+      "throughput_audio_s_s": 3.5952230003258636,
+      "total_content_tps": 121.30149070633695,
+      "semantic_tps": 89.88105907896335,
+      "e2el_s": {
+        "p50": 130.9062653183937,
+        "p95": 174.58783361352982
+      },
+      "rtf": {
+        "p50": 0.5614363266232096,
+        "p95": 0.6360366300923087
+      },
+      "device_peak_GiB": 22.42437744140625,
+      "allocated_peak_GiB": 13.365141868591309,
+      "reserved_peak_GiB": 21.505859375,
+      "allocator": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "temperature_c": [
+        54,
+        70
+      ],
+      "sm_median_mhz": 2730.0,
+      "thermal_fraction": 0.0,
+      "power_mean_w": 308.3282673738113,
+      "identical_outputs": 8,
+      "truncated": 0
+    },
+    {
+      "label": "new-pr-02",
+      "arm": "new-pr",
+      "elapsed_s": 553.5783493220806,
+      "audio_s": 1980.5493333333334,
+      "throughput_audio_s_s": 3.577721808952139,
+      "total_content_tps": 120.71100699988057,
+      "semantic_tps": 89.44352693821119,
+      "e2el_s": {
+        "p50": 131.41396559029818,
+        "p95": 175.466252951324
+      },
+      "rtf": {
+        "p50": 0.5636099430587573,
+        "p95": 0.6406582961154776
+      },
+      "device_peak_GiB": 22.42437744140625,
+      "allocated_peak_GiB": 13.365141868591309,
+      "reserved_peak_GiB": 21.505859375,
+      "allocator": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "temperature_c": [
+        53,
+        71
+      ],
+      "sm_median_mhz": 2730,
+      "thermal_fraction": 0.0,
+      "power_mean_w": 308.11455041171087,
+      "identical_outputs": 8,
+      "truncated": 0
+    },
+    {
+      "label": "old-pr-02",
+      "arm": "old-pr",
+      "elapsed_s": 553.9393869563937,
+      "audio_s": 1980.5493333333334,
+      "throughput_audio_s_s": 3.5753899794261117,
+      "total_content_tps": 120.63233193645486,
+      "semantic_tps": 89.3852308860965,
+      "e2el_s": {
+        "p50": 131.62970596924424,
+        "p95": 175.4993409253657
+      },
+      "rtf": {
+        "p50": 0.5645826836299346,
+        "p95": 0.6385987974566728
+      },
+      "device_peak_GiB": 20.84234619140625,
+      "allocated_peak_GiB": 14.896504878997803,
+      "reserved_peak_GiB": 19.923828125,
+      "allocator": {
+        "num_alloc_retries": 0,
+        "num_ooms": 0
+      },
+      "temperature_c": [
+        55,
+        72
+      ],
+      "sm_median_mhz": 2730,
+      "thermal_fraction": 0.0,
+      "power_mean_w": 309.696756182451,
+      "identical_outputs": 8,
+      "truncated": 0
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "new_vs_old_percent": {
+        "throughput_audio_s_s": 0.6469120039193088,
+        "total_content_tps": 0.6469120039192866,
+        "e2el_s_p50": -0.6940524622825572,
+        "e2el_s_p95": -0.7226677837426809,
+        "rtf_p50": -0.5599152721761369,
+        "rtf_p95": -0.46173377081506484
+      },
+      "device_peak_GiB_delta": 1.58203125
+    },
+    {
+      "pair": 2,
+      "new_vs_old_percent": {
+        "throughput_audio_s_s": 0.06521888631576545,
+        "total_content_tps": 0.06521888631576545,
+        "e2el_s_p50": -0.163899461263306,
+        "e2el_s_p95": -0.018853617265579548,
+        "rtf_p50": -0.17229373117203517,
+        "rtf_p95": 0.3225027461697616
+      },
+      "device_peak_GiB_delta": 1.58203125
+    }
+  ],
+  "scope": "Eight fixed long songs per run; complete old/new/new/old order; descriptive small-sample comparison."
+}

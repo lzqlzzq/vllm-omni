@@ -1,0 +1,38 @@
+{
+  "arm": "old-pr",
+  "label": "old-pr-01",
+  "count": 8,
+  "warmup": 2,
+  "max_frames": 9000,
+  "max_abc": 4096,
+  "concurrency": 2,
+  "assets": [
+    {
+      "repo": "m-a-p/YuE2-3B",
+      "revision": "1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+      "path": "/root/autodl-tmp/yue2-sync-39268/hf-cache/hub/models--m-a-p--YuE2-3B/snapshots/1a96eca688d6ae5d7f0feb88573fec89920fcd19",
+      "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9"
+    },
+    {
+      "repo": "m-a-p/YuE2-Vae-legacy",
+      "revision": "b54118f0fc462f08999d1ec07e88817f4ee3f770",
+      "path": "/root/autodl-tmp/yue2-sync-39268/hf-cache/hub/models--m-a-p--YuE2-Vae-legacy/snapshots/b54118f0fc462f08999d1ec07e88817f4ee3f770",
+      "sha256": "b6d283628913bb41145ba99e2314eef613905ee95f690eb70e8212d5f4965044"
+    }
+  ],
+  "source": "/root/autodl-tmp/yue2-retire-perf-39268/source-old-pr",
+  "commit": "0b982dc825fbf27b9d31bf4c7b7db08f5d1b997a",
+  "sequence_indices": [
+    0,
+    4,
+    8,
+    12,
+    17,
+    20,
+    24,
+    28
+  ],
+  "stage_probes": false,
+  "config_sha256": "2fbe97766c8afe9b9790433136ed67f65a358f98bf0783d18079d1847d0f1fbd",
+  "harness_sha256": "bff0fe13fa8c721074ebea8d9b8e9fbccc9a01819bba221d7523bfff6d0d4816"
+}

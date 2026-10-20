@@ -1,0 +1,35 @@
+{
+  "refs": {
+    "old-pr": "0b982dc825fbf27b9d31bf4c7b7db08f5d1b997a",
+    "new-pr": "298d5258296710b30ec69aafd901e9cabe8dd799"
+  },
+  "order": [
+    "old-pr-01",
+    "new-pr-01",
+    "new-pr-02",
+    "old-pr-02"
+  ],
+  "original_sequence_indices": [
+    0,
+    4,
+    8,
+    12,
+    17,
+    20,
+    24,
+    28
+  ],
+  "count": 8,
+  "warmup": 2,
+  "concurrency": 2,
+  "max_abc": 4096,
+  "max_frames": 9000,
+  "ar_slots": 1,
+  "kv_gib": 3,
+  "nar_batch": 1,
+  "vae_batch": 1,
+  "mps": "off",
+  "omp_mkl_threads": 1,
+  "stage_probes": false,
+  "nvml_period_s": 0.1
+}
